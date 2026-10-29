@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PTHA in plain words | ptha_python</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+<nav class="side" id="side"></nav>
+<main>
+
+<section id="top">
+  <div class="crumb">Start</div>
+  <h1>PTHA in plain words</h1>
+  <p class="lead">Probabilistic tsunami hazard assessment (PTHA) asks one question: how often does a tsunami of a given size reach a coast? This page explains the ideas behind the answer, in the order a source model uses them. No formulas are needed to follow it; the technical terms are defined in the <a href="glossary.html">glossary</a>.</p>
+</section>
+
+<section>
+  <h2 id="at-a-glance">At a glance</h2>
+  <p>A tsunami starts as a large earthquake on the interface between two plates. The package builds a model of that interface and of the earthquakes that can happen on it, and then counts how often each size occurs. The tsunami models that come later use those counts.</p>
+  <figure class="fig">
+    <svg viewBox="0 0 960 300" role="img" aria-label="Cross-section of a subduction zone: the oceanic plate sinks under the overriding plate. The trench is at the top of the plate interface, depth contours are drawn down the interface, and the mesh cells sit on it.">
+      <defs><marker id="cp-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8a93a3"/></marker></defs>
+      <rect x="0" y="0" width="960" height="300" fill="#f6f7f9"/>
+      <rect x="0" y="0" width="960" height="70" fill="#e8f0fd"/>
+      <text x="20" y="30" font-size="13" fill="#5b6475">sea</text>
+      <line x1="0" y1="70" x2="960" y2="70" stroke="#2f6fdf" stroke-width="2"/>
+      <polygon points="330,70 960,70 960,260 470,260" fill="#fcf0e2" stroke="#d9822b" stroke-width="1.5"/>
+      <text x="700" y="160" font-size="14" font-weight="700" fill="#5b6475">overriding plate</text>
+      <path d="M 40 70 L 330 70 L 470 260 L 520 262" fill="none" stroke="#2e9e6b" stroke-width="5"/>
+      <text x="60" y="110" font-size="13" font-weight="700" fill="#2e9e6b">the sinking plate</text>
+      <text x="60" y="128" font-size="12" fill="#5b6475">the plate interface is the fault</text>
+      <g fill="#c43d3d"><circle cx="400" cy="125" r="6"/><circle cx="430" cy="160" r="5"/><circle cx="455" cy="200" r="4"/></g>
+      <text x="415" y="112" font-size="12" fill="#c43d3d">earthquakes on the interface</text>
+      <g stroke="#8a93a3" stroke-width="1.2" stroke-dasharray="4 3">
+        <line x1="290" y1="110" x2="380" y2="110"/>
+        <line x1="350" y1="180" x2="470" y2="180"/>
+      </g>
+      <text x="200" y="250" font-size="12" fill="#5b6475">the trench: where the plate starts to sink (depth 0 km)</text>
+      <path d="M 320 58 L 330 72" stroke="#5b6475" stroke-width="1.5" marker-end="url(#cp-ar)" fill="none"/>
+      <text x="520" y="48" font-size="12" fill="#5b6475" transform="rotate(0)">the depth of the interface is measured down from the trench</text>
+    </svg>
+    <figcaption><b>A subduction zone in section.</b> The sinking plate slides under the overriding plate along the interface. Earthquakes happen on that interface; the trench is where it starts to go down. Every quantity in the package is measured on this surface.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <h2 id="subduction">Subduction zones</h2>
+  <p>Where one tectonic plate sinks beneath another, the boundary is called a subduction zone. The sinking plate pushes its edge against the other plate, and the two stick, store strain, and then slip suddenly. Those slips are the large earthquakes of a subduction zone, the ones that can raise a tsunami.</p>
+  <p>The place where the sinking plate begins to bend down is the <b>trench</b>, the long deep groove of the sea floor. The package uses the trench as its reference line: every depth on the interface is measured from the trench nearest to it, so the trench is depth 0 and the depth grows as the interface goes down into the Earth.</p>
+  <p>The data for the interface comes from a model of the depth of each plate on a map grid (USGS SLAB). Step 1 reads that grid and draws the depth lines. If you already have a mesh of the interface, it can be given instead (<a href="mesh_file.html">Your own mesh</a>).</p>
+</section>
+
+<section>
+  <h2 id="unit-sources">Unit sources: cutting the fault into cells</h2>
+  <p>An earthquake is not a point: it is a slip over a patch of the fault. To count earthquakes, the interface is cut into a grid of rectangular cells, each about 50 km across. A cell is a <i>unit source</i>, the building block of everything after it.</p>
+  <p>Columns of cells run along the trench and rows run down the slope. An earthquake is then a rectangle of neighbouring cells, its <i>rupture</i>, sized so that its area follows the size of the earthquake. The cells carry the geometry the rest of the model needs: the area, the depth, the dip (how steeply the interface goes down), and the direction of the trench.</p>
+</section>
+
+<section>
+  <h2 id="magnitude">Magnitude and seismic moment</h2>
+  <p>Earthquake size is measured by the <b>moment magnitude</b>, Mw. It is a logarithmic scale: one unit more means about 32 times more energy is released. The physical quantity behind it is the <b>seismic moment</b>, which equals the rigidity of the rock times the area that slipped times the amount it slipped. A big rupture with a big slip has a big moment.</p>
+  <p>The model uses the Gutenberg-Richter law: for a zone, smaller earthquakes are much more frequent than large ones, and each unit of magnitude is about ten times rarer for a b-value near 1. How steep that drop is depends on the b-value, which is a property of the zone and is uncertain. The b-value is taken from Berryman et al. (2015), and so is the largest observed magnitude, which the package combines with the largest one in the catalogue.</p>
+</section>
+
+<section>
+  <h2 id="rates">Rates: how often</h2>
+  <p>The plates move steadily, but the earthquakes come in bursts. Over a long time, however, the moment the plates build up must be released again. This is the <b>moment balance</b>: the convergence of the plates, times the coupling, times the area of the interface, times the rigidity of the rock, gives the moment per year that the zone must release. Each candidate set of parameters therefore fixes a rate of earthquakes of each size.</p>
+  <p>The result is an <b>exceedance rate</b>: how many earthquakes of at least a given magnitude are expected per year on the zone. A rate of 0.01 per year means one such earthquake every hundred years on average, not one every hundred years exactly. The rate for a magnitude is then shared out among the ruptures of that magnitude, to give the rate of each scenario: each rupture gets a share, its conditional probability, and the shares of one magnitude add up to 1.</p>
+  <p>The plate convergence used by default comes from Bird's (2003) plate model, read for the place where each column of cells lies (<a href="step3.html">Plate convergence</a>). The observed earthquakes come from the Global CMT catalogue (<a href="seismicity.html">Earthquake catalogue</a>).</p>
+</section>
+
+<section>
+  <h2 id="logic-tree">The logic tree: many possible answers</h2>
+  <p>Nobody knows the exact coupling (how much of the plate motion is released in earthquakes, the rest creeping silently), the exact b-value, or the largest magnitude a zone can produce. So the model does not pick one answer. It builds a <b>logic tree</b>: every combination of the uncertain inputs is a <i>branch</i>, and each branch is a complete model with its own rates.</p>
+  <p>The package builds 32,000 branches for a standard zone. Each branch has a prior weight, which says how plausible its inputs are before any earthquake is looked at. The <b>Bayesian update</b> then re-weights the branches: a branch that predicts the earthquakes observed in the GCMT catalogue gains weight, one that does not loses it. The rates of each branch do not change in the update, only the weights.</p>
+  <p>The levels of the tree are numbered. Level 0 decides whether the zone breaks as one fault or in segments; level 1 defines the axes of the tree; level 2 solves the moment balance for each branch; level 3 applies the update; level 4 corrects the edges of the zone; level 5 summarises the branches as percentiles. <a href="engine.html">Logic tree and rates</a> goes through them one by one.</p>
+</section>
+
+<section>
+  <h2 id="segments">Segments</h2>
+  <p>A long zone may not break as a whole. It can break in separate stretches, each with its own convergence and earthquakes. When the option is on, level 0 allows for both possibilities with equal weight (0.5 each): the zone as one fault, and the union of its segments. By default the segments are taken from the trench end points of Berryman et al. (2015); the other choice is to start a new segment where Bird's plate pair changes. The option is off by default and is switched on with <code>--segmented true</code>. <a href="segmentation.html">Segmented vs unsegmented</a> explains the choice.</p>
+</section>
+
+<section>
+  <h2 id="uncertainty">Uncertainty: percentiles, not error bars</h2>
+  <p>The result of the logic tree is a spread of rates, one per branch, each with its weight. The report summarises that spread with <b>percentiles</b>: the value below which a given share of the weight lies. The 50th percentile is the median, and the 2.5th and 97.5th bound the central 95 per cent of the weight.</p>
+  <p>These percentiles describe how much the inputs are uncertain. They are not a statement that the true rate lies in the interval with a stated probability. The mean rate of the tree is shown alongside them.</p>
+</section>
+
+<section>
+  <h2 id="how-built">What is built here, and what is taken from PTHA18</h2>
+  <p>Every quantity in the model is built from public data: the SLAB depth grid, Bird's plate model, the GCMT catalogue, and the literature values of Berryman et al. (2015). With the default <code>--ptha false</code>, the PTHA18 files are used only in step 8, which runs PTHA18's own inputs through the same engine, so that the result can be checked against them (<a href="data_provenance.html">Data provenance</a>).</p>
+  <p>Where the public data gives a different geometry from the one PTHA18 drew by hand, the package keeps its own geometry and says so in the report. The reasons are on <a href="step1.html">Contours from SLAB</a> and <a href="clean_ends.html">Clean ends</a>.</p>
+</section>
+
+<nav class="pager" id="pager"></nav>
+<footer>Concepts only; the procedure is on <a href="pipeline.html">The nine steps</a>.</footer>
+</main>
+<aside class="toc" id="toc"></aside>
+</div>
+<script src="assets/nav.js"></script>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cell size (strasser) | ptha_python</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+figure.fig svg .b0{fill:var(--card);stroke:var(--line);stroke-width:1.5}
+figure.fig svg .b1{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.5}
+figure.fig svg .b2{fill:var(--good-soft);stroke:var(--good);stroke-width:1.5}
+figure.fig svg .t1{font-size:14px;font-weight:600;fill:var(--ink)}
+figure.fig svg .t2{font-size:12px;fill:var(--muted)}
+figure.fig svg .ar{stroke:var(--muted);stroke-width:1.6}
+figure.fig svg .ah{fill:var(--muted)}
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="side" id="side"></nav>
+<main>
+
+<section id="top">
+  <div class="crumb">Geometry: from SLAB to mesh</div>
+  <h1>Cell size: <code>--cell-size strasser</code></h1>
+  <p class="lead">By default the unit sources are sized on average, about 50 x 50 km. On a fan-shaped zone, or one whose width changes along strike, some cells then come out far larger than the earthquakes the run builds. <code>--cell-size strasser</code> caps the size of every cell instead, so that no cell is larger than a rupture of the smallest magnitude the run uses, divided by <code>--cell-k</code>.</p>
+  <div class="grid g4">
+    <div class="card kpi"><div class="num">36.2 x 29.5 km</div><div class="lbl">the cap on any cell's length and width, with the default <code>--cell-k 1.5</code></div></div>
+    <div class="card kpi"><div class="num">2612 km&sup2;</div><div class="lbl">largest cell on calabria2 with the default mesh</div></div>
+    <div class="card kpi"><div class="num">1013 km&sup2;</div><div class="lbl">largest cell on calabria2 with the cap (k = 1.5)</div></div>
+    <div class="card kpi"><div class="num">90 to 286</div><div class="lbl">unit sources on calabria2, default and capped</div></div>
+  </div>
+</section>
+
+<section>
+  <h2 id="at-a-glance">At a glance</h2>
+  <figure class="fig"><svg viewBox="0 0 880 150" role="img" aria-label="How a capped mesh is built: the cap, the optimal mesher, a check of the longest and widest cell, and the mesh when the check passes">
+    <defs><marker id="cs-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker></defs>
+    <rect x="10" y="20" width="190" height="80" rx="8" class="b0"/>
+    <text x="105" y="46" text-anchor="middle" class="t1">cap</text>
+    <text x="105" y="68" text-anchor="middle" class="t2">Strasser at Mw 7.2 / k</text>
+    <text x="105" y="86" text-anchor="middle" class="t2">k = 1.5: 36.2 x 29.5 km</text>
+    <line x1="200" y1="60" x2="235" y2="60" class="ar" marker-end="url(#cs-ah)"/>
+    <rect x="235" y="20" width="190" height="80" rx="8" class="b1"/>
+    <text x="330" y="46" text-anchor="middle" class="t1">optimal mesher</text>
+    <text x="330" y="68" text-anchor="middle" class="t2">the same method as the default</text>
+    <text x="330" y="86" text-anchor="middle" class="t2">rows x columns</text>
+    <line x1="425" y1="60" x2="460" y2="60" class="ar" marker-end="url(#cs-ah)"/>
+    <rect x="460" y="20" width="190" height="80" rx="8" class="b1"/>
+    <text x="555" y="46" text-anchor="middle" class="t1">longest, widest cell</text>
+    <text x="555" y="68" text-anchor="middle" class="t2">within the cap?</text>
+    <text x="555" y="86" text-anchor="middle" class="t2">no: more columns / rows</text>
+    <path d="M555,100 L555,126 L330,126 L330,104" fill="none" class="ar" marker-end="url(#cs-ah)"/>
+    <line x1="650" y1="60" x2="685" y2="60" class="ar" marker-end="url(#cs-ah)"/>
+    <rect x="685" y="20" width="185" height="80" rx="8" class="b2"/>
+    <text x="777" y="46" text-anchor="middle" class="t1">yes: the mesh</text>
+    <text x="777" y="68" text-anchor="middle" class="t2">saved with its settings</text>
+    <text x="777" y="86" text-anchor="middle" class="t2">steps 3-9 unchanged</text>
+  </svg><figcaption>The cap limits the largest cell, not the average. Cells stay unequal (on an arc every row has as many columns as the trench), but none is larger than the cap, so ruptures can be built from them with the size and shape the scaling relation asks for.</figcaption></figure>
+  <div class="io">
+    <div><b>Reads</b>the SLAB contours from step 1, as the default mesh does.</div>
+    <div><b>Writes</b>the same <code>data/slab2/unit_source_grid.npy</code> as the default, with <code>cell_size</code>, <code>cell_k</code> and the cap in its fingerprint, so a changed setting rebuilds the mesh.</div>
+  </div>
+</section>
+
+<section>
+  <h2 id="why">Why a cap is needed</h2>
+  <p>The default rule sizes the cells on average. Its columns come from the trench length divided by 50 km, and its rows from the mean down-dip length divided by 50 km. On a fan, where the deep contours are much shorter than the trench, the cells at the trench become much longer than the cells at depth. On calabria2, the trench is 717 km long after the Berryman end cut, and the rows are 6 deep. Its largest cell is 2612 km&sup2; and its widest cell is 61.5 km. A Strasser rupture at Mw 7.2 is about 54 x 44 km, or about 2400 km&sup2;, so one cell can be bigger than the whole rupture.</p>
+  <p>This matters for two reasons. A rupture cannot be smaller than one cell, so ruptures built with <code>--rupture-size local</code> cannot take the size of the scaling relation where the cells are too large. The same holds for the variable-slip footprints of step 7b. Capping the cells makes both fit.</p>
+</section>
+
+<section>
+  <h2 id="rule">The rule</h2>
+  <ol class="steps">
+    <li><b>The cap.</b> Strasser's scaling relation gives the rupture size at the smallest magnitude the run builds (Mw 7.2 in the default run). That length and width are divided by <code>--cell-k</code>. With the default k = 1.5 the cap is 36.2 x 29.5 km. With k = 2 it is 27.2 x 22.1 km (<code>strasser_cell_cap()</code>). Step 2 prints it: <code>--cell-size=strasser: no unit source longer than 36.2 km or wider than 29.5 km (Strasser at Mw 7.2 / 1.5); rows and columns raised until every cell meets the cap</code>.</li>
+    <li><b>The first mesh.</b> The same optimal mesher as the default builds the mesh, with the cap values as its cell-size targets in place of the default 50 km.</li>
+    <li><b>Check.</b> The longest and the widest cell are measured. If the widest cell is wider than the cap, rows are added. If the longest cell is longer than the cap, columns are added. Both use a 2% tolerance.</li>
+    <li><b>Repeat.</b> The mesh is rebuilt with the new counts and checked again, up to 40 meshes. Every try is printed as <code>cell cap: C x R cells, longest L km (cap ...), widest W km (cap ...)</code>, so you can follow the process in step 2's log (the calabria2 run with k = 1.5 prints 20 x 11, 20 x 13, 21 x 13 and 22 x 13). If the cap is not met after 40 meshes, step 2 stops with an error.</li>
+  </ol>
+  <p>The minimum of two down-dip rows still applies. The cells are not made equal, and the number of rows and columns is not fixed by any target.</p>
+  <p class="where">Where in the code: <code>pyptha/contour_discretisation.py</code> <code>strasser_cell_cap()</code> and <code>discretized_source_from_contours_bounded()</code>; <code>templates/step2_build_grid.py.tmpl</code> (<code>CELL_SIZE</code>, <code>CELL_K</code>, <code>CELL_CAP_MW</code>, <code>CELL_CAP_RELATION</code>). Step 6 reads those four constants from the step 2 script and writes them as <code>cell_size</code>, <code>cell_k</code>, <code>cell_cap_mw</code> and <code>cell_cap_relation</code> into the geometry block of the input JSON (and <code>n_downdip</code> as null), so the engine, step 7b and step 9 build the same mesh.</p>
+  <p><code>CELL_CAP_MW = 7.2</code> and <code>CELL_CAP_RELATION = "Strasser"</code> are constants in step 2, not options. They must equal the smallest magnitude and the scaling relation of the event table, which step 6 writes into the <code>events</code> block of the input JSON (<code>Mmin</code>, 7.2 in the script; <code>scaling_relation</code>). If you change one of those, change the cap constants too and redo the steps that depend on the mesh in order: step 2, step 3, step 5, step 6 with <code>--force</code> (which discards other hand edits of the JSON), then step 7 onward.</p>
+</section>
+
+<section>
+  <h2 id="effect">What it changes, on calabria2</h2>
+  <p>Run for calabria2 with its Berryman end cut in place, the three meshes are:</p>
+  <div class="tbl"><table>
+    <tr><th></th><th class="n"><code>--cell-size mean</code> (default)</th><th class="n"><code>strasser</code>, k = 1.5</th><th class="n"><code>strasser</code>, k = 2</th></tr>
+    <tr><td>columns x rows</td><td class="n">15 x 6</td><td class="n">22 x 13</td><td class="n">27 x 17</td></tr>
+    <tr><td>unit sources</td><td class="n">90</td><td class="n">286</td><td class="n">459</td></tr>
+    <tr><td>longest cell</td><td class="n">46.6 km</td><td class="n">36.9 km</td><td class="n">26.8 km</td></tr>
+    <tr><td>widest cell</td><td class="n">61.5 km</td><td class="n">28.9 km</td><td class="n">22.1 km</td></tr>
+    <tr><td>largest cell area</td><td class="n">2612 km&sup2;</td><td class="n">1013 km&sup2;</td><td class="n">569 km&sup2;</td></tr>
+  </table></div>
+  <p>The longest cell of the capped mesh is 36.9 km against a cap of 36.2 km, inside the 2% tolerance. The total area of the mesh does not change much, because both meshes cover the same surface. The cap changes how the surface is divided, and therefore which scenarios are possible. The rates can change with it, and this page does not give a rate comparison. The effect on the tsunami hazard has not been measured in this repository.</p>
+  <p class="where">Measured with the current code on the default calabria2 contours (step 1 with its Berryman end cut, <code>--ptha false</code>). To reproduce a row, run the commands below. Step 2 prints the grid line and the ranges of cell length and width. The areas in the table are the length times the width of the largest cell.</p>
+</section>
+
+<section>
+  <h2 id="cost">Costs and limits</h2>
+  <ul class="tight">
+    <li><b>More unit sources.</b> The capped calabria2 mesh has 286 unit sources against 90 for the default, about three times as many. Every later step works on each unit source, so expect longer runs.</li>
+    <li><b>Needs <code>--discretizer optimal</code>.</b> Any other choice stops at generate time with a message.</li>
+    <li><b>Cannot be combined with <code>--mesh-file</code>.</b> A mesh file is used as given, so there is nothing to cap.</li>
+    <li><b>Columns and targets are not used.</b> The column count and the rows come from the cap, so the 50 km targets, <code>--ptha true</code>'s per-zone width and official row count, and <code>N_DOWNDIP_OVERRIDE</code> are not used (the log says <code>the fixed row count above is not used</code>). <code>--columns average</code> is accepted but its rule is ignored: the average row length plays no part with <code>strasser</code>. <code>--columns trench-edited</code> and <code>average-edited</code> are refused at generate time.</li>
+    <li><b><code>--cell-k</code></b> is read only with <code>strasser</code> (it must be above 0, else <code>generate.py</code> stops). With the default <code>--cell-size mean</code> it has no effect.</li>
+    <li><b>Not PTHA18's procedure.</b> The scenarios do not match PTHA18's one by one.</li>
+  </ul>
+</section>
+
+<section>
+  <h2 id="when">When to use it</h2>
+  <ol class="steps">
+    <li><b>With <code>--rupture-size local</code>.</b> The rupture size follows the scaling relation at each place only if the cells are small enough there. The rptha rule, with one block of cells per magnitude, gives poor ruptures on arcs whose cells are still unequal.</li>
+    <li><b>On a fan or a zone whose width changes along strike.</b> Check step 2's log first. If the longest or widest cell is far above the cap, the cap changes the mesh.</li>
+    <li><b>Not needed when the default cells are already close to the cap.</b> Then the cap changes almost nothing.</li>
+  </ol>
+  <pre class="code">python ptha_python/generate.py calabria --zone calabria2 --folder calabria2_k15 --ptha false --rupture-size local --cell-size strasser --cell-k 1.5
+python calabria2_k15/steps/step_total.py</pre>
+  <p><code>calabria</code> is the region search term (the first argument), which selects the SLAB region. <code>--zone calabria2</code> selects the zone, and its Berryman et al. (2015) end cut is applied automatically (<a href="step1.html#berryman-ends">step 1</a>).</p>
+</section>
+
+<nav class="pager" id="pager"></nav>
+<footer>Code: <code>pyptha/contour_discretisation.py</code> and the step 2 template. Mesh defaults and the rupture size rules: <a href="step2.html">step 2</a>, <a href="rupture_size.html">rupture size</a>.</footer>
+</main>
+<aside class="toc" id="toc"></aside>
+</div>
+<script src="assets/nav.js"></script>
+</body>
+</html>

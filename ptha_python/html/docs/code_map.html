@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Code map | ptha_python</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+<nav class="side" id="side"></nav>
+<main>
+
+<section id="top">
+  <div class="crumb">Code</div>
+  <h1>Code map</h1>
+  <p class="lead">Every Python file of the package, what it does, and which file of rptha it corresponds to. The modules of the engine are ports of a named rptha file, or are marked as new. The R file names below are the names used in the rptha repository (github.com/GeoscienceAustralia/ptha, BSD 3-Clause). The rptha R package source is not included in this repository, only a few of its data files (<code>rptha/</code>: the parameter table <code>sourcezone_parameters.csv</code> and two shapefiles).</p>
+</section>
+
+<section>
+  <h2 id="at-a-glance">At a glance</h2>
+  <figure class="fig">
+    <svg viewBox="0 0 960 220" role="img" aria-label="Pipeline from the SLAB raster to the report, with the Python modules of each part below it">
+      <g font-size="12.5">
+        <rect x="10" y="20" width="170" height="54" rx="8" fill="#e4f5ec" stroke="#2e9e6b"/><text x="22" y="42" font-weight="700">Geometry</text><text x="22" y="60" font-size="11" fill="#5b6475">steps 1 and 2</text>
+        <rect x="200" y="20" width="170" height="54" rx="8" fill="#fcf0e2" stroke="#d9822b"/><text x="212" y="42" font-weight="700">Convergence</text><text x="212" y="60" font-size="11" fill="#5b6475">steps 3 to 5</text>
+        <rect x="390" y="20" width="170" height="54" rx="8" fill="#e8f0fd" stroke="#2f6fdf" stroke-width="2"/><text x="402" y="42" font-weight="700">Engine</text><text x="402" y="60" font-size="11" fill="#5b6475">steps 6 and 7</text>
+        <rect x="580" y="20" width="170" height="54" rx="8" fill="#f1eafb" stroke="#8a5cd1"/><text x="592" y="42" font-weight="700">Slip patterns</text><text x="592" y="60" font-size="11" fill="#5b6475">step 7b, 7c</text>
+        <rect x="770" y="20" width="170" height="54" rx="8" fill="#f0f2f5" stroke="#8a93a3"/><text x="782" y="42" font-weight="700">Report</text><text x="782" y="60" font-size="11" fill="#5b6475">step 9</text>
+        <text x="22" y="110" font-size="11" fill="#5b6475">lib/slab_contours.py, lib/official_geometry_params.py, pyptha/contour_discretisation.py, pyptha/unit_sources.py, pyptha/mesh_edit.py, pyptha/mesh_file.py</text>
+        <text x="212" y="130" font-size="11" fill="#5b6475">lib/bird_convergence.py, lib/berryman_params.py, lib/segmentation.py</text>
+        <text x="402" y="150" font-size="11" fill="#5b6475">logic_tree/run_logic_tree.py, pyptha/rates.py, pyptha/events.py, pyptha/scaling.py, pyptha/logic_tree.py, pyptha/moment_balance.py</text>
+        <text x="592" y="170" font-size="11" fill="#5b6475">pyptha/stochastic_slip.py, pyptha/hs_vaus_rates.py, pyptha/variable_mu.py</text>
+        <text x="782" y="190" font-size="11" fill="#5b6475">lib/plot_meshes.py, templates/step9</text>
+      </g>
+    </svg>
+  </figure>
+  <p>The engine itself is <code>pyptha/</code>. The script that runs it for one zone is <code>logic_tree/run_logic_tree.py</code>, the steps are <code>templates/</code> (turned into scripts by <code>generate.py</code>), and the helper modules are <code>lib/</code>. Step 8 runs PTHA18's own inputs through the same engine. The tables below list every file, grouped by the steps that use it.</p>
+</section>
+
+<section>
+  <h2 id="entry">Entry points and shared files</h2>
+  <div class="tbl"><table class="fixed">
+    <colgroup><col style="width:33%"><col style="width:42%"><col style="width:25%"></colgroup>
+    <tr><th>File</th><th>What it does</th><th>rptha counterpart</th></tr>
+    <tr><td><code>generate.py</code></td><td>reads the options, resolves the region and the zone, and writes the folder: the steps from <code>templates/</code>, <code>RUN.html</code> and <code>README.md</code></td><td>new</td></tr>
+    <tr><td><code>list_regions.py</code></td><td>prints the SLAB regions, their ids and prefixes</td><td>new</td></tr>
+    <tr><td><code>data/bird/</code>, <code>data/slab1/</code>, <code>data/slab2/</code>, <code>data/ptha18_peak_slip_quantile_weights.csv</code></td><td>the Bird tables (<code>PB2002_steps.dat.txt.zip</code>, <code>bird_griffin_traces_table.csv.zip</code>, <code>ptha18_convergence_sources.csv</code>), the shared SLAB raster caches, and the table of peak-slip weights of the HS and VAUS rates</td><td>the traces table is a copy of rptha's <code>sourcezone_traces_table_merged.csv</code>; the weights are recovered from PTHA18's results</td></tr>
+    <tr><td><code>../rptha/R/examples/austptha_template/DATA/SOURCEZONE_PARAMETERS/sourcezone_parameters.csv</code></td><td>PTHA18's own per-zone table, read by <code>generate.py</code>, <code>list_regions.py</code>, <code>--ptha true</code>, step 8 and the validation</td><td>the file itself</td></tr>
+    <tr><td><code>../inputs_meshes/alaskaaleutians_quadrilateral_coors.dat</code></td><td>an example external mesh for <code>--mesh-file</code></td><td>new</td></tr>
+  </table></div>
+</section>
+
+<section>
+  <h2 id="geometry">Geometry: steps 1 and 2</h2>
+  <div class="tbl"><table class="fixed">
+    <colgroup><col style="width:33%"><col style="width:42%"><col style="width:25%"></colgroup>
+    <tr><th>Python file</th><th>What it does</th><th>rptha counterpart</th></tr>
+    <tr><td><code>templates/step1_fetch_slab2.py.tmpl</code></td><td>step 1: finds or downloads the SLAB raster, finds the trench, and writes the contours, a figure and a JSON summary</td><td>new</td></tr>
+    <tr><td><code>templates/step2_build_grid.py.tmpl</code></td><td>step 2: cuts the contours into unit sources, prints the mesh checks, saves the grid</td><td>new (it calls the port below)</td></tr>
+    <tr><td><code>lib/slab_contours.py</code></td><td>turns the SLAB depth raster into contours of depth below the trench, cut at the zone's ends</td><td>the PTHA18 contour recipe (the contours shipped with PTHA18 are read to check it); no single R file</td></tr>
+    <tr><td><code>lib/official_geometry_params.py</code></td><td>chooses the SLAB product from the zone name, finds the cached raster, downloads SLAB1.0, reads PTHA18's per-zone width, scaling relation and mesh table (<code>.nc</code>) when <code>--ptha true</code>; has a cache of PTHA18's cutoffs</td><td><code>sourcezone_parameters.csv</code> in rptha's <code>austptha_template</code> data; <code>config.R</code> and <code>make_all_earthquake_events.R</code> (where the per-zone scaling and rigidity are read)</td></tr>
+    <tr><td><code>lib/slab2_catalog.py</code></td><td>the 27 SLAB2.0 regions, with their ScienceBase ids and prefixes, and the region and zone-name matching</td><td>new</td></tr>
+    <tr><td><code>pyptha/contour_discretisation.py</code></td><td>places the unit sources on the contours: down-dip lines, orthogonality, the optimiser that adjusts them, and the <code>optimal</code>, <code>lm</code>, <code>mid</code> and cell-capped (<code>strasser</code>) meshers</td><td><code>downdip_3d_lines_on_source.R</code> (called from <code>make_initial_downdip_lines.R</code>, with <code>geometric_util.R</code>); the <code>optimal</code> repairs and the <code>strasser</code> mesher are new</td></tr>
+    <tr><td><code>pyptha/unit_sources.py</code></td><td>summary statistics of each unit source: centre, strike, dip, length, width, area, depth</td><td><code>unit_sources.R</code> (the summary-statistics routine)</td></tr>
+    <tr><td><code>pyptha/mesh_edit.py</code></td><td>the <code>--columns *-edited</code> option: redesigns cells that misread the dip. Not used by default.</td><td>new (not in rptha)</td></tr>
+    <tr><td><code>pyptha/mesh_file.py</code></td><td>reads an external quadrilateral mesh (<code>--mesh-file</code>) into the grid layout of the pipeline</td><td>new (not in rptha)</td></tr>
+    <tr><td><code>pyptha/grid_cache.py</code></td><td>saves the mesh in step 2 with a fingerprint and reloads it in steps 7 and 9, so all of them use one mesh</td><td>new (a cache, not a port)</td></tr>
+    <tr><td><code>lib/plot_meshes.py</code></td><td>the mesh figures of steps 2 and 9 and the mesh CSV export; run alone, it draws a folder's mesh next to PTHA18's</td><td>new</td></tr>
+  </table></div>
+</section>
+
+<section>
+  <h2 id="convergence">Convergence and earthquakes: steps 3 to 5</h2>
+  <div class="tbl"><table class="fixed">
+    <colgroup><col style="width:33%"><col style="width:42%"><col style="width:25%"></colgroup>
+    <tr><th>Python file</th><th>What it does</th><th>rptha counterpart</th></tr>
+    <tr><td><code>templates/step3_convergence.py.tmpl</code></td><td>step 3: the convergence of each column, the plate-boundary check, the convergence files</td><td>new (it calls the module below)</td></tr>
+    <tr><td><code>lib/bird_convergence.py</code></td><td>matches each along-strike column to the nearest convergent step of the plate-boundary table, area-weights the convergence, detects a mesh that runs past its plate boundary</td><td><code>make_spatially_variable_source_zone_convergence_rates.R</code>, and <code>compute_rates_all_sources.R</code> lines 371 to 415; the detector is new</td></tr>
+    <tr><td><code>lib/berryman_params.py</code></td><td>per-zone literature values: Table 3.1 rows, segment end points, the seismogenic cutoff, coupling, b values and the largest magnitude, the zone list of <a href="zones.html">Zones you can run</a>, and the zones' trench ends</td><td>the Berryman et al. (2015) table, which PTHA18 cites; PTHA18's own copy of its values is in rptha's <code>sourcezone_parameters.csv</code></td></tr>
+    <tr><td><code>lib/segmentation.py</code></td><td>the LEVEL 0 segment boundaries, from public data (Berryman's end points or Bird's plate pairs); PTHA18's own segments, for step 8 and the validation</td><td>new (PTHA18's segments are reproduced by the Berryman boundaries); the segment block of the official input follows <code>compute_rates_all_sources.R</code></td></tr>
+    <tr><td><code>templates/step4_fetch_gcmt.py.tmpl</code>, <code>templates/step5_subset_gcmt.py.tmpl</code></td><td>steps 4 and 5: download and parse the GCMT NDK files, then select the zone's events with the rule of step 5</td><td><code>gcmt_subsetter.R</code> (the selection rule, re-implemented in Python)</td></tr>
+  </table></div>
+</section>
+
+<section>
+  <h2 id="engine">The engine: steps 6 and 7</h2>
+  <div class="tbl"><table class="fixed">
+    <colgroup><col style="width:33%"><col style="width:42%"><col style="width:25%"></colgroup>
+    <tr><th>Python file</th><th>What it does</th><th>rptha counterpart</th></tr>
+    <tr><td><code>templates/step6_write_input.py.tmpl</code>, <code>templates/step7_run.py.tmpl</code></td><td>step 6 writes the input JSON; step 7 runs the engine on it and copies the results into <code>outputs/</code></td><td>new</td></tr>
+    <tr><td><code>logic_tree/run_logic_tree.py</code></td><td>the logic tree of one zone: reads the input JSON, builds the branches, and writes the CSV outputs and figures</td><td>the PTHA18 driver scripts, <code>compute_rates_all_sources.R</code> in <code>EVENT_RATES/</code>, with <code>config.R</code></td></tr>
+    <tr><td><code>logic_tree/gr_curve_and_convergence.py</code></td><td>a standalone summary of four official runs (a figure and a table of rates at Mw 7.5, 8 and 9). It is not used by the steps.</td><td>new (a summary of the outputs)</td></tr>
+    <tr><td><code>pyptha/scaling.py</code></td><td>rupture scaling relations: moment and magnitude, rupture size, slip from magnitude and area</td><td><code>rupture_scaling.R</code></td></tr>
+    <tr><td><code>pyptha/events.py</code></td><td>the uniform-slip ruptures (FAUS) of each magnitude on the mesh, and with <code>--rupture-size local</code> the per-placement block and the q weight of overlapping ruptures</td><td><code>rupture_events.R</code>; the <code>local</code> rule and q are new</td></tr>
+    <tr><td><code>pyptha/rates.py</code></td><td>conditional probability of each rupture, the Gutenberg-Richter rate curves, the parameter grid and the LEVEL 3 Bayesian update (LEVELs 1 to 3)</td><td><code>rupture_probabilities.R</code>, and <code>single_source_rate_computation.R</code></td></tr>
+    <tr><td><code>pyptha/logic_tree.py</code></td><td>LEVEL 0 (segments), LEVEL 3 (the full observed-earthquake update), LEVEL 4 (edge correction) and LEVEL 5 (percentiles across segments)</td><td>LEVEL 3: <code>rupture_probabilities.R</code>; LEVEL 4: <code>back_calculate_convergence.R</code>; LEVEL 5: <code>get_PTHA_results.R</code> and <code>make_stage_vs_rate_curve_fast.R</code>; LEVEL 0: <code>get_detailed_PTHA18_source_zone_info.R</code></td></tr>
+    <tr><td><code>pyptha/moment_balance.py</code></td><td>the moment balance: the slip each scenario releases, the fit of the edge multiplier, the coupling prior, the parameter grids and the dip factor</td><td><code>back_calculate_convergence.R</code> and <code>compute_rates_all_sources.R</code> (coupling prior, edge fit) in <code>EVENT_RATES/</code>, not in the rptha package itself</td></tr>
+    <tr><td><code>pyptha/okada.py</code></td><td>Okada (1985) surface deformation of rectangular faults. No step calls it: it turns a slip field into seafloor deformation, which this package does not go on to use.</td><td><code>okada_tsunami.R</code> and <code>okada_tsunami_fortran.f</code></td></tr>
+    <tr><td><code>pyptha/__init__.py</code></td><td>the package: imports the modules above and states which rptha files they port</td><td>new</td></tr>
+  </table></div>
+  <p>The logic tree, the moment balance and the percentiles follow the PTHA18 driver scripts. Where a function is a port, it keeps the R function's name in Python, so a reader can find both.</p>
+</section>
+
+<section>
+  <h2 id="slip">Slip patterns and shear modulus: steps 7b and 7c</h2>
+  <div class="tbl"><table class="fixed">
+    <colgroup><col style="width:33%"><col style="width:42%"><col style="width:25%"></colgroup>
+    <tr><th>Python file</th><th>What it does</th><th>rptha counterpart</th></tr>
+    <tr><td><code>templates/step7b_stochastic_slip.py.tmpl</code>, <code>templates/step7c_variable_mu.py.tmpl</code></td><td>step 7b generates the HS and VAUS fields and their rates; step 7c adds the variable shear modulus rates</td><td>new (they call the modules below)</td></tr>
+    <tr><td><code>pyptha/stochastic_slip.py</code></td><td>heterogeneous slip fields with a target spectrum (the S<sub>NCF</sub> method of Davies et al., 2015), and the per-event random length, width and corner wavenumbers</td><td><code>sffm_fit_simulate_earthquake.R</code></td></tr>
+    <tr><td><code>pyptha/hs_vaus_rates.py</code></td><td>the rates of heterogeneous-slip and variable-area scenarios, shared from their uniform-slip parents</td><td><code>compute_rates_all_sources.R</code>, lines 1551 to 1600, and <code>config_peak_slip_limit_factor.R</code></td></tr>
+    <tr><td><code>pyptha/variable_mu.py</code></td><td>the rigidity that grows with depth, and the relabelled magnitude of each scenario</td><td>the rigidity curve in <code>unit_sources.R</code> (line 1702), <code>append_variable_mu_variables_to_event_netcdf.R</code> (lines 90 to 114), <code>rupture_probabilities.R</code> (line 1481), and the PTHA18 report, section 3.7.5</td></tr>
+    <tr><td><code>lib/hs_official_compare.py</code></td><td>compares step 7b's fields with PTHA18's published HS and VAUS catalogues, and downloads them (step 8)</td><td>new (a comparison); the catalogues come from <code>make_all_earthquake_events.R</code></td></tr>
+    <tr><td><code>validation/recover_peak_slip_weights.py</code></td><td>recovers the peak-slip quantile weights table that <code>hs_vaus_rates.py</code> reads</td><td>the table of <code>event_properties_and_GOF.R</code>, which PTHA18 did not publish</td></tr>
+  </table></div>
+</section>
+
+<section>
+  <h2 id="report">The report: step 9</h2>
+  <div class="tbl"><table class="fixed">
+    <colgroup><col style="width:33%"><col style="width:42%"><col style="width:25%"></colgroup>
+    <tr><th>Python file</th><th>What it does</th><th>rptha counterpart</th></tr>
+    <tr><td><code>templates/step9_report.py.tmpl</code></td><td>step 9: reads what steps 1 to 8 wrote, draws the figures, writes the exports and <code>report.html</code></td><td>new</td></tr>
+    <tr><td><code>templates/step_total.py.tmpl</code></td><td>the runner: runs the steps in order and records the run in <code>RUN.html</code></td><td>new</td></tr>
+    <tr><td><code>templates/RUN.html.tmpl</code></td><td>the page that lists the commands of a folder and its steps</td><td>new</td></tr>
+  </table></div>
+</section>
+
+<section>
+  <h2 id="official">PTHA18's own files: step 8 and the validation</h2>
+  <div class="tbl"><table class="fixed">
+    <colgroup><col style="width:33%"><col style="width:42%"><col style="width:25%"></colgroup>
+    <tr><th>File</th><th>What it does</th><th>Role</th></tr>
+    <tr><td><code>templates/step8_official.py.tmpl</code></td><td>step 8: runs PTHA18's official input through the engine and writes the reference files of <code>outputs_official/</code></td><td>needs R with rptha</td></tr>
+    <tr><td><code>official_ptha_data/fetch_official_inputs.py</code></td><td>downloads PTHA18's saved session once, calls R to extract the zone's tree, and writes the input JSON that step 8 runs</td><td>needs R with rptha</td></tr>
+    <tr><td><code>official_ptha_data/extract_official_tree.R</code></td><td>reads the logic-tree weights and the source parameters from the session</td><td>R</td></tr>
+    <tr><td><code>validation/validate_against_ptha18.py</code></td><td>the checks <code>mesh</code>, <code>engine</code>, <code>events</code>, <code>gcmt</code>, <code>segmentation</code>, <code>berryman_segments</code>, <code>official_segments</code> and <code>events_segmented</code> (see <a href="validation.html">Validation</a>)</td><td>checks, not part of the run</td></tr>
+    <tr><td><code>validation/validate_variable_mu.py</code>, <code>validation/validate_mesh_file.py</code></td><td>the checks of step 7c and of <code>--mesh-file</code></td><td>checks, not part of the run</td></tr>
+    <tr><td><code>validation/ptha18_reference/</code></td><td>PTHA18's contour shapefiles, unit-source grids and unit-source tables that the checks read</td><td>data</td></tr>
+  </table></div>
+</section>
+
+<section>
+  <h2 id="examples">Engine examples</h2>
+  <p><code>pyptha/examples/</code> holds four scripts that use the engine directly, without the steps: <code>new_zone.py</code> (ruptures and rates for an idealised planar zone; mirrors <code>produce_unit_sources.R</code> and <code>single_source_rate_computation.R</code>), <code>puysegur_real.py</code> (the same from the Puysegur contours shipped in <code>rptha/</code>), <code>single_source_rate_computation.py</code> (the Python equivalent of <code>single_source_rate_computation.R</code>) and <code>stochastic_slip_ruptures.py</code> (heterogeneous slip for a new zone). Each runs with <code>python ptha_python/pyptha/examples/NAME.py</code>.</p>
+</section>
+
+<section>
+  <h2 id="read-both">Reading both codes side by side</h2>
+  <p>Read a Python function next to the R function it ports. The names are kept close on purpose, and the module docstrings say which R file and which lines each part comes from. Where the Python code departs from rptha, the docstring says so and gives the reason. The defaults differ from PTHA18 in two places: the run uses public data only (<code>--ptha false</code>) and Bird (2003) for convergence (<code>--convergence bird</code>). The mesh, column, cell-size and rupture rules are PTHA18's own unless an option says otherwise. The options are described on the pages <a href="discretizer.html">discretiser</a> and <a href="cell_size.html">cell size</a>.</p>
+  <p>Agreement with PTHA18 is measured, not assumed. The checks in <a href="validation.html">Validation</a> compare the Python results with PTHA18's published files, and say what each check covers.</p>
+  <div class="callout"><span class="lbl">Not ported</span>The tsunami simulation and the hazard-curve steps of rptha are not in this package. The package stops at earthquake rates, and the rest of the PTHA18 chain is not reproduced here.</div>
+</section>
+
+<nav class="pager" id="pager"></nav>
+<footer>The file names are taken from the module docstrings of <code>ptha_python/</code> and <code>official_ptha_data/</code>.</footer>
+</main>
+<aside class="toc" id="toc"></aside>
+</div>
+<script src="assets/nav.js"></script>
+</body>
+</html>

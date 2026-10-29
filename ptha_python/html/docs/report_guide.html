@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reading report.html | ptha_python</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+<nav class="side" id="side"></nav>
+<main>
+
+<section id="top">
+  <div class="crumb">Results</div>
+  <h1>Reading report.html</h1>
+  <p class="lead">Step 9 writes <code>report.html</code> into every zone folder. It is one self-contained page: the numbers come from the files the earlier steps wrote, and the charts and figures are drawn or embedded in the page, so it opens offline. Three things load from the internet when the page opens (web fonts, and for the mesh-on-a-map card the Leaflet library and Esri tiles); without a connection the fonts fall back and that map is empty. This page lists every section the report has, in the order it has them, says what each shows, and marks which ones appear only with certain options.</p>
+</section>
+
+<section>
+  <h2 id="at-a-glance">At a glance</h2>
+  <figure class="fig">
+    <svg viewBox="0 0 960 360" role="img" aria-label="The report from top to bottom: view switch, header and run banner, the step-by-step cards, the exceedance-rate curve, the optional segmentation section, the prior and posterior weights, the moment-balance check, the full table, the SLAB product and the comparison with the official run">
+      <g font-size="12.5">
+        <rect x="10" y="10" width="300" height="34" rx="6" fill="#f0f2f5" stroke="#8a93a3" stroke-dasharray="5 4"/><text x="22" y="32" font-weight="700">1. view switch</text><text x="150" y="32" fill="#5b6475" font-size="11">segmented runs only</text>
+        <rect x="10" y="52" width="300" height="34" rx="6" fill="#e8f0fd" stroke="#2f6fdf"/><text x="22" y="74" font-weight="700">2. header and run banner</text>
+        <rect x="10" y="94" width="300" height="132" rx="6" fill="#e4f5ec" stroke="#2e9e6b"/><text x="22" y="116" font-weight="700">3. Step by step</text><text x="22" y="136" fill="#5b6475" font-size="11">cards for steps 1, 2, 3, 4, 5, 6, 7,</text><text x="22" y="152" fill="#5b6475" font-size="11">7b and 7c, and the numbers behind</text><text x="22" y="168" fill="#5b6475" font-size="11">the page (exports). Step 7 holds the</text><text x="22" y="184" fill="#5b6475" font-size="11">rupture explorer; the external-mesh,</text><text x="22" y="200" fill="#5b6475" font-size="11">official-mesh and map cards depend on</text><text x="22" y="216" fill="#5b6475" font-size="11">the options</text>
+        <rect x="10" y="234" width="300" height="34" rx="6" fill="#fcf0e2" stroke="#d9822b"/><text x="22" y="256" font-weight="700">4. exceedance-rate curve</text>
+        <rect x="330" y="10" width="300" height="34" rx="6" fill="#f1eafb" stroke="#8a5cd1" stroke-dasharray="5 4"/><text x="342" y="32" font-weight="700">5. LEVEL 0: segmentation</text><text x="540" y="32" fill="#5b6475" font-size="11">segmented only</text>
+        <rect x="330" y="52" width="300" height="34" rx="6" fill="#f1eafb" stroke="#8a5cd1"/><text x="342" y="74" font-weight="700">6. LEVEL 3: prior and posterior</text>
+        <rect x="330" y="94" width="300" height="34" rx="6" fill="#f1eafb" stroke="#8a5cd1"/><text x="342" y="116" font-weight="700">7. LEVEL 4: moment balance</text>
+        <rect x="330" y="136" width="300" height="34" rx="6" fill="#f0f2f5" stroke="#8a93a3"/><text x="342" y="158" font-weight="700">8. full table by magnitude</text>
+        <rect x="330" y="178" width="300" height="34" rx="6" fill="#f0f2f5" stroke="#8a93a3" stroke-dasharray="5 4"/><text x="342" y="200" font-weight="700">9. SLAB product</text><text x="500" y="200" fill="#5b6475" font-size="11">not for --mesh-file</text>
+        <rect x="330" y="220" width="300" height="34" rx="6" fill="#fdf6e3" stroke="#b7791f" stroke-dasharray="5 4"/><text x="342" y="242" font-weight="700">10. this run vs PTHA18</text><text x="520" y="242" fill="#5b6475" font-size="11">step 8 only</text>
+        <rect x="650" y="10" width="300" height="140" rx="6" fill="#fff" stroke="#8a93a3"/><text x="662" y="32" font-weight="700">What the chart (4) shows</text><text x="662" y="52" fill="#5b6475" font-size="11">this run (solid), the 16th to 84th</text><text x="662" y="68" fill="#5b6475" font-size="11">percentile band, the official run</text><text x="662" y="84" fill="#5b6475" font-size="11">(dashed, step 8 only) and, on a</text><text x="662" y="100" fill="#5b6475" font-size="11">segmented run, the segments, their</text><text x="662" y="116" fill="#5b6475" font-size="11">union and the zone mix</text>
+        <rect x="650" y="160" width="300" height="94" rx="6" fill="#fff" stroke="#8a93a3"/><text x="662" y="182" font-weight="700">Dashed outline = depends on options</text><text x="662" y="202" fill="#5b6475" font-size="11">Boxes with a solid outline are in</text><text x="662" y="218" fill="#5b6475" font-size="11">every report; dashed ones only with</text><text x="662" y="234" fill="#5b6475" font-size="11">the option written beside them</text>
+      </g>
+    </svg>
+    <figcaption>The sections of <code>report.html</code> in the order they appear, numbered as in the table below.</figcaption>
+  </figure>
+  <div class="tbl"><table class="fixed">
+    <colgroup><col style="width:5%"><col style="width:35%"><col style="width:60%"></colgroup>
+    <tr><th>#</th><th>Section</th><th>Appears</th></tr>
+    <tr><td>1</td><td>view switch</td><td>segmented runs only (<code>--segmented true</code>)</td></tr>
+    <tr><td>2</td><td>header and run banner</td><td>always; the banner has three variants</td></tr>
+    <tr><td>3</td><td>Step by step (cards)</td><td>always; individual cards depend on the options (next sections)</td></tr>
+    <tr><td>4</td><td>The exceedance-rate curve</td><td>always</td></tr>
+    <tr><td>5</td><td>LEVEL 0: segmentation</td><td>segmented runs only</td></tr>
+    <tr><td>6</td><td>Prior versus posterior: what LEVEL 3 actually did</td><td>always (needs the engine's branch-fan figure from step 7)</td></tr>
+    <tr><td>7</td><td>What the moment-balance "target" actually is</td><td>always (drawn from <code>integrated_slip_&lt;zone&gt;.csv</code>, or the engine's own figure if that file is missing)</td></tr>
+    <tr><td>8</td><td>Exceedance rate by magnitude, full table</td><td>always</td></tr>
+    <tr><td>9</td><td>Which SLAB product this zone actually used</td><td>not with <code>--mesh-file</code></td></tr>
+    <tr><td>10</td><td>This run vs. the official PTHA18 run</td><td>only when step 8 has run</td></tr>
+  </table></div>
+  <p>Step 9 takes no flags: <code>python &lt;folder&gt;/steps/step9_report.py</code>. It stops with <code>missing &lt;path&gt;</code> and <code>Run step6_write_input.py first.</code> or <code>Run step7_run.py first.</code> when its inputs are absent. Everything else (steps 7b, 7c, 8) is optional and only changes which cards and tables appear. Re-run it after any change to an earlier step.</p>
+</section>
+
+<section>
+  <h2 id="which-run">The top of the page: switch, header and banner</h2>
+  <p>Three things come before any number. Read them first.</p>
+  <div class="tbl"><table class="fixed">
+    <colgroup><col style="width:28%"><col style="width:72%"></colgroup>
+    <tr><th>Block</th><th>What it says</th></tr>
+    <tr><td>View switch (segmented runs only)</td><td>two tabs, "Segmented" (<code>report.html</code>, the zone's answer: 0.5 times the unsegmented branch plus 0.5 times the segments) and "Unsegmented only" (<code>report_unsegmented.html</code>, the zone as one fault). A segmented run writes both pages; an unsegmented run has one page and no switch.</td></tr>
+    <tr><td>Header</td><td>"&lt;zone&gt;, Built From Scratch", the number of logic-tree branches and the geometry product the run used.</td></tr>
+    <tr><td>Banner, unsegmented run</td><td>"UNSEGMENTED RUN": the zone is one fault with weight 1, every curve and number belongs to the zone.</td></tr>
+    <tr><td>Banner, segmented run, segmented page</td><td>"SEGMENTED RUN (LEVEL 0)": lists the segments with their columns and where the boundaries came from, and says which parts describe the unsegmented branch (the step cards, the prior-versus-posterior and moment-balance figures, the comparison table) and which the whole zone (the percentile band, the full table, the LEVEL 0 section).</td></tr>
+    <tr><td>Banner, segmented run, unsegmented page</td><td>"UNSEGMENTED VIEW OF A SEGMENTED RUN": this page is the report an unsegmented run would give, built from the files the segmented run already wrote; it is not the zone's answer.</td></tr>
+  </table></div>
+</section>
+
+<section>
+  <h2 id="step-cards">Step by step</h2>
+  <p>The section "Step by step" has one card per step, in the order below. The cards are read back from the files the steps wrote, so nothing is typed into the page by hand. Cards marked with an option or a step appear only then.</p>
+  <div class="tbl"><table class="fixed">
+    <colgroup><col style="width:24%"><col style="width:22%"><col style="width:54%"></colgroup>
+    <tr><th>Card, in page order</th><th>Appears</th><th>What it shows</th></tr>
+    <tr><td>STEP 1-2: interface geometry from an external mesh</td><td><code>--mesh-file</code> only (first card)</td><td>the mesh file used, its number of columns x rows, area, depth range and mean dip. The SLAB STEP 1 card is then hidden (it stays in the page source); the STEP 2 cards follow.</td></tr>
+    <tr><td>STEP 1: interface geometry from SLAB</td><td>not with <code>--mesh-file</code></td><td>the product (SLAB2.0 or SLAB1.0), the number of contours kept, and, when step 1 wrote it, the trench ramp rule and how many km it trimmed from each end of the trench. It shows no figure.</td></tr>
+    <tr><td>STEP 2: unit-source grid</td><td>always</td><td>the number of unit sources and the mean dip (and PTHA18's mean dip, after step 8), then one callout: a dip gap against the official mesh (or, for an external mesh, a note that it is used as given), a "no official mesh yet" note, or, for a zone PTHA18 never modelled, a note that there is nothing to compare with. A second callout, "This mesh may run past its own plate boundary", appears only when step 3 wrote <code>data/plate_boundary_change.json</code> and says how to cut the tail (<code>--auto-clip</code>, or <code>--clip</code> when a box cannot separate it). Two figures follow: depth against latitude, one line per down-dip row, and the mesh on a map, rebuilt from this run's own input JSON.</td></tr>
+    <tr><td>STEP 2: official mesh, side by side</td><td>after step 8; "unavailable" card without it; absent for a zone PTHA18 never modelled</td><td>PTHA18's mesh, the two meshes on one map and along the arc.</td></tr>
+    <tr><td>STEP 2: the mesh on a real map</td><td>always, but needs internet</td><td>an interactive Leaflet map on Esri's ocean basemap, to check by eye that the top edge of the mesh runs along the real trench. After step 8, PTHA18's published cell outlines are drawn under it. The only part of the page that is not stored in it.</td></tr>
+    <tr><td>STEP 3: convergence from Bird (2003)</td><td>always</td><td>the area-weighted horizontal convergence in mm/yr (PTHA18's value after step 8 and the difference), and the per-cell convergence map; with step 8 the two meshes side by side on one colour scale. Step 7 divides the number by the cosine of the mean dip once. The per-column values also set how likely each rupture is and the LEVEL 4 target.</td></tr>
+    <tr><td>STEP 4: GCMT catalogue download</td><td>always</td><td>the number of events worldwide and the window (1976-01-01 to 2017-03-01).</td></tr>
+    <tr><td>STEP 5: GCMT subset for this zone</td><td>always</td><td>the number of qualifying events, the window in years (PTHA18's count and window after step 8), a table of the zone's events (date, Mw, depth, hypocentre, centroid) and, after step 8, a callout on how the count compares with PTHA18's. The events of each segment are not listed here; their counts are in the LEVEL 0 table.</td></tr>
+    <tr><td>STEP 6: assemble the input JSON</td><td>always</td><td>the literature values that cannot be derived: coupling min/pref/max, the b-value anchor, <code>mw_max_observed</code>, the prior mean coupling and the tree size "20x20x40x2" (this label is fixed text).</td></tr>
+    <tr><td>STEP 7: run LEVELs 0-5</td><td>always</td><td>the number of branches, the range of the Gutenberg-Richter <i>a</i> values, the edge multiplier, the prior-to-posterior shift (TVD) and a callout on what it means. Under it, "LEVEL 2: rupture generation (FAUS)": the number of ruptures enumerated, the magnitude range, a note when <code>--rupture-size local</code> was used, and the interactive rupture explorer (below).</td></tr>
+    <tr><td>STEP 7b: HS and VAUS</td><td>"not run" card if step 7b did not run</td><td>a table per magnitude for HS (fields, mean and largest peak slip, mean FAUS slip, fields above PTHA18's peak-slip limit), a note on how the rates are shared, a comparison with PTHA18's HS catalogue, a VAUS table (fields, mean and largest uniform slip, mean cells, fields above the limit) and a comparison with PTHA18's VAUS catalogue. The comparisons need step 8 with <code>--download-hs</code>; without them each says so (or, for a zone PTHA18 never modelled, that there is nothing to compare). The card states that none of this enters LEVELs 0-5.</td></tr>
+    <tr><td>STEP 7c: shear modulus</td><td>two variants</td><td>without <code>--variable-mu on</code>: a short card saying every rate uses a constant 30 GPa. With it, the "Variable shear modulus" card: an explanation, a chart of rigidity against depth with a table of the mesh's rows (mean depth, rigidity, magnitude shift, slip factor), a chart of the magnitude shift of the HS scenarios, and a table of the rates at Mw 7.5, 8.0, 8.5 and 9.0 with constant and variable rigidity, the LEVEL 3 TVDs and the HS/VAUS columns.</td></tr>
+    <tr><td>FILES: the numbers behind this page</td><td>always</td><td>the CSV files step 9 wrote to <code>outputs/exports/</code>, each with a one-line description (see <a href="#numbers">The numbers behind the page</a>).</td></tr>
+  </table></div>
+  <h3 id="explorer">The rupture explorer (in the STEP 7 card)</h3>
+  <p>An interactive picture of LEVEL 2, drawn from this run's own mesh and scenarios. Controls: <b>Magnitude</b> (every Mw of the run), <b>Show</b> (FAUS, VAUS or both; the VAUS choices are disabled when step 7b has not run), a <b>FAUS rupture</b> slider with a play button that steps through every placement, and a <b>VAUS realisation</b> menu that picks one of the VAUS fields drawn from the current FAUS rupture. The map colours the cells of the chosen rupture; a text line gives its block (cells along strike x down dip), its area and how many times the scaling relation's area that is, its slip, its magnitude with the variable rigidity (shown in every run) and, for a VAUS field, its share of its parent's rate or "rate 0" above the peak-slip limit. A side panel, chosen by a <b>Panel</b> menu, plots either the area divided by the scaling relation's median area (with the relation's one-sigma band) or the uniform slip in metres (with PTHA18's limit, 7.5 times the median-area slip, in red) for every FAUS rupture of the magnitude and every VAUS field of the current rupture; hollow dots are fields above the limit.</p>
+  <div class="callout"><span class="lbl">Mesh with uneven cells</span>With <code>--rupture-size local</code> the blocks of one magnitude have different sizes, and the explorer shows each with its own.</div>
+</section>
+
+<section>
+  <h2 id="levels">The logic-tree levels named on the page</h2>
+  <p>The report names the levels in the STEP 7 card and in the sections below it. They are not sections themselves. Each answers one question.</p>
+  <div class="tbl"><table class="fixed">
+    <colgroup><col style="width:22%"><col style="width:78%"></colgroup>
+    <tr><th>Level</th><th>What it decides</th></tr>
+    <tr><td>LEVEL 0: segmentation</td><td>whether the zone is one fault or a union of segments. A segmented run gives the unsegmented branch and the union of segments 0.5 each. See the section "LEVEL 0: segmentation".</td></tr>
+    <tr><td>LEVEL 1: parameters</td><td>the branches of the tree: the coupling, the slip rate (the convergence times the coupling, divided by the cosine of the dip), the b value, the largest magnitude and the Gutenberg-Richter type.</td></tr>
+    <tr><td>LEVEL 2: rupture generation</td><td>the uniform-slip ruptures of each magnitude placed on the mesh, and the Gutenberg-Richter <i>a</i> value of each branch, set by moment balance.</td></tr>
+    <tr><td>LEVEL 3: observed earthquakes</td><td>how the GCMT earthquakes of the zone move the weight of each branch. The card gives the total variation distance between the prior and the posterior weights, from 0 (no change) to 1 (a complete reshuffle).</td></tr>
+    <tr><td>LEVEL 4: edge correction</td><td>the probability of ruptures that touch the ends of the zone, which is fitted so that the slip released along the zone matches the convergence. See "What the moment-balance target is".</td></tr>
+    <tr><td>LEVEL 5: percentiles</td><td>the percentile band of the branches (the page draws the 16th to 84th) and, on a segmented run, how the segments are combined.</td></tr>
+  </table></div>
+</section>
+
+<section>
+  <h2 id="header-curve">The exceedance-rate curve</h2>
+  <p class="sec-note">The curve answers one question: how often, per year, does an earthquake of at least a given magnitude happen on this interface?</p>
+  <div class="tbl"><table class="fixed">
+    <colgroup><col style="width:30%"><col style="width:70%"></colgroup>
+    <tr><th>Part of the chart</th><th>What it is</th></tr>
+    <tr><td>Horizontal axis</td><td>moment magnitude Mw, from 7.2 to 9.6.</td></tr>
+    <tr><td>Vertical axis</td><td>events per year, on a logarithmic scale from 0.0001 to 1. Each gridline is a factor of ten.</td></tr>
+    <tr><td>Solid line</td><td>this run: the mean over all branches of the logic tree. On a segmented run it is the unsegmented branch.</td></tr>
+    <tr><td>Shaded band</td><td>the 16th to 84th percentile across all branches. It shows the uncertainty of the logic tree itself, not measurement noise. On the segmented page it is the whole zone's band (the mix); on the unsegmented page it is the unsegmented branch's.</td></tr>
+    <tr><td>Dashed line</td><td>the official PTHA18 curve. It appears only when step 8 has run. For a segmented zone it is PTHA18's unsegmented branch.</td></tr>
+    <tr><td>Segmented page only</td><td>one fine dotted line per segment, a dashed line for the union of segments, and a thick dotted line for the source zone (the 0.5 / 0.5 mix), which is the zone's answer and belongs with the band.</td></tr>
+  </table></div>
+  <p>Each series can be hidden with the buttons under the chart. Hovering over the chart shows the magnitude and the rate of the nearest point of each series. Three tiles give the rate of the unsegmented branch at Mw 7.2, 8.0 and 9.0. The curve stops where the rate reaches 0, and the band's lower edge sits on the bottom of the chart where the 16th percentile is 0.</p>
+  <div class="callout"><span class="lbl">Reading a return period</span>A rate of 0.01 per year is one earthquake of that size or larger every 100 years on average. It is not a schedule. Over a long time, the number of events varies a lot around the average.</div>
+</section>
+
+<section>
+  <h2 id="level0">LEVEL 0: segmentation (segmented runs only)</h2>
+  <p>This section follows the exceedance-rate curve on the segmented page. It has these parts, in order:</p>
+  <ul>
+    <li><b>How the zone is divided</b>: one bar per model on a common 0-100% scale (this run, and PTHA18's own segmentation after step 8), each colour a segment, and a map of the mesh cells coloured by segment (PTHA18's mesh beside this run's after step 8).</li>
+    <li>A callout on <b>where this run's boundaries came from</b>: Berryman et al. (2015) Table 3.1 (the default) or Bird (2003)'s plate pairs (<code>--segment-boundaries bird</code>).</li>
+    <li>A <b>segment table</b>: plate pair, columns, convergence, coupling min/pref/max, <code>mw_max_observed</code>, number of GCMT events and the rate at Mw 7.2 of each segment.</li>
+    <li>After step 8 only: <b>PTHA18's own segments</b> (the same columns for PTHA18's segments) and <b>this run against PTHA18, all three curves</b> (unsegmented, union and mix at six magnitudes). Without step 8 a note says there is no official segmented run to compare with.</li>
+    <li><b>The segmented curves</b>: a chart of each segment, the union and the mix (and PTHA18's, after step 8).</li>
+    <li><b>What segmenting changed in this run</b>: a table at Mw 7.2, 8.0, 8.8 and 9.2 with the unsegmented rate, the union, the difference and the mix.</li>
+  </ul>
+  <p>The union usually lies above the unsegmented curve for small magnitudes, because several smaller faults produce more moderate earthquakes than one large fault. It lies below it for the largest magnitudes, because no single segment is long enough to host a rupture across the whole zone (in the kermadectonga2 example the crossing is at Mw 8.44). That crossing is the effect of segmentation. The last column of the table is the number the run reports for the zone. On an unsegmented run there is no such section: the banner at the top says the run is unsegmented and how to make it segmented.</p>
+</section>
+
+<section>
+  <h2 id="prior-posterior">Prior and posterior weights (LEVEL 3)</h2>
+  <p>This section shows the engine's own figure <code>fig_branch_fan_&lt;zone&gt;.png</code>: every branch of the logic tree drawn twice, with the weights before the observed earthquakes are used (left) and after (right), against the observed events (green). Each branch is one curve. If the posterior curves are close to the prior ones, the earthquakes did not change the answer much. Two tiles give the total variation distance and the number of observed events. After step 8, the same figure of the official run is shown below it. On a segmented run this section describes the unsegmented branch.</p>
+</section>
+
+<section>
+  <h2 id="moment-balance">What the moment-balance target is (LEVEL 4)</h2>
+  <p>Added up over every scenario, the slip the earthquakes release along the zone should have the same shape as the convergence along the trench. That shape is the target of LEVEL 4 (Bird's convergent rate of each column, or a flat line if the convergence is a constant). Near the ends of the zone fewer scenarios overlap, so the released slip sags there.</p>
+  <p>LEVEL 4 fits one multiplier for the probability of scenarios that touch an end, until the two shapes agree as closely as possible. The chart (interactive, drawn from <code>integrated_slip_&lt;zone&gt;.csv</code>) has three curves: no edge correction, the target, and the edge-corrected result, scaled to the same total because only their shapes are compared. The text gives the multiplier of this run and, when step 8 has run, the one of the official run.</p>
+</section>
+
+<section>
+  <h2 id="full-table">Exceedance rate by magnitude, full table</h2>
+  <p>The table gives the mean exceedance rate, in events per year, at every magnitude the percentile file has (from 7.2 in steps of 0.1), next to the official run's (and the difference) when step 8 has run; without it the official columns read "n/a". Rows stop where the rate is zero in both runs. On a segmented run both columns describe the whole zone, the LEVEL 0 mix.</p>
+</section>
+
+<section>
+  <h2 id="slab-product">Which SLAB product this zone used</h2>
+  <p>This section names the geometry product that step 1 downloads for the zone, quotes PTHA18's rule (zones whose names end in <code>2</code> use SLAB2.0; the others use SLAB1.0) and says what it implies for the comparison with PTHA18. It does not appear for an external mesh (<code>--mesh-file</code>).</p>
+</section>
+
+<section>
+  <h2 id="official">This run vs. the official PTHA18 run</h2>
+  <p>This section appears only when step 8 has run. It compares this run with PTHA18's own run of the same zone. The two runs use the same engine and the same zone, but different inputs: this run uses public geometry and a fresh GCMT subset, while the official run uses PTHA18's own unit-source table and earthquake catalogue. The table gives mean dip, convergence, edge multiplier, the prior-to-posterior shift and the exceedance rate at Mw 7.2 side by side, with the difference (on a segmented run the Mw 7.2 row is the unsegmented branch). A callout names the input that explains most of the gap, or says the two runs agree when the Mw 7.2 rates differ by less than 1%.</p>
+  <p>A small difference is what the port should give. A large difference is a question to check, starting with the inputs in the step 6 card. When step 8 did not run, the report is complete for steps 1-7 and says so in the cards that would have used it.</p>
+</section>
+
+<section>
+  <h2 id="numbers">The numbers behind the page</h2>
+  <p>Step 9 writes the CSV files behind the charts and tables to <code>outputs/exports/</code>; the last card of "Step by step" lists them. They are plain CSV, so they can be opened in a spreadsheet or read with a script, and the report is regenerated from the same files.</p>
+  <div class="tbl"><table class="fixed">
+    <colgroup><col style="width:38%"><col style="width:62%"></colgroup>
+    <tr><th>File</th><th>Holds</th></tr>
+    <tr><td><code>mesh_cells.csv</code></td><td>one row per unit source: its down-dip and along-strike numbers, centroid <code>lon</code>, <code>lat</code>, <code>depth_km</code>, the Bird <code>convergent_slip_mm_per_yr</code> of its column and, on a segmented run, its <code>segment</code>.</td></tr>
+    <tr><td><code>posterior_mean_rate_curve.csv</code></td><td>the mean exceedance rate against Mw (a copy of step 7's <code>rate_curves.csv</code>, with the posterior weights).</td></tr>
+    <tr><td><code>scenario_rates_source_zone.csv</code></td><td>segmented runs only: every scenario's rate for the whole zone.</td></tr>
+    <tr><td><code>convergence.csv</code></td><td>three rows, <code>item,value,units</code>: <code>convergence_horizontal</code>, <code>mean_dip</code> and <code>slip_rate</code> (the convergence divided by the cosine of the mean dip).</td></tr>
+    <tr><td><code>convergence_profile.csv</code></td><td>one row per along-strike column: <code>alongstrike_number</code>, <code>div_mm_per_yr</code>, <code>convergent_slip_mm_per_yr</code>, <code>distance_to_bird_km</code> and, on a segmented run, <code>segment</code>.</td></tr>
+    <tr><td><code>*_official.csv</code> versions</td><td>after step 8: <code>mesh_cells_official.csv</code>, <code>posterior_mean_rate_curve_official.csv</code>, <code>scenario_rates_source_zone_official.csv</code> (segmented), <code>convergence_official.csv</code> and <code>convergence_profile_official.csv</code> (its own column count), same columns, for PTHA18's run.</td></tr>
+  </table></div>
+  <p>Other files of the report: the figures it draws are saved in <code>figures/</code> (<code>scratch_mesh_map.png</code>, <code>scratch_mesh_map_convergence.png</code>, <code>mesh_profile.png</code>, <code>segments_map.png</code> on a segmented run, and the comparison figures after step 8). Step 7c's own files, named <code>*_variable_mu.csv</code>, are in <code>outputs/</code>, not in <code>exports/</code>.</p>
+</section>
+
+<nav class="pager" id="pager"></nav>
+<footer>Re-run step 9 after any change to an earlier step, so that the report shows the new numbers.</footer>
+</main>
+<aside class="toc" id="toc"></aside>
+</div>
+<script src="assets/nav.js"></script>
+</body>
+</html>

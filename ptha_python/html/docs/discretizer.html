@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2. optimal, lm and mid | ptha_python</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+<nav class="side" id="side"></nav>
+<main>
+<section id="top">
+  <div class="crumb">Geometry: from SLAB to mesh</div>
+  <h1>2. <code>--discretizer</code>: optimal, lm and mid</h1>
+  <p class="lead">The option chooses how step 2 turns the contours into cells. <code>lm</code> is rptha's method, as PTHA18 ran it. <code>optimal</code> (the default) is the same method with a safety net: it checks the mesh and repairs it only if a cell is folded, collapsed or overlapping. <code>mid</code> is rptha's older method, kept for comparison. This page explains what a broken mesh is, what each repair does, and how the three options differ.</p>
+</section>
+
+<section>
+  <h2 id="at-a-glance">At a glance</h2>
+  <figure class="fig">
+    <svg viewBox="0 0 960 250" role="img" aria-label="The three options: lm builds rptha's mesh; optimal builds the same mesh, checks it and repairs it only if broken; mid builds straight cuts without optimisation">
+      <defs><marker id="dz-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8a93a3"/></marker></defs>
+      <g font-size="12.5">
+        <rect x="10" y="20" width="300" height="210" rx="10" fill="#fff" stroke="#2f6fdf"/>
+        <text x="24" y="44" font-weight="700" font-size="14">lm</text>
+        <text x="24" y="64" fill="#5b6475">rptha's method, as PTHA18 ran it</text>
+        <rect x="24" y="80" width="272" height="40" rx="7" fill="#e8f0fd"/>
+        <text x="34" y="104">1. orthogonal down-dip lines (LM)</text>
+        <rect x="24" y="130" width="272" height="40" rx="7" fill="#f0f2f5"/>
+        <text x="34" y="154">2. defect check: printed only</text>
+        <text x="24" y="200" fill="#5b6475">a broken mesh stays broken</text>
+
+        <rect x="330" y="20" width="300" height="210" rx="10" fill="#fff" stroke="#2e9e6b" stroke-width="2.2"/>
+        <text x="344" y="44" font-weight="700" font-size="14">optimal (default)</text>
+        <text x="344" y="64" fill="#5b6475">the same mesh, with a safety net</text>
+        <rect x="344" y="80" width="272" height="40" rx="7" fill="#e8f0fd"/>
+        <text x="354" y="104">1. orthogonal down-dip lines (LM)</text>
+        <rect x="344" y="130" width="272" height="40" rx="7" fill="#fdf6e3"/>
+        <text x="354" y="154">2. defect check: acts on it</text>
+        <rect x="344" y="180" width="272" height="40" rx="7" fill="#fbeaea"/>
+        <text x="354" y="204">3. only if broken: repair a, b, c</text>
+
+        <rect x="650" y="20" width="300" height="210" rx="10" fill="#fff" stroke="#8a93a3" stroke-dasharray="5 4"/>
+        <text x="664" y="44" font-weight="700" font-size="14">mid</text>
+        <text x="664" y="64" fill="#5b6475">rptha's older method, comparison only</text>
+        <rect x="664" y="80" width="272" height="40" rx="7" fill="#f0f2f5"/>
+        <text x="674" y="104">1. straight cuts, no optimisation</text>
+        <rect x="664" y="130" width="272" height="40" rx="7" fill="#f0f2f5"/>
+        <text x="674" y="154">2. defect check: printed only</text>
+        <text x="664" y="200" fill="#5b6475">PTHA18 did not use it</text>
+      </g>
+    </svg>
+    <figcaption><b>The three options.</b> All three read the same contours from step 1. On a healthy mesh, <code>optimal</code> returns exactly <code>lm</code>'s mesh (with the default <code>--columns trench</code>). This is the normal case, because step 1's <a href="clean_ends.html">clean ends</a> remove the usual cause of folds before step 2 runs.</figcaption>
+  </figure>
+  <div class="tbl"><table>
+    <tr><th>You want</th><th>Use</th></tr>
+    <tr class="hl"><td>PTHA18's automatic mesh, repaired if it is broken (the normal case)</td><td><code>--discretizer optimal</code></td></tr>
+    <tr><td>rptha exactly, even if the mesh is broken (for comparison or diagnosis)</td><td><code>--discretizer lm</code></td></tr>
+    <tr><td>To see how much the orthogonal optimisation matters</td><td><code>--discretizer mid</code></td></tr>
+  </table></div>
+  <p class="where">The choice is written into step 2 (<code>DISCRETIZER</code>) and into the input JSON (<code>"discretizer"</code>), so the engine builds the same mesh. Code: <code>pyptha/contour_discretisation.py</code>: <code>discretized_source_from_contours_optimal()</code>, <code>discretized_source_from_contours_orthogonal()</code> (lm), <code>discretized_source_from_contours_mid()</code>.</p>
+</section>
+
+<section id="defects-sec">
+  <h2 id="defects">What a broken mesh looks like</h2>
+  <p>A mesh is unusable if any cell has no sensible area or shape, because the area, dip and length of the cells feed every rate. <code>mesh_defects</code> counts four kinds of defect. It works in a local flat projection (longitude multiplied by the cosine of the mean latitude) and only compares areas with each other, so the projection's scale does not matter.</p>
+  <figure class="fig">
+    <svg viewBox="0 0 940 250" role="img" aria-label="Four kinds of mesh defect: a bow-tie cell, a collapsed cell, overlapping columns and a non-finite node">
+      <g font-size="12.5">
+        <!-- bow-tie -->
+        <text x="15" y="22" font-weight="700" fill="#c43d3d">1. Bow-tie (folded) cell</text>
+        <path d="M30,50 L180,50 L60,160 L200,160 Z" fill="#fbeaea" stroke="#c43d3d" stroke-width="2.2"/>
+        <g fill="#1d2433"><circle cx="30" cy="50" r="4"/><circle cx="180" cy="50" r="4"/><circle cx="200" cy="160" r="4"/><circle cx="60" cy="160" r="4"/></g>
+        <text x="20" y="44" font-size="11">A</text><text x="182" y="44" font-size="11">B</text><text x="205" y="172" font-size="11">C</text><text x="48" y="174" font-size="11">D</text>
+        <text x="15" y="198" font-size="11.5" fill="#5b6475">A-B-C-D: two sides cross.</text>
+        <text x="15" y="214" font-size="11.5" fill="#5b6475">The outline is not a valid</text>
+        <text x="15" y="230" font-size="11.5" fill="#5b6475">polygon: no sensible area.</text>
+        <!-- collapsed -->
+        <text x="250" y="22" font-weight="700" fill="#b7791f">2. Collapsed cell</text>
+        <g fill="#fdd9b5" stroke="#6b4a3a" stroke-width="1.2">
+          <path d="M255,50 L315,50 L318,160 L258,160 Z"/>
+          <path d="M315,50 L372,50 L322,160 L318,160 Z" fill="#fdf6e3" stroke="#b7791f" stroke-width="2.2"/>
+          <path d="M372,50 L430,50 L385,160 L322,160 Z"/>
+        </g>
+        <text x="250" y="198" font-size="11.5" fill="#5b6475">Area below 2% of the median</text>
+        <text x="250" y="214" font-size="11.5" fill="#5b6475">cell: two down-dip lines meet,</text>
+        <text x="250" y="230" font-size="11.5" fill="#5b6475">the cell is a sliver.</text>
+        <!-- overlap -->
+        <text x="480" y="22" font-weight="700" fill="#c43d3d">3. Overlapping columns</text>
+        <path d="M490,50 L580,50 L610,160 L495,160 Z" fill="#fdd9b5" fill-opacity="0.8" stroke="#6b4a3a" stroke-width="1.2"/>
+        <path d="M560,50 L660,50 L665,160 L570,160 Z" fill="#fb9f5a" fill-opacity="0.6" stroke="#6b4a3a" stroke-width="1.2"/>
+        <path d="M560,50 L580,50 L610,160 L570,160 Z" fill="#c43d3d" fill-opacity="0.55"/>
+        <text x="480" y="198" font-size="11.5" fill="#5b6475">Each cell is fine, but two cells</text>
+        <text x="480" y="214" font-size="11.5" fill="#5b6475">cover the same ground (red). A</text>
+        <text x="480" y="230" font-size="11.5" fill="#5b6475">defect if above 0.1% of the area.</text>
+        <!-- nonfinite -->
+        <text x="720" y="22" font-weight="700" fill="#c43d3d">4. Non-finite node</text>
+        <g fill="#fdd9b5" stroke="#6b4a3a" stroke-width="1.2">
+          <path d="M725,50 L800,50 L800,105 L725,105 Z"/>
+          <path d="M725,105 L800,105 L800,160 L725,160 Z"/>
+          <path d="M800,105 L875,105 L875,160 L800,160 Z"/>
+        </g>
+        <path d="M800,50 L875,50 L875,105 L800,105 Z" fill="none" stroke="#c43d3d" stroke-width="1.5" stroke-dasharray="5 4"/>
+        <text x="862" y="46" font-size="12" font-weight="700" fill="#c43d3d">NaN</text>
+        <circle cx="875" cy="50" r="5" fill="#c43d3d"/>
+        <text x="720" y="198" font-size="11.5" fill="#5b6475">A node whose lon, lat or depth</text>
+        <text x="720" y="214" font-size="11.5" fill="#5b6475">is NaN or infinite: the cells</text>
+        <text x="720" y="230" font-size="11.5" fill="#5b6475">around it cannot be computed.</text>
+      </g>
+    </svg>
+    <figcaption><b>The four defects</b>, drawn by hand. 1 is what a fold at the end of a zone usually produces. 2 and 3 appear where two down-dip lines come together or cross without making a single cell self-intersect.</figcaption>
+  </figure>
+  <div class="tbl"><table>
+    <tr><th>defect</th><th>exact test in <code>mesh_defects</code></th><th>how it is counted in <code>total</code></th></tr>
+    <tr><td><a href="glossary.html#term-bow-tie">bow-tie</a> (folded) cell</td><td>the quadrilateral of the cell is not a valid polygon (shapely's <code>is_valid</code> is false)</td><td>one per cell</td></tr>
+    <tr><td>collapsed (degenerate) cell</td><td>cell area below 2% of the median cell area</td><td>one per cell</td></tr>
+    <tr><td>overlap</td><td>1 - (area of the union of all cells) / (sum of cell areas) above 0.001</td><td>+1 for the whole mesh</td></tr>
+    <tr><td>non-finite</td><td>any value of the grid array is NaN or infinite</td><td>the number of such values (then the other checks are skipped)</td></tr>
+  </table></div>
+  <p>Step 2 prints this check on every run, whatever <code>--discretizer</code> is, for example <code>mesh check: 0 folded (bow-tied) cells, 0 collapsed cells, 0.00% overlapping area</code>. A non-zero count adds <code>&lt;-- inspect the mesh figure</code> to the line.</p>
+  <p class="where">Where in the code: <code>contour_discretisation.py</code> <code>mesh_defects()</code>, <code>_cell_polygons()</code>. This package's own check, not part of rptha.</p>
+</section>
+
+<section id="optimal-sec">
+  <h2 id="optimal">--discretizer optimal</h2>
+  <p><a href="glossary.html#term-optimal"><b>optimal</b></a> (the default) means: <i>rptha's own mesh, unless it is broken</i>. It builds exactly the <code>lm</code> mesh, runs <code>mesh_defects</code> on it, and returns it unchanged if nothing is wrong. Only when the check finds a defect does it try, in order, three repairs that depart from rptha as little as possible, and it keeps the first one with no defect.</p>
+  <figure class="fig">
+    <svg viewBox="0 0 940 330" role="img" aria-label="Decision flowchart of the optimal discretiser: build rptha's mesh, check, keep if clean, otherwise try repairs a, b, c in order and keep the first defect-free one, else the one with fewest defects and a warning">
+      <defs><marker id="s2o-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8a93a3"/></marker></defs>
+      <g font-size="12.5">
+        <rect x="10" y="30" width="180" height="60" rx="9" fill="#e4f5ec" stroke="#2e9e6b"/>
+        <text x="22" y="54" font-weight="700">rptha's mesh</text>
+        <text x="22" y="72" fill="#5b6475">contours as given, even start</text>
+        <path d="M290,20 L370,60 L290,100 L210,60 Z" fill="#fdf6e3" stroke="#b7791f"/>
+        <text x="290" y="57" text-anchor="middle" font-weight="700">defects?</text>
+        <text x="290" y="73" text-anchor="middle" font-size="11" fill="#5b6475">total &gt; 0</text>
+        <rect x="420" y="30" width="200" height="60" rx="9" fill="#e4f5ec" stroke="#2e9e6b" stroke-width="2"/>
+        <text x="432" y="54" font-weight="700">return it UNCHANGED</text>
+        <text x="432" y="72" fill="#5b6475">"kept unchanged" in the log</text>
+        <rect x="10" y="150" width="200" height="72" rx="9" fill="#fff" stroke="#c43d3d"/>
+        <text x="22" y="172" font-weight="700">a. nearest-point start</text>
+        <text x="22" y="190" fill="#5b6475">same contours, same objective,</text>
+        <text x="22" y="206" fill="#5b6475">different starting guess</text>
+        <rect x="245" y="150" width="200" height="72" rx="9" fill="#fff" stroke="#c43d3d"/>
+        <text x="257" y="172" font-weight="700">b. end-aligned contours</text>
+        <text x="257" y="190" fill="#5b6475">contours trimmed to the span</text>
+        <text x="257" y="206" fill="#5b6475">all levels share; even start</text>
+        <rect x="480" y="150" width="200" height="72" rx="9" fill="#fff" stroke="#c43d3d"/>
+        <text x="492" y="172" font-weight="700">c. both a and b</text>
+        <text x="492" y="190" fill="#5b6475">end-aligned contours,</text>
+        <text x="492" y="206" fill="#5b6475">nearest-point start</text>
+        <rect x="715" y="140" width="215" height="92" rx="9" fill="#fbeaea" stroke="#c43d3d"/>
+        <text x="727" y="162" font-weight="700">none defect-free:</text>
+        <text x="727" y="180" fill="#5b6475">keep the one with fewest</text>
+        <text x="727" y="196" fill="#5b6475">defects (ties: larger area),</text>
+        <text x="727" y="212" fill="#5b6475">print a WARNING</text>
+        <rect x="245" y="265" width="435" height="50" rx="9" fill="#e4f5ec" stroke="#2e9e6b" stroke-width="2"/>
+        <text x="257" y="287" font-weight="700">after each repair: 0 defects? return it ("using '...'" in the log)</text>
+        <text x="257" y="305" fill="#5b6475">otherwise go on to the next repair</text>
+      </g>
+      <g stroke="#8a93a3" stroke-width="1.8" fill="none" marker-end="url(#s2o-ar)">
+        <path d="M190,60 L208,60"/>
+        <path d="M370,60 L418,60"/>
+        <path d="M290,100 L290,125 L110,125 L110,148"/>
+        <path d="M210,186 L243,186"/>
+        <path d="M445,186 L478,186"/>
+        <path d="M680,186 L713,186"/>
+        <path d="M110,222 L110,290 L243,290"/>
+        <path d="M345,222 L345,263"/>
+        <path d="M580,222 L580,263"/>
+      </g>
+      <g font-size="11.5" font-weight="700"><text x="380" y="52" fill="#2e9e6b">no</text><text x="298" y="118" fill="#c43d3d">yes</text></g>
+    </svg>
+    <figcaption><b>The optimal discretiser.</b> The top row is the normal case: when rptha's mesh has no defect, the result is rptha's mesh, unchanged. The repairs (bottom) are rebuilt with the full method, including the row count, which can change. If the end alignment (repairs b and c) would cut away more than half of the arc, it is skipped and the log says so.</figcaption>
+  </figure>
+
+  <h3 id="real-demo">When a repair is needed</h3>
+  <p>Folds come from contours whose ends are far apart along the zone: a shallow contour that reaches much further along the arc than a deep one, for example. Step 1's <a href="clean_ends.html">end cuts</a> remove most of these before step 2 runs. When one remains, the defect check finds it, and <code>optimal</code> tries the repairs in turn. Its log names the one it uses, and it prints a warning if none removes every defect. A healthy mesh, which is the normal case, never reaches this path.</p>
+  <p>A broken mesh is not only a few bad cells. Its lines can run partly along the arc, so the rows are measured along longer and slanter lines, and the mean dip of the zone is biased. That is why the check exists and why the repair is part of the default.</p>
+  <p>Three other options build on <code>optimal</code> and keep its check: <code>--columns average</code> first builds rptha's mesh, then builds it again with the column count of the average rule, and each build is checked and, if broken, repaired; <code>--columns trench-edited</code> and <code>average-edited</code> apply <a href="step2.html#mesh-edit">the dip edit</a> to the result; <code>--cell-size strasser</code> calls <code>optimal</code> again with more rows and columns until every cell meets the cap (<a href="cell_size.html">cell size</a>). With <code>lm</code> or <code>mid</code>, <code>--columns average</code> is ignored, and the dip edit and <code>strasser</code> are refused.</p>
+  <div class="callout"><span class="lbl">What optimal is not</span>It never replaces a healthy mesh by one that "scores better". "optimal" means rptha's automatic mesh, unless it is broken. <a href="#why-not-align">Why not always trim the ends</a>.</div>
+  <p class="where">Where in the code: <code>contour_discretisation.py</code> <code>discretized_source_from_contours_optimal()</code>. Called by step 2 (<code>DISCRETIZER == "optimal"</code>) and by <code>logic_tree/run_logic_tree.py</code> <code>build_grid()</code> when the input JSON says <code>"discretizer": "optimal"</code> and the saved grid cannot be reused.</p>
+</section>
+
+<section id="repairs-sec">
+  <h2 id="repairs">The repairs, one by one</h2>
+  <p>Both repairs attack the same cause. rptha pins the first and last down-dip lines to the contours' end points (<i>s</i> = 0 and <i>s</i> = 1 on every contour), and starts all the others at the same fraction of every contour. When the contours end at different places along the arc, equal fractions of contours of different length are at different places. The start lines are then slanted, and LM, which only improves the guess it is given, can stay in that slanted solution. Near the end, the pinned edge line can even be forced to run along the arc.</p>
+
+  <h3 id="repair-a">a. Nearest-point start</h3>
+  <p>Same contours, same objective, same optimiser: only the starting guess of the coarsest multigrid level changes. The trench keeps evenly spaced points. For each of them, every deeper contour starts at the point <b>nearest</b> to it (searched over 2,000 points along that contour). Where the trench reaches beyond a deeper contour, several nearest points pile up on that contour's end; they are pushed apart by a tiny step (1e-6) so the start is valid, with the ends kept at 0 and 1.</p>
+  <figure class="fig">
+    <svg viewBox="0 0 940 230" role="img" aria-label="Even start gives slanted lines when the trench is longer than the deep contour; the nearest-point start gives lines straight across">
+      <g font-size="12.5">
+        <text x="20" y="22" font-weight="700">rptha's even start: the same fraction on every contour</text>
+        <path d="M40,60 L440,60" stroke="#fdd9b5" stroke-width="3"/>
+        <path d="M120,170 L440,170" stroke="#8c2d04" stroke-width="3"/>
+        <g stroke="#1d2433" stroke-width="1.8"><path d="M40,60 L120,170"/><path d="M140,60 L200,170"/><path d="M240,60 L280,170"/><path d="M340,60 L360,170"/><path d="M440,60 L440,170"/></g>
+        <g fill="#1d2433"><circle cx="40" cy="60" r="4"/><circle cx="140" cy="60" r="4"/><circle cx="240" cy="60" r="4"/><circle cx="340" cy="60" r="4"/><circle cx="440" cy="60" r="4"/><circle cx="120" cy="170" r="4"/><circle cx="200" cy="170" r="4"/><circle cx="280" cy="170" r="4"/><circle cx="360" cy="170" r="4"/><circle cx="440" cy="170" r="4"/></g>
+        <text x="30" y="50" font-size="11.5" fill="#5b6475">trench: s = 0, 0.25, 0.5, 0.75, 1</text>
+        <text x="130" y="195" font-size="11.5" fill="#5b6475">deep contour, shorter: s = 0, 0.25, 0.5, 0.75, 1</text>
+        <text x="20" y="220" font-size="11.5" fill="#c43d3d">lines slanted along the arc; the left one worst</text>
+
+        <text x="500" y="22" font-weight="700">repair a: the nearest point on each contour</text>
+        <path d="M520,60 L920,60" stroke="#fdd9b5" stroke-width="3"/>
+        <path d="M600,170 L920,170" stroke="#8c2d04" stroke-width="3"/>
+        <g stroke="#1d2433" stroke-width="1.8"><path d="M520,60 L600,170"/><path d="M620,60 L620,170"/><path d="M720,60 L720,170"/><path d="M820,60 L820,170"/><path d="M920,60 L920,170"/></g>
+        <g fill="#1d2433"><circle cx="520" cy="60" r="4"/><circle cx="620" cy="60" r="4"/><circle cx="720" cy="60" r="4"/><circle cx="820" cy="60" r="4"/><circle cx="920" cy="60" r="4"/><circle cx="600" cy="170" r="4"/><circle cx="620" cy="170" r="4"/><circle cx="720" cy="170" r="4"/><circle cx="820" cy="170" r="4"/><circle cx="920" cy="170" r="4"/></g>
+        <text x="610" y="195" font-size="11.5" fill="#5b6475">deep contour: nearest points to the trench's</text>
+        <text x="500" y="220" font-size="11.5" fill="#2e9e6b">interior lines start straight across; LM then evens out the spacing</text>
+      </g>
+    </svg>
+    <figcaption><b>Why a different start can remove a fold</b> (schematic, seen from above, trench at the top). The objective is the same, so where both starts lead to the same optimum nothing changes. Where the even start leaves LM in a slanted solution, the nearest-point start puts it near the straight one.</figcaption>
+  </figure>
+  <p class="where">Where in the code: <code>_nearest_point_init_s_matrix()</code>, used through <code>_optimise_s_matrix(init="nearest")</code> for the coarsest level only. Not part of rptha, and never used by <code>lm</code>.</p>
+
+  <h3 id="repair-b">b. End-aligned contours</h3>
+  <p>This repair changes the input instead of the start: every contour is trimmed back to the along-strike span that <b>all</b> levels share. Each contour's two end points are projected onto every other contour (by the nearest of 4,000 points along it). At each end, every contour is cut at the innermost of those projections. After that, all contours start and finish on a common line across the zone, so the pinned edge lines go straight down dip like the interior ones.</p>
+  <figure class="fig">
+    <svg viewBox="0 0 940 210" role="img" aria-label="End alignment trims every contour to the span all contours share, so the edge columns face each other">
+      <g font-size="12.5">
+        <text x="20" y="22" font-weight="700">before: the edge line is forced along the arc</text>
+        <path d="M40,60 L440,60" stroke="#fdd9b5" stroke-width="3"/>
+        <path d="M80,115 L440,115" stroke="#fb9f5a" stroke-width="3"/>
+        <path d="M120,170 L440,170" stroke="#8c2d04" stroke-width="3"/>
+        <path d="M40,60 L80,115 L120,170" stroke="#c43d3d" stroke-width="2.4" fill="none"/>
+        <text x="130" y="145" font-size="11.5" fill="#c43d3d">first line: pinned to all three ends</text>
+        <path d="M120,50 L120,185" stroke="#2e9e6b" stroke-width="1.5" stroke-dasharray="5 4"/>
+        <text x="126" y="40" font-size="11.5" fill="#2e9e6b">innermost end projection</text>
+
+        <text x="500" y="22" font-weight="700">after align_contour_ends: a common start</text>
+        <path d="M520,60 L600,60" stroke="#fdd9b5" stroke-width="3" stroke-opacity="0.3"/>
+        <path d="M560,115 L600,115" stroke="#fb9f5a" stroke-width="3" stroke-opacity="0.3"/>
+        <path d="M600,60 L920,60" stroke="#fdd9b5" stroke-width="3"/>
+        <path d="M600,115 L920,115" stroke="#fb9f5a" stroke-width="3"/>
+        <path d="M600,170 L920,170" stroke="#8c2d04" stroke-width="3"/>
+        <path d="M600,60 L600,170" stroke="#2e9e6b" stroke-width="2.4"/>
+        <text x="610" y="145" font-size="11.5" fill="#2e9e6b">first line now goes straight down dip</text>
+        <text x="520" y="200" font-size="11.5" fill="#5b6475">faded: the trimmed pieces (lost area, along strike only)</text>
+      </g>
+    </svg>
+    <figcaption><b>End alignment</b> (schematic). Only the along-strike extent is trimmed; the down-dip width, which carries most of the area, is untouched. It refuses (raises an error, and <code>optimal</code> skips repairs b and c) if the trimming would cut away more than half of the arc, because then the depth levels barely overlap and the contours themselves are wrong.</figcaption>
+  </figure>
+  <p class="where">Where in the code: <code>align_contour_ends()</code>, <code>_arc_fraction_of()</code>, <code>_cumulative_km()</code>. Not part of rptha.</p>
+
+  <h3 id="repair-c">c. Both, and the fallback</h3>
+  <p>Repair c is b's trimmed contours with a's nearest-point start. If none of a, b, c is defect-free, the candidate with the fewest defects (rptha's own mesh is one of the candidates) is kept, ties broken by the larger area, and the log prints <code>WARNING optimal: no repair removed every defect; using '...'. Inspect the mesh figure before trusting this zone.</code></p>
+
+  <details class="deep" id="why-not-align">
+    <summary>Why the contours are not always end-aligned <span class="tag">tested on PTHA18's own contours</span></summary>
+    <div class="body">
+      <p>End alignment removes folded tip cells when the shallow contours stop far from the deep ones along the zone. One could apply it to every zone, or whenever it lowers the worst edge column's badness.</p>
+      <p>When it was tested on PTHA18's own contours, where the right answer is known (PTHA18's published mesh), it moved away from PTHA18's mesh on several zones, reducing their area. Folded tips come from contours whose ends disagree, not from rptha's method: with step 1's contours (one unbroken line every 5 km, crooked ends cut) rptha's own mesh is usually clean.</p>
+      <p>So <code>optimal</code> keeps rptha's mesh whenever it is healthy, and uses the trimming only as a repair, after the gentler nearest-point start.</p>
+    </div>
+  </details>
+</section>
+
+<section id="lm-sec">
+  <h2 id="lm">--discretizer lm</h2>
+  <p><a href="glossary.html#term-lm"><b>lm</b></a> is rptha's method, as PTHA18's template (<code>make_initial_downdip_lines.R</code>) calls it, with no check and no repair: <code>discretized_source_from_contours_orthogonal()</code>. The name comes from the Levenberg-Marquardt optimiser. Whenever rptha's mesh has no defect, <code>lm</code> and <code>optimal</code> give the <b>same</b> grid. Use <code>lm</code> to reproduce PTHA18's automatic method strictly, or to see a broken mesh as rptha makes it.</p>
+  <p>Given PTHA18's own published contours, the Python discretiser reproduces PTHA18's published mesh. This is checked by <code>validation/validate_against_ptha18.py</code> (its <code>mesh</code> check), which needs PTHA18's official files (see <a href="validation.html">Validation</a>).</p>
+  <p class="where">Where in the code: <code>discretized_source_from_contours_orthogonal()</code>; the R original is <code>create_downdip_lines_on_source_contours_improved</code>.</p>
+</section>
+
+<section id="mid-sec">
+  <h2 id="mid">--discretizer mid</h2>
+  <p><b>mid</b> is rptha's older, deprecated method (<code>create_downdip_lines_on_source_contours</code>, used when <code>improved_downdip_lines = FALSE</code>). PTHA18 does not use it; it is kept only for comparison. There is no optimisation:</p>
+  <ol class="steps">
+    <li>The shallowest and the deepest contours are each resampled into the same number of evenly spaced points (one per 50 km of trench, plus one).</li>
+    <li>Point <i>i</i> of the shallow contour is joined to point <i>i</i> of the deep contour by a straight (great-circle) cut, extended by a tiny fraction at both ends.</li>
+    <li>Each cut is intersected with every contour to get its crossing points. If a cut crosses a contour more than once, the method stops with an error ("Non-unique contour levels"). The Python code does the same.</li>
+    <li>Rows and the 3D resampling are the same as in <code>lm</code>.</li>
+  </ol>
+  <p>The name is historical. rptha builds three candidate cuts ('eq_spacing', 'nearest', 'mid') but its code uses 'eq_spacing': the 'mid' line is commented out in the R source. The Python port follows the R code as it runs ('eq_spacing'); the option keeps the name <code>mid</code>.</p>
+  <p>Because the cuts are straight, they cross the contours obliquely wherever the zone is curved, so the cells are more slanted than with <code>lm</code>. Both methods cover the same surface, so the total area changes little, and the mean dip changes by a fraction of a degree, in either direction. Measured with the current code on the contours of the reference runs (the same number of columns and rows as <code>lm</code> in all three):</p>
+  <div class="tbl"><table>
+    <tr><th>Zone</th><th class="n">area, <code>lm</code></th><th class="n">area, <code>mid</code></th><th class="n">mean dip, <code>lm</code></th><th class="n">mean dip, <code>mid</code></th></tr>
+    <tr><td>kermadectonga2</td><td class="n">542,856 km<sup>2</sup></td><td class="n">541,337 km<sup>2</sup> (-0.3%)</td><td class="n">15.43&deg;</td><td class="n">14.56&deg;</td></tr>
+    <tr><td>calabria2 (default <code>--columns trench</code>)</td><td class="n">110,553 km<sup>2</sup></td><td class="n">111,921 km<sup>2</sup> (+1.2%)</td><td class="n">11.53&deg;</td><td class="n">11.64&deg;</td></tr>
+    <tr><td>puysegur2</td><td class="n">43,468 km<sup>2</sup></td><td class="n">43,169 km<sup>2</sup> (-0.7%)</td><td class="n">36.63&deg;</td><td class="n">36.15&deg;</td></tr>
+  </table></div>
+  <p><code>mid</code> also applies the minimum of two down-dip rows (<code>MIN_DOWNDIP_ROWS</code>), but without printing the line that <code>lm</code> and <code>optimal</code> print when it applies. The <code>--columns average</code> rule does not apply to it.</p>
+  <p class="where">Where in the code: <code>discretized_source_from_contours_mid()</code>, <code>_intersect_dipcut_with_contours()</code>, <code>_extend_line()</code>, <code>_resample_geodesic_by_spacing()</code>. The R option <code>orthogonal_near_trench</code> (default FALSE) is not ported.</p>
+</section>
+
+<nav class="pager" id="pager"></nav>
+<footer>Code: <code>pyptha/contour_discretisation.py</code>. Settings: <a href="step2.html">step 2</a>.</footer>
+</main>
+<aside class="toc" id="toc"></aside>
+</div>
+<script src="assets/nav.js"></script>
+</body>
+</html>

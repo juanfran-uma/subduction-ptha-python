@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recipes: one per zone | ptha_python</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+<nav class="side" id="side"></nav>
+<main>
+
+<section id="top">
+  <div class="crumb">Your own runs</div>
+  <h1>Recipes: one per zone</h1>
+  <p class="lead">For each zone that has a worked recipe: the command that generates its folder, the command that runs it, and the settings that matter for that zone. The commands are run from the repository root. Every command on this page is accepted by <code>generate.py</code>.</p>
+  <div class="callout warn"><span class="lbl">These pages describe procedures</span>No finished run ships with the repository. The folders below do not exist until you generate them, and a folder that already exists is not replaced: <code>generate.py</code> makes <code>NAME_2</code> instead. The GCMT catalogue is downloaded into each folder, so the first run of a folder takes longer than a re-run in the same folder. A SLAB2.0 raster is downloaded into the folder too, unless a copy is already in <code>ptha_python/data/slab2/</code>, which holds the rasters of <code>cal</code>, <code>car</code>, <code>hel</code>, <code>ker</code>, <code>mak</code>, <code>png</code>, <code>puy</code> and <code>sum</code>.</div>
+</section>
+
+<section>
+  <h2 id="at-a-glance">At a glance</h2>
+  <p>Every recipe has the same two steps. The generate command makes the folder, and the run command runs all nine steps. Step 8 is skipped with <code>--skip-official</code> because it needs R with rptha. Remove that flag when R is installed, to get the comparison with PTHA18's own run (for the zones PTHA18 modelled and has not retired).</p>
+  <div class="tbl"><table>
+    <tr><th>Zone</th><th>Region (first argument)</th><th>Recipe, in short</th></tr>
+    <tr><td><code>alaskaaleutians</code>, from SLAB</td><td><code>alaska</code></td><td>the default mesh, built from the SLAB1.0 raster</td></tr>
+    <tr><td><code>alaskaaleutians</code>, from a mesh file</td><td><code>alaska</code></td><td><code>--mesh-file</code>, which replaces the SLAB geometry</td></tr>
+    <tr><td><code>calabria2</code></td><td><code>calabria</code></td><td>the default mesh, or <code>--columns average-edited</code> for a mesh that tapers strongly; its trench ends are cut automatically</td></tr>
+    <tr><td><code>antilles2</code></td><td><code>caribbean</code></td><td>needs <code>--clip</code>, because the region covers more than the zone</td></tr>
+    <tr><td><code>cyprus2</code></td><td><code>hellenic</code></td><td><code>--columns trench-edited</code>, which keeps the trench mesh unless a cell misreads its dip</td></tr>
+    <tr><td><code>kermadectonga2</code></td><td><code>kermadec</code></td><td>the default mesh, or <code>--segmented true</code></td></tr>
+    <tr><td><code>kurilsjapan</code></td><td><code>kuril</code></td><td>a second run with <code>--auto-clip</code>, which cuts the tail on another plate boundary</td></tr>
+    <tr><td><code>makran2</code></td><td><code>makran</code></td><td>the default mesh</td></tr>
+    <tr><td><code>puysegur2</code></td><td><code>puysegur</code></td><td>the default mesh, with <code>--variable-mu on</code> as an option; a convergence override is available</td></tr>
+  </table></div>
+  <p>The zones not listed here are built the same way: give the region that covers the zone (<a href="zones.html">Zones you can run</a> gives it for every zone in the table) and the zone with <code>--zone</code>.</p>
+</section>
+
+<section>
+  <h2 id="common">The settings the recipes share</h2>
+  <ul class="tight">
+    <li><b><code>--ptha false</code></b> is the default and is written out so the recipe says it. Steps 1 to 7 and 9 read no PTHA18 file.</li>
+    <li><b><code>--rupture-size local</code></b> sizes each uniform-slip rupture from the real area of the cells where it sits, and multiplies its probability by q, the rupture-overlap correction. The recipes use it because these zones have cells of very different sizes, which the rptha rule (one block of cells per magnitude) does not follow. It is <b>not PTHA18's procedure</b>. Leave it out to get rptha's rule. See <a href="rupture_size.html">Rupture size</a>.</li>
+    <li><b><code>--skip-official</code></b> skips step 8, which needs R with rptha. Steps 1 to 7 and 9 need nothing but Python.</li>
+    <li>Step 7b is kept, so the run includes the illustrative HS and VAUS variants (<a href="hs_vaus.html">HS and VAUS slip</a>).</li>
+  </ul>
+</section>
+
+<section>
+  <h2 id="alaska-mesh">alaskaaleutians, from a mesh file</h2>
+  <p>The Alaska-Aleutians zone from an external quadrilateral mesh: one line per unit source with its four corners. The file is copied into the folder, and the SLAB geometry is not used (<a href="mesh_file.html">External mesh</a>).</p>
+  <div class="code"><pre>python ptha_python/generate.py alaska --zone alaskaaleutians --mesh-file inputs_meshes/alaskaaleutians_quadrilateral_coors.dat --folder alaskaaleutians_mesh --ptha false --rupture-size local
+python alaskaaleutians_mesh/steps/step_total.py --skip-official</pre></div>
+  <p>Step 1 only notes that the geometry comes from the mesh, and step 2 reads it: this mesh has 78 columns and 4 rows, 312 unit sources, with depths given in metres (read as such by <code>--mesh-depth-units auto</code>). The mesh must be structured (rows down dip, columns along strike, neighbouring cells sharing their corners). Options that only shape a SLAB mesh, such as <code>--clip</code>, <code>--columns</code> and <code>--cell-size</code>, are refused or have no effect here.</p>
+</section>
+
+<section>
+  <h2 id="alaska-slab">alaskaaleutians, from SLAB</h2>
+  <p>The same zone built from the SLAB1.0 raster, to compare with the mesh file above.</p>
+  <div class="code"><pre>python ptha_python/generate.py alaska --zone alaskaaleutians --folder alaskaaleutians_slab --ptha false --rupture-size local
+python alaskaaleutians_slab/steps/step_total.py --skip-official</pre></div>
+  <p>The region name <code>alaska</code> is the SLAB region, and <code>--zone alaskaaleutians</code> is the zone. SLAB1.0 is chosen because the zone name does not end in 2. Each folder has its own report, so the two can be compared.</p>
+</section>
+
+<section>
+  <h2 id="calabria2">calabria2</h2>
+  <p>The Calabrian arc in the Ionian Sea, a strongly curved trench. Step 1 cuts both ends automatically at the end points of Berryman et al. (2015) Table 3.1. No option is needed for that.</p>
+  <div class="code"><pre>python ptha_python/generate.py calabria --zone calabria2 --folder calabria2 --ptha false --rupture-size local
+python calabria2/steps/step_total.py --skip-official</pre></div>
+  <p><b>Check the mesh.</b> Step 2 prints how the cells taper along the zone. This zone tapers far more than any PTHA18 mesh, and with the default <code>--columns trench</code> some cells are much larger than the 50 km of a typical cell. If the cells look unsuitable on the step 2 figure, two alternatives are available, both <b>not PTHA18's procedure</b>: <code>--columns average</code> (or <code>average-edited</code>) uses the average row length to set the number of columns, and <code>--cell-size strasser</code> caps every cell so that none is larger than the smallest rupture the run builds, divided by <code>--cell-k</code>. The reasons and the trade-offs are on <a href="discretizer.html">optimal, lm and mid</a> and <a href="cell_size.html">Cell size</a>.</p>
+  <div class="code"><pre>python ptha_python/generate.py calabria --zone calabria2 --folder calabria2_avg --ptha false --rupture-size local --columns average-edited
+python calabria2_avg/steps/step_total.py --skip-official
+
+python ptha_python/generate.py calabria --zone calabria2 --folder calabria2_strasser --ptha false --rupture-size local --cell-size strasser
+python calabria2_strasser/steps/step_total.py --skip-official</pre></div>
+  <p>A run with <code>--columns average-edited</code> printed, in step 2, <code>taper 3.83 (at most 1.17)</code>, <code>column rule 'average': average row 393 km / 50 km -> 8 columns (rptha's trench rule: 15)</code>, a mesh of 8 columns by 6 rows (48 unit sources, 109,203 km2), and that no cell's dip was more than 8 degrees from its plane (worst 3.3 degrees), so the mesh was kept. Step 5 found no GCMT event above Mw 7.15 on the zone, and step 7 derived an <code>Mw_max</code> anchor of 7.35 to 9.26 for this mesh. The variants are separate folders, so the default run is kept for comparison.</p>
+</section>
+
+<section>
+  <h2 id="antilles2">antilles2</h2>
+  <p>The Lesser Antilles arc alone. The SLAB2.0 "Caribbean" region covers more than this zone, and the zone has no built-in window, so the raster must be clipped with <code>--clip</code>.</p>
+  <div class="code"><pre>python ptha_python/generate.py caribbean --zone antilles2 --folder antilles2 --ptha false --rupture-size local --clip 297,307,5,18.5
+python antilles2/steps/step_total.py --skip-official</pre></div>
+  <p>The clip is LON_MIN, LON_MAX, LAT_MIN, LAT_MAX. Longitudes follow the raster's own convention, which runs from 0 to 360 for this region, so 297 to 307 is 63 degrees west to 53 degrees west. Without <code>--clip</code>, step 1 works on the whole region, which covers more than this zone. <code>--clip</code> must have the minimum below the maximum for both longitude and latitude, and a value that starts with a minus sign needs <code>--clip=...</code>.</p>
+  <div class="callout"><span class="lbl">A clip can still cut another slab</span>A window that also contains a neighbouring slab is not detected by the program. Check the step 1 figure for a strip of another plate's trench at the edges of the window.</div>
+</section>
+
+<section>
+  <h2 id="cyprus2">cyprus2</h2>
+  <p>The Cyprus arc, which the Berryman et al. (2015) table splits into a western and an eastern segment. Its SLAB region is the Hellenic Arc, <code>hellenic</code>: the region name <code>cyprus</code> matches no region. As with calabria2, step 1 cuts both ends at the Berryman end points automatically.</p>
+  <p>The arc bends in an S shape, so the rows of some cells can run along strike rather than down dip. The recipe therefore uses <code>--columns trench-edited</code>. It keeps the trench mesh unchanged unless some cell reads a dip more than 8 degrees away from the dip of its own plane; only then does step 2 design a replacement, with the same columns and rows on the same contours, and use it if it is safe:</p>
+  <div class="code"><pre>python ptha_python/generate.py hellenic --zone cyprus2 --folder cyprus2 --ptha false --rupture-size local --columns trench-edited
+python cyprus2/steps/step_total.py --skip-official</pre></div>
+  <p>The <code>-edited</code> options are <b>not PTHA18's procedure</b>. If the mesh is replaced, its rates are not comparable with those of the plain trench mesh. Without the option, the same command with the default <code>--columns trench</code> gives the plain mesh; give it another folder name so both runs are kept. Their rules are on <a href="discretizer.html">optimal, lm and mid</a>.</p>
+</section>
+
+<section>
+  <h2 id="kermadectonga2">kermadectonga2</h2>
+  <p>The Kermadec and Tonga trench. Step 1 cuts its ends where the SLAB2.0 data is not usable, without any option (<a href="clean_ends.html">Clean ends</a>).</p>
+  <div class="code"><pre>python ptha_python/generate.py kermadec --zone kermadectonga2 --folder kermadectonga2 --ptha false --rupture-size local
+python kermadectonga2/steps/step_total.py --skip-official</pre></div>
+  <p>The region <code>kermadec</code> also holds the SLAB1.0 zone <code>kermadectonga</code>, which PTHA18 retired. Use <code>--zone</code> to say which one is wanted, as above. To run the zone with its segments, add <code>--segmented true</code> (<a href="segmentation.html">Segmented vs unsegmented</a>):</p>
+  <div class="code"><pre>python ptha_python/generate.py kermadec --zone kermadectonga2 --folder kermadectonga2_seg --segmented true --ptha false
+python kermadectonga2_seg/steps/step_total.py --skip-official</pre></div>
+  <p>A run of this command (with the default rupture size) split the mesh of 73 columns and 3 rows (219 unit sources) into three segments by the Berryman end points: <code>tonga</code> (columns 1 to 23, 3 GCMT events), <code>kermadec</code> (24 to 57, 6 events) and <code>hikurangi</code> (58 to 73, no event), and wrote <code>report_unsegmented.html</code> next to <code>report.html</code>.</p>
+</section>
+
+<section>
+  <h2 id="kurilsjapan">kurilsjapan, with a cut tail</h2>
+  <p>The Kamchatka, Kuril Islands and Japan region can reach past its own plate boundary, onto a neighbouring trench. Step 3 checks whether the columns of the mesh lie on a different plate boundary and reports it. <code>--auto-clip</code> cuts those columns, using a window derived from the mesh itself, so no coordinates are typed.</p>
+  <p>The check is made from the mesh, so steps 1 to 3 must have run once. Generate the folder and run those three steps first:</p>
+  <div class="code"><pre>python ptha_python/generate.py kuril --zone kurilsjapan --folder kurilsjapan --ptha false --rupture-size local
+python kurilsjapan/steps/step1_fetch_slab2.py
+python kurilsjapan/steps/step2_build_grid.py
+python kurilsjapan/steps/step3_convergence.py</pre></div>
+  <p>Step 3 saves <code>data/plate_boundary_change.json</code> only if it finds such a tail. Then run the whole pipeline with the cut. It runs all nine steps again on the clipped geometry:</p>
+  <div class="code"><pre>python kurilsjapan/steps/step_total.py --skip-official --auto-clip</pre></div>
+  <p>Because the cut rebuilds the mesh with fewer columns, step 6 is run with <code>--force</code>, which regenerates the input file. A hand edit made to that file is lost, so re-apply it afterwards. If a longitude and latitude box cannot separate the tail from the rest of the arc, step 1 refuses and asks for an explicit <code>--clip</code> (<a href="troubleshooting.html#segmented">Troubleshooting</a>).</p>
+</section>
+
+<section>
+  <h2 id="makran2">makran2</h2>
+  <p>The Makran zone along the coasts of Iran and Pakistan.</p>
+  <div class="code"><pre>python ptha_python/generate.py makran --zone makran2 --folder makran2 --ptha false --rupture-size local
+python makran2/steps/step_total.py --skip-official</pre></div>
+  <p>The trailing 2 in the zone name selects SLAB2.0. The zone <code>makran</code> (SLAB1.0) is retired in PTHA18 and has no SLAB1.0 grid on the USGS server, so <code>makran2</code> is the zone to use.</p>
+</section>
+
+<section>
+  <h2 id="puysegur2">puysegur2</h2>
+  <p>The Puysegur trench south-west of New Zealand's South Island. Step 1 decides the ends of the zone, as for every zone.</p>
+  <div class="code"><pre>python ptha_python/generate.py puysegur --zone puysegur2 --folder puysegur2 --ptha false --rupture-size local
+python puysegur2/steps/step_total.py --skip-official</pre></div>
+  <p>To add PTHA18's variable shear modulus rates next to the constant ones, generate with <code>--variable-mu on</code> (the run then also executes step 7c, <a href="variable_mu.html#how">Variable shear modulus</a>). A run with <code>--rupture-size local --variable-mu on</code> gave a mesh of 13 columns and 2 rows (26 unit sources, 43,468 km2), a Bird convergence of 25.6 mm/yr, and 4 GCMT events above Mw 7.15.</p>
+  <p><b>The convergence.</b> PTHA18 used a constant 35 mm/yr for this zone, not the value Bird (2003) gives on its mesh (<code>generate.py</code> prints a note about it). This package uses Bird's value by default. To reproduce PTHA18's choice, set <code>CONVERGENCE_OVERRIDE_MM_PER_YR = 35</code> in <code>steps/step3_convergence.py</code>, then run steps 3, 6 (with <code>--force</code>), 7 and 9 again. Step 7 replaces the whole <code>outputs/</code> folder, so run step 7b (and step 7c, if the folder uses it) after it and before step 9 if you want the HS and VAUS results in the report. The reasons for the two values are on <a href="convergence_sources.html">Bird or Bird + Griffin</a>.</p>
+  <div class="code"><pre>python puysegur2/steps/step3_convergence.py
+python puysegur2/steps/step6_write_input.py --force
+python puysegur2/steps/step7_run.py
+python puysegur2/steps/step7b_stochastic_slip.py
+python puysegur2/steps/step9_report.py</pre></div>
+  <p>With <code>--variable-mu on</code>, add <code>python puysegur2/steps/step7c_variable_mu.py</code> after step 7b.</p>
+</section>
+
+<section>
+  <h2 id="other">Other zones</h2>
+  <p>A zone without a recipe is generated the same way. Find its region in <a href="zones.html">Zones you can run</a> (or with <code>python ptha_python/list_regions.py</code>, or use <code>--id</code>), pass the zone with <code>--zone</code>, and read the page on the zone's own mesh: <a href="step2.html">The mesh</a> for the general behaviour, <a href="clean_ends.html">Clean ends</a> for the end cuts, and <a href="troubleshooting.html">Troubleshooting</a> when a step stops. To change a setting of a run you have made, see <a href="customise.html">Change a setting, re-run</a>.</p>
+</section>
+
+<nav class="pager" id="pager"></nav>
+<footer>Commands from <code>generate.py</code> and the step scripts of the generated folders. Recipes describe procedures; no finished run ships with the repository.</footer>
+</main>
+<aside class="toc" id="toc"></aside>
+</div>
+<script src="assets/nav.js"></script>
+</body>
+</html>

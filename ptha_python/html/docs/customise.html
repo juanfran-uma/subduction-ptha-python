@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Change a setting, re-run | ptha_python</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+<nav class="side" id="side"></nav>
+<main>
+
+<section id="top">
+  <div class="crumb">Your own runs</div>
+  <h1>Change a setting, re-run</h1>
+  <p class="lead">Every zone folder can be changed. Each setting lives in one place: a constant at the top of a step script, a key of the input JSON, or an option of <code>generate.py</code>. Change it there, then re-run the step and every step after it. This page lists where each setting lives, gives a recipe for the changes people ask for most, and shows two worked changes.</p>
+</section>
+
+<section>
+  <h2 id="at-a-glance">At a glance: what to re-run</h2>
+  <figure class="fig">
+    <svg viewBox="0 0 960 170" role="img" aria-label="The nine steps in a row. Change a step and re-run it and every step to its right. Step 6 keeps an existing input file unless it is run with --force">
+      <defs><marker id="cu-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8a93a3"/></marker></defs>
+      <g font-size="12.5">
+        <rect x="10" y="40" width="92" height="50" rx="8" fill="#e4f5ec" stroke="#2e9e6b"/><text x="20" y="62" font-weight="700">1 contours</text><text x="20" y="80" font-size="11" fill="#5b6475">clip, spacing</text>
+        <rect x="120" y="40" width="92" height="50" rx="8" fill="#e4f5ec" stroke="#2e9e6b"/><text x="130" y="62" font-weight="700">2 mesh</text><text x="130" y="80" font-size="11" fill="#5b6475">width, rows</text>
+        <rect x="230" y="40" width="92" height="50" rx="8" fill="#fcf0e2" stroke="#d9822b"/><text x="240" y="62" font-weight="700">3 convergence</text><text x="240" y="80" font-size="11" fill="#5b6475">override</text>
+        <rect x="340" y="40" width="92" height="50" rx="8" fill="#f1eafb" stroke="#8a5cd1"/><text x="350" y="62" font-weight="700">4-5 GCMT</text><text x="350" y="80" font-size="11" fill="#5b6475">window, rule</text>
+        <rect x="450" y="40" width="110" height="50" rx="8" fill="#e8f0fd" stroke="#2f6fdf" stroke-width="2"/><text x="460" y="62" font-weight="700">6 input JSON</text><text x="460" y="80" font-size="11" fill="#c43d3d">--force to rebuild</text>
+        <rect x="580" y="40" width="92" height="50" rx="8" fill="#e8f0fd" stroke="#2f6fdf"/><text x="590" y="62" font-weight="700">7 run</text><text x="590" y="80" font-size="11" fill="#5b6475">the JSON's values</text>
+        <rect x="690" y="40" width="92" height="50" rx="8" fill="#f1eafb" stroke="#8a5cd1" stroke-dasharray="5 4"/><text x="700" y="62" font-weight="700">7b, 7c</text><text x="700" y="80" font-size="11" fill="#5b6475">optional</text>
+        <rect x="800" y="40" width="140" height="50" rx="8" fill="#f0f2f5" stroke="#8a93a3"/><text x="810" y="62" font-weight="700">8 official, 9 report</text><text x="810" y="80" font-size="11" fill="#5b6475">optional, then report</text>
+        <line x1="102" y1="65" x2="118" y2="65" stroke="#8a93a3" stroke-width="2" marker-end="url(#cu-ar)"/>
+        <line x1="212" y1="65" x2="228" y2="65" stroke="#8a93a3" stroke-width="2" marker-end="url(#cu-ar)"/>
+        <line x1="322" y1="65" x2="338" y2="65" stroke="#8a93a3" stroke-width="2" marker-end="url(#cu-ar)"/>
+        <line x1="432" y1="65" x2="448" y2="65" stroke="#8a93a3" stroke-width="2" marker-end="url(#cu-ar)"/>
+        <line x1="562" y1="65" x2="578" y2="65" stroke="#8a93a3" stroke-width="2" marker-end="url(#cu-ar)"/>
+        <line x1="672" y1="65" x2="688" y2="65" stroke="#8a93a3" stroke-width="2" marker-end="url(#cu-ar)"/>
+        <line x1="782" y1="65" x2="798" y2="65" stroke="#8a93a3" stroke-width="2" marker-end="url(#cu-ar)"/>
+        <text x="10" y="130" font-size="12" fill="#5b6475">Change step 2 and you must re-run steps 2, 3, 5 (it uses the grid), 6 with --force, 7, 7b, 7c and 9. Change only the JSON and you re-run 7, 7b, 7c and 9.</text>
+        <text x="10" y="150" font-size="12" fill="#5b6475">Change an option of generate.py and you create a new folder: generate.py never overwrites an existing one.</text>
+      </g>
+    </svg>
+  </figure>
+  <p>Step 7 replaces the whole <code>outputs/</code> folder, including the results of steps 7b and 7c. After re-running step 7, run 7b and 7c again (if the folder uses them) before step 9, or the report has no HS and VAUS section.</p>
+</section>
+
+<section>
+  <h2 id="where">Where each setting lives</h2>
+  <div class="callout warn"><span class="lbl">Hand edits are kept, until you rebuild</span>Step 6 writes the input JSON once. If the file already exists, step 6 prints <code>already exists, NOT overwriting it</code> and keeps it, so your edits stay. <code>step6_write_input.py --force</code> rebuilds the file and discards them. So does <code>step_total.py --auto-clip</code>. The same rule hides upstream changes: if you change step 2 or 3 and run <code>step_total.py</code> without <code>--force</code> on step 6, the old JSON is used.</div>
+
+  <h3>In a step script</h3>
+  <p>Each step script has its settings as constants at the top of the file, after the paths. Edit the constant, save, and run that script and the steps after it. Every constant of every step is listed in <a href="reference.html#constants">Options, files, columns</a>. The ones that matter for a change:</p>
+  <div class="tbl"><table class="fixed">
+    <colgroup><col style="width:9%"><col style="width:38%"><col style="width:53%"></colgroup>
+    <tr><th>Step</th><th>Constant</th><th>What it sets, and its value in a default run</th></tr>
+    <tr><td>1</td><td><code>CONTOUR_SPACING_KM</code></td><td>the spacing of the depth contours below the trench: 5.0 km</td></tr>
+    <tr><td>1</td><td><code>CLIP_BBOX</code>, <code>TRENCH_ENDS</code></td><td>the window of the raster that step 1 uses (from <code>--clip</code>), and the two end points that cut a zone that is one part of a SLAB region</td></tr>
+    <tr><td>1</td><td><code>TRENCH_RAMP_RISE_KM</code></td><td>a trench end that is more than this many km deeper than the normal trench is trimmed as the edge of the data, at most 100 km along the raster: 3.0 km</td></tr>
+    <tr><td>2</td><td><code>DESIRED_LENGTH_KM</code>, <code>DESIRED_WIDTH_KM</code></td><td>the length and the down-dip width the unit sources aim for. The width is 50.0 km with <code>--ptha false</code>, and PTHA18's own width with <code>--ptha true</code></td></tr>
+    <tr><td>2</td><td><code>N_DOWNDIP_OVERRIDE</code>, <code>MIN_DOWNDIP_ROWS</code></td><td>the number of rows down dip (None: computed from the geometry), and the smallest number allowed: 2</td></tr>
+    <tr><td>2</td><td><code>DISCRETIZER</code>, <code>COLUMN_RULE</code>, <code>CELL_SIZE</code>, <code>CELL_K</code>, <code>TRENCH_EDITED</code></td><td>the options of <code>generate.py</code> that shape the mesh. Change them with the options; editing them here is possible but the options are the clearer route</td></tr>
+    <tr><td>2</td><td><code>SEED</code></td><td>the seed of the mesh's optimiser: 1234</td></tr>
+    <tr><td>3</td><td><code>CONVERGENCE_OVERRIDE_MM_PER_YR</code></td><td>None (the Bird convergence of each column). A number replaces it everywhere with one constant rate, in mm/yr of horizontal motion</td></tr>
+    <tr><td>3</td><td><code>BIRD_TABLE</code></td><td>which plate-boundary table is read; set by <code>--convergence</code></td></tr>
+    <tr><td>4, 5, 6</td><td><code>WINDOW_START</code>, <code>WINDOW_END</code></td><td>the GCMT window: 1976-01-01 to 2017-03-01, PTHA18's window. Each of the three steps has its own copy, and step 9 reads step 5's, so change them in all three</td></tr>
+    <tr><td>5</td><td><code>BUFFER_DEG</code>, <code>RAKE_TOL_DEG</code>, <code>STRIKE_TOL_DEG</code>, <code>MAX_DEPTH_KM</code></td><td>the selection rule of the earthquakes: 0.4 degrees around the zone, 50 degrees of rake and of strike, and the deepest event kept: 71 km</td></tr>
+    <tr><td>5, 6</td><td><code>THRESHOLD_MW</code></td><td>the smallest magnitude kept: 7.15, which is Mw_min minus half a 0.1 bin. Step 5 uses it to select, step 6 to write the input; keep them equal to each other and to the threshold in the JSON</td></tr>
+    <tr><td>6</td><td><code>PERCENTILE_MW</code></td><td>the magnitudes where the percentiles are computed: 7.2 to 9.8 in steps of 0.1</td></tr>
+    <tr><td>7b</td><td><code>REALISATIONS_PER_FAUS_PLACEMENT</code>, <code>MIN_HS_EVENTS_PER_MAGNITUDE</code>, <code>RNG_SEED</code></td><td>how many slip fields each uniform-slip rupture gets (15), the smallest number of heterogeneous-slip events per magnitude (200), and the seed (1234). These change the HS and VAUS fields, and the step 7c rates that are built from them</td></tr>
+    <tr><td>8</td><td><code>OFFICIAL_MW_TOL</code></td><td>the magnitude tolerance when a scenario of this run is matched with one of PTHA18's: 0.05</td></tr>
+  </table></div>
+  <p>Step 6 reads the meshing constants of step 2 from its text, so a hand edit of step 2 reaches the input file when step 6 is run with <code>--force</code>. Step 9 has no settings that change the numbers.</p>
+
+  <h3>In the input JSON</h3>
+  <p>Step 6 writes <code>inputs/input_&lt;zone&gt;_scratch.json</code>, which step 7 runs. Edit it to change the logic tree or the observed events. The keys that are often changed (the block is the key one level up):</p>
+  <div class="tbl"><table class="fixed">
+    <colgroup><col style="width:38%"><col style="width:62%"></colgroup>
+    <tr><th>Key</th><th>What it does</th></tr>
+    <tr><td><code>rates.tectonic_convergence_mm_per_yr</code></td><td>the convergence of the zone as one number, in mm/yr. With Bird's values, the per-column profiles sit beside it as <code>rates.convergence_profile</code> and <code>rates.convergent_slip_profile</code></td></tr>
+    <tr><td><code>rates.coupling</code></td><td>the coupling prior: <code>spreadsheet_values</code> as <code>[min, preferred, max]</code>, <code>uniform_range</code> (<code>[0.1, 1.3]</code>) and <code>prob_zero_coupling</code></td></tr>
+    <tr><td><code>rates.b_anchor</code></td><td>the range of the b value of the logic tree, as <code>[min, preferred, max]</code></td></tr>
+    <tr><td><code>rates.Mw_max_anchor</code>, <code>rates.mw_max_observed</code></td><td>the range of the maximum magnitude (<code>"derive"</code>, or a pair), and the largest observed earthquake it is derived from</td></tr>
+    <tr><td><code>rates.Mw_min</code>, <code>rates.Mw_frequency_distribution_prob</code>, <code>rates.n_logic_tree_bins</code></td><td>the minimum magnitude (<code>[7.15]</code>), the 70/30 weights of the two Gutenberg-Richter types, and the number of values of each axis (coupling 20, b 20, Mw_max 40)</td></tr>
+    <tr><td><code>events.Mmin</code>, <code>events.Mmax</code>, <code>events.dMw</code></td><td>the magnitudes of the scenario ruptures: 7.2 to 9.8 in steps of 0.1</td></tr>
+    <tr><td><code>events.scaling_relation</code>, <code>events.shear_modulus_Pa</code></td><td>the rupture scaling relation and the rigidity (30 GPa for the constant model)</td></tr>
+    <tr><td><code>geometry.desired_unit_source_width</code>, <code>geometry.desired_unit_source_length</code></td><td>the unit-source size the rupture sizes are built from. A change makes the engine mesh again instead of reusing step 2's grid</td></tr>
+    <tr><td><code>rates.update_logic_tree_weights_with_data</code>, <code>rates.observed_seismicity</code></td><td>whether the observed GCMT events move the weights (LEVEL 3), and the events with their threshold, count and duration</td></tr>
+    <tr><td><code>rates.edge_correction</code></td><td>the LEVEL 4 edge correction: <code>fit</code>, <code>fixed</code>, <code>inherit</code> or <code>off</code></td></tr>
+    <tr><td><code>percentiles</code></td><td>LEVEL 5: <code>threshold_Mw</code> (the magnitudes), <code>N</code> (40,000 samples), <code>percentile_probs</code> and <code>seed</code> (123)</td></tr>
+    <tr><td><code>segments</code></td><td>the LEVEL 0 segments of a segmented run; empty for an unsegmented run</td></tr>
+  </table></div>
+  <p>The keys that begin with an underscore (such as <code>_convergence_provenance</code>) are notes that record where each value came from. The full layout is on <a href="input_json.html">The input file</a>.</p>
+
+  <h3>In generate.py</h3>
+  <p>The options (listed in <a href="reference.html#generate-options">Options, files, columns</a>) are written into the folder when it is made. They cannot be changed in place. To try another option, run <code>generate.py</code> with a new <code>--folder</code>. If the folder name is taken, <code>generate.py</code> adds a suffix such as <code>_2</code>, so no folder is overwritten.</p>
+</section>
+
+<section>
+  <h2 id="recipes">The changes people ask for most</h2>
+  <p>Each row names the place to edit and the steps to run afterwards, in order. "7b, 7c" means those steps, if the folder uses them. Run <code>step6_write_input.py --force</code> wherever it is named: it rebuilds the input JSON, so it discards your other hand edits of that file.</p>
+  <div class="tbl"><table class="fixed">
+    <colgroup><col style="width:21%"><col style="width:45%"><col style="width:34%"></colgroup>
+    <tr><th>Change</th><th>Where, and what to edit</th><th>Then run</th></tr>
+    <tr><td>The zone, the region or an option of generate.py</td><td>Not in place. The zone name is written into every step script, and the options into the folder. Generate a new folder with <code>--zone</code> or the option</td><td>that folder's steps 1 to 9 (<code>step_total.py</code>)</td></tr>
+    <tr><td>The clip window</td><td>New folder with <code>--clip</code>, or edit <code>CLIP_BBOX</code> in <code>steps/step1_fetch_slab2.py</code>, for example <code>(297, 307, 5, 18.5)</code></td><td>1, 2, 3, 5, 6 with <code>--force</code>, 7, 7b, 7c, 9</td></tr>
+    <tr><td>The seismogenic cutoff</td><td>There is no constant for it in the folder. Step 1 calls <code>berryman_cutoff_km(PTHA18_ZONE_NAME)</code>: in <code>step1_fetch_slab2.py</code>, set <code>cutoff</code> to your value (in km below the trench, a multiple of 5) on the line after that call, or change the zone's rows in <code>lib/berryman_params.py</code> (shared by every folder, read again by each new one)</td><td>1, 2, 3, 5, 6 with <code>--force</code>, 7, 7b, 7c, 9</td></tr>
+    <tr><td>The unit-source size</td><td><code>DESIRED_WIDTH_KM</code> (and <code>DESIRED_LENGTH_KM</code>) in <code>steps/step2_build_grid.py</code></td><td>2, 3, 5, 6 with <code>--force</code>, 7, 7b, 7c, 9</td></tr>
+    <tr><td>The convergence</td><td><code>CONVERGENCE_OVERRIDE_MM_PER_YR = 35.0</code> in <code>steps/step3_convergence.py</code> (<a href="#convergence">Example 1</a>)</td><td>3, 6 with <code>--force</code>, 7, 7b, 7c, 9</td></tr>
+    <tr><td>The GCMT window</td><td><code>WINDOW_START</code> and <code>WINDOW_END</code> in steps 4, 5 and 6. Step 4 downloads monthly files up to the current month, so a later end date is available</td><td>4, 5, 6 with <code>--force</code>, 7, 7b, 7c, 9</td></tr>
+    <tr><td>The earthquake selection rule</td><td><code>BUFFER_DEG</code>, <code>RAKE_TOL_DEG</code>, <code>STRIKE_TOL_DEG</code>, <code>MAX_DEPTH_KM</code> in <code>steps/step5_subset_gcmt.py</code></td><td>5, 6 with <code>--force</code>, 7, 7b, 7c, 9</td></tr>
+    <tr><td>Mmin and Mmax</td><td>In the input JSON: <code>events.Mmin</code>, <code>events.Mmax</code>, and <code>rates.Mw_min</code> (keep it at Mmin minus half of <code>dMw</code>). <code>observed_seismicity.threshold_Mw</code> must not be below <code>Mw_min</code>, or step 7 stops. If you use <code>--cell-size strasser</code>, <code>CELL_CAP_MW</code> in step 2 must stay equal to Mmin. Also set <code>percentiles.threshold_Mw</code> to magnitudes inside the new range. These values are written by step 6 as fixed numbers, so <code>--force</code> restores them</td><td>7, 7b, 7c, 9</td></tr>
+    <tr><td>The b-value range</td><td><code>rates.b_anchor</code> in the input JSON, as <code>[min, preferred, max]</code> (<a href="#jso">Example 2</a>)</td><td>7, 7b, 7c, 9</td></tr>
+    <tr><td>The coupling range</td><td><code>rates.coupling.spreadsheet_values</code> (<code>[min, preferred, max]</code>) and <code>rates.coupling.uniform_range</code> in the input JSON</td><td>7, 7b, 7c, 9</td></tr>
+    <tr><td>The number of logic-tree branches</td><td><code>rates.n_logic_tree_bins</code> in the input JSON (coupling 20, b 20, Mw_max 40 give the 32,000 branches of PTHA18)</td><td>7, 7b, 7c, 9</td></tr>
+    <tr><td>The number of realisations</td><td>Heterogeneous slip: <code>REALISATIONS_PER_FAUS_PLACEMENT</code> and <code>MIN_HS_EVENTS_PER_MAGNITUDE</code> in <code>steps/step7b_stochastic_slip.py</code>, or the flags <code>--max-placements-per-mw</code> and <code>--max-fields-per-mw</code>. LEVEL 5 samples: <code>percentiles.N</code> in the input JSON</td><td>7b, 7c, 9 for the fields. 7, 7b, 7c, 9 for <code>percentiles.N</code></td></tr>
+    <tr><td>The seeds</td><td>Mesh: <code>SEED</code> in step 2. Slip fields: <code>RNG_SEED</code> in step 7b. LEVEL 5 sampling: <code>percentiles.seed</code> in the input JSON</td><td>mesh: 2, 3, 5, 6 with <code>--force</code>, 7, 7b, 7c, 9. Slip fields: 7b, 7c, 9. Sampling: 7, 7b, 7c, 9</td></tr>
+    <tr><td>Segments or their boundary rule</td><td>New folder with <code>--segmented true</code> and <code>--segment-boundaries</code> (<a href="segmentation.html">Segmented vs unsegmented</a>)</td><td>that folder's steps 1 to 9</td></tr>
+    <tr><td>The variable shear modulus</td><td>New folder with <code>--variable-mu on</code>, or run <code>step7c_variable_mu.py --force</code> in an existing one after step 7b</td><td>7c, 9</td></tr>
+  </table></div>
+  <p>The 7b and 7c steps are listed after step 7 because step 7 deletes their results. If you only change something in step 7b, steps 7 and the earlier ones keep their results.</p>
+
+  <h3 id="same-folder">Running again in the same folder</h3>
+  <ul class="tight">
+    <li><b>The input JSON is kept.</b> <code>step_total.py</code> does not pass <code>--force</code> to step 6 (only <code>--auto-clip</code> does), so a changed constant in step 2 or 3 does not reach the JSON until step 6 is run with <code>--force</code>.</li>
+    <li><b>Step 7 replaces <code>outputs/</code></b> as a whole, so the HS, VAUS and variable shear modulus results are gone until 7b and 7c run again. <code>step_total.py</code> runs them.</li>
+    <li><b>Downloads are kept.</b> Step 4 reuses the <code>.ndk</code> files in <code>data/gcmt/</code> (delete a file to download it again), and step 1 reuses the SLAB raster, from the folder or from <code>ptha_python/data/slab2/</code>.</li>
+    <li><b>Step 8's results stay</b> in <code>outputs_official/</code> until step 8 runs again.</li>
+    <li><b>The report and <code>RUN.html</code>.</b> Step 9 writes <code>report.html</code> again. Each complete <code>step_total.py</code> run adds a line to <code>RUN.html</code>.</li>
+    <li>To keep the old results, copy the folder first, or generate a new one: nothing in a folder depends on another.</li>
+  </ul>
+</section>
+
+<section>
+  <h2 id="convergence">Example 1: a constant convergence</h2>
+  <p>Suppose you want every column to use one convergence rate, for example to reproduce the constant 35 mm/yr PTHA18 used on <code>puysegur2</code>. Step 3 has a constant for it.</p>
+  <ol>
+    <li>In <code>NAME/steps/step3_convergence.py</code>, set <code>CONVERGENCE_OVERRIDE_MM_PER_YR = 35.0</code>, in mm/yr.</li>
+    <li>Run <code>python NAME/steps/step3_convergence.py</code>. It prints that the override replaces the Bird value.</li>
+    <li>Run <code>python NAME/steps/step6_write_input.py --force</code>. The JSON now holds the constant. Step 6 says that the run uses the constant-convergence model.</li>
+    <li>Run <code>python NAME/steps/step7_run.py</code>, then <code>step7b_stochastic_slip.py</code> and <code>step7c_variable_mu.py</code> if the folder uses them, then <code>python NAME/steps/step9_report.py</code>.</li>
+  </ol>
+  <div class="callout warn"><span class="lbl">Always the horizontal rate</span>The number is the horizontal plate rate. The engine divides it by the cosine of the mean dip itself. Typing a value already divided by the cosine applies the correction twice.</div>
+  <div class="callout"><span class="lbl">Compare like with like</span>A rate from a constant convergence is not comparable with a rate from the Bird values. Keep the same value in both runs when you compare them.</div>
+</section>
+
+<section>
+  <h2 id="jso">Example 2: a different b value, from the JSON</h2>
+  <p>The logic tree's b values are in the input JSON, so no step has to be re-run before step 7.</p>
+  <ol>
+    <li>Open <code>NAME/inputs/input_&lt;zone&gt;_scratch.json</code> and change <code>rates.b_anchor</code>, keeping the form <code>[min, preferred, max]</code>.</li>
+    <li>Run <code>python NAME/steps/step7_run.py</code>, then <code>step7b</code> and <code>step7c</code> if the folder uses them, then <code>python NAME/steps/step9_report.py</code>.</li>
+  </ol>
+  <p>Step 6 is not run again, so your edit survives. Running <code>step_total.py</code> also keeps it, because step 6 does not overwrite the file.</p>
+</section>
+
+<section>
+  <h2 id="check">Check that a change took effect</h2>
+  <ul>
+    <li><b>Steps 2 and 3:</b> the printed mesh and convergence lines show the new value. The files are <code>data/slab2/unit_source_grid.npy</code> and <code>data/convergence.txt</code>.</li>
+    <li><b>Step 6:</b> the input JSON has the new value, and its <code>_provenance</code> notes say where it came from.</li>
+    <li><b>Step 7:</b> the summary in <code>outputs/logic_tree_summary.csv</code> and the rates in <code>outputs/rate_curves.csv</code> change.</li>
+    <li><b>Step 9:</b> the report's header and the "Step by step" cards show the new numbers. A stale report is one that was not re-run after the change.</li>
+  </ul>
+</section>
+
+<nav class="pager" id="pager"></nav>
+<footer>Settings and file names are taken from the step templates and <code>generate.py</code>. Change a setting, then re-run the steps that follow it.</footer>
+</main>
+<aside class="toc" id="toc"></aside>
+</div>
+<script src="assets/nav.js"></script>
+</body>
+</html>

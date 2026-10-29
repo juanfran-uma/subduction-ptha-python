@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3. Bird or Bird + Griffin, per zone | ptha_python</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  .hot{color:#a33030;font-weight:700}
+  .muted{color:#8a93a3}
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="side" id="side"></nav>
+<main>
+
+<section id="top">
+  <div class="crumb">Rates</div>
+  <h1>3. Bird or Bird + Griffin, per zone</h1>
+  <p class="lead">Step 3 takes the plate convergence from a table of plate-boundary pieces. Two tables are in the package, and <code>generate.py --convergence</code> picks one. For most PTHA18 zones they give the same or nearly the same answer. For the zones where PTHA18 used Jonathan Griffin's plate rates instead of Bird's steps (eastern Indonesia and New Guinea), they can differ by anything from about 10% to a factor of 38 (seramsouth). This page says which zone uses which table, measured on PTHA18's own meshes.</p>
+  <div class="grid g4">
+    <div class="card kpi"><div class="num">42</div><div class="lbl">PTHA18 subduction zones measured</div></div>
+    <div class="card kpi"><div class="num">20</div><div class="lbl">took their convergence from Bird's own steps</div></div>
+    <div class="card kpi"><div class="num">4</div><div class="lbl">from Bird's steps plus a few traces</div></div>
+    <div class="card kpi"><div class="num">18</div><div class="lbl">from Griffin's (or Davies') traces</div></div>
+  </div>
+</section>
+
+<section>
+  <h2 id="at-a-glance">At a glance</h2>
+  <figure class="fig">
+    <svg viewBox="0 0 960 250" role="img" aria-label="Two tables in ptha_python/data/bird feed step 3; the flag --convergence chooses one">
+      <defs><marker id="cs-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8a93a3"/></marker></defs>
+      <g font-size="12.5">
+        <rect x="10" y="20" width="360" height="92" rx="10" fill="#e4f5ec" stroke="#2e9e6b"/>
+        <text x="24" y="44" font-weight="700">--convergence bird  (default)</text>
+        <text x="24" y="66" fill="#5b6475">Bird (2003)'s public catalogue, PB2002_steps</text>
+        <text x="24" y="84" fill="#5b6475">1869 steps of convergent boundary types</text>
+        <text x="24" y="102" fill="#5b6475">(SUB, OCB, CCB), as published</text>
+        <rect x="10" y="138" width="360" height="92" rx="10" fill="#fcf0e2" stroke="#d9822b"/>
+        <text x="24" y="162" font-weight="700">--convergence bird-griffin</text>
+        <text x="24" y="184" fill="#5b6475">the table PTHA18 used: 1060 of Bird's steps</text>
+        <text x="24" y="202" fill="#5b6475">+ 2645 traces by J. Griffin + 100 by G. Davies</text>
+        <text x="24" y="220" fill="#5b6475">(a copy of the table PTHA18 reads from rptha)</text>
+        <rect x="430" y="80" width="200" height="90" rx="10" fill="#fff" stroke="#2f6fdf" stroke-width="1.6"/>
+        <text x="444" y="106" font-weight="700">step 3</text>
+        <text x="444" y="128" fill="#5b6475">each column's top edge</text>
+        <text x="444" y="146" fill="#5b6475">to the nearest piece</text>
+        <rect x="690" y="20" width="260" height="92" rx="10" fill="#e4f5ec" stroke="#2e9e6b"/>
+        <text x="704" y="44" font-weight="700">zones where PTHA18 used Bird</text>
+        <text x="704" y="66" fill="#5b6475">both tables: the same or close</text>
+        <text x="704" y="84" fill="#5b6475">(except near transforms, see notes)</text>
+        <rect x="690" y="138" width="260" height="92" rx="10" fill="#fdecec" stroke="#c43d3d"/>
+        <text x="704" y="162" font-weight="700">zones where PTHA18 used Griffin</text>
+        <text x="704" y="184" fill="#5b6475">eastern Indonesia, New Guinea:</text>
+        <text x="704" y="202" fill="#5b6475">very different; bird-griffin = PTHA18</text>
+      </g>
+      <g stroke="#8a93a3" stroke-width="1.8" fill="none" marker-end="url(#cs-ar)">
+        <path d="M370,66 C400,66 400,110 428,112"/><path d="M370,184 C400,184 400,140 428,138"/>
+        <path d="M630,112 C660,112 660,66 688,66"/><path d="M630,138 C660,138 660,184 688,184"/>
+      </g>
+    </svg>
+    <figcaption><b>Where the convergence comes from.</b> Both tables are in <code>ptha_python/data/bird/</code>, so nothing is downloaded and nothing is read from <code>rptha/</code> for this choice. The method is the same for both (<a href="step3.html#matching">matching</a>); only the pieces it matches against differ.</figcaption>
+  </figure>
+  <div class="code"><pre>python ptha_python/generate.py kermadec --zone kermadectonga2 --folder kermadectonga2 <span class="cm"># bird (default)</span>
+python ptha_python/generate.py kermadec --zone kermadectonga2 --folder kermadectonga2_bg --convergence bird-griffin <span class="cm"># PTHA18's table</span></pre></div>
+  <p><code>generate.py</code> prints, for any PTHA18 zone, where PTHA18 took its convergence from and what both tables give on PTHA18's mesh (from the table on this page). In an existing folder, change <code>BIRD_TABLE</code> in <code>steps/step3_convergence.py</code> and re-run steps 3, 6 (<code>--force</code>), 7 and 9. The choice is recorded in <code>data/convergence_per_column.json</code> (<code>bird_table</code>). Step 8, the official run, always uses <code>bird-griffin</code>, as PTHA18 did.</p>
+</section>
+
+<section>
+  <h2 id="griffin">What "Griffin's traces" are</h2>
+  <p>PTHA18 did not use Bird's file as it is. Its R scripts in <code>rptha/R/examples/austptha_template/DATA/BIRD_PLATE_BOUNDARIES/</code> start from Bird's (2003) plate model, edited so that some of its pieces were replaced by other information, and combine it with "the plate motion rates put together by Jonathan Griffin for eastern Indonesia and other new source zones". A merge step then produces the one table PTHA18's rate code reads. The table has a column <code>collator</code> that says who supplied each row: <code>Bird2003_subset</code> (Bird's steps kept by PTHA18), <code>JG</code> (Griffin's traces) or <code>GD</code> (rows added by Gareth Davies, for example the Arakan trace at 23 mm/yr).</p>
+  <p>Why the numbers differ so much where Griffin's traces are used: Bird's model divides the region between Australia and the Pacific into many small plates (Bird's Head, Caroline, Woodlark, Manus, Molucca Sea, Banda Sea and others), and each boundary carries only its own share of the motion. Griffin's trace of the New Guinea trench carries most of the Pacific-Australia motion, so it gives a much larger rate there. Neither is wrong: they are two models of the same plates. <code>bird</code> is Bird's model as published; <code>bird-griffin</code> is PTHA18's.</p>
+</section>
+
+<section>
+  <h2 id="zones">Every PTHA18 subduction zone, measured</h2>
+  <p>For each of PTHA18's 42 subduction zones (thrust interface, rake 90; PTHA18's outer-rise zones are normal faults and are not part of this table): which rows of PTHA18's table each column's top edge is matched to (Bird / Griffin / Davies), the traces used, and the zone's convergence with each table, all on PTHA18's own mesh. The <code>bird-griffin</code> column is PTHA18's own convergence. Differences of 10% or more are in red. Zones marked "no Berryman mapping" cannot be built by this package yet (<a href="#notes">note 6</a>).</p>
+  <div class="tbl"><table class="fixed">
+    <colgroup><col style="width:16%"><col style="width:13%"><col style="width:17%"><col style="width:10%"><col style="width:9%"><col style="width:8%"><col style="width:27%"></colgroup>
+    <tr><th>Zone</th><th>PTHA18's source</th><th>columns matched: Bird / Griffin / Davies (traces)</th><th class="n">bird-griffin mm/yr</th><th class="n">bird mm/yr</th><th class="n">bird vs b-g</th><th>Which --convergence</th></tr>
+    <tr id="z-izumariana"><td><code>izumariana</code></td><td><span class="badge good">Bird</span></td><td>70 / 0 / 0</td><td class="n">52.18</td><td class="n">52.18</td><td class="n">0%</td><td>either (same result)</td></tr>
+    <tr id="z-kermadectonga"><td><code>kermadectonga</code> <span class="where">(row_weight 0)</span></td><td><span class="badge good">Bird</span></td><td>69 / 0 / 0</td><td class="n">102.35</td><td class="n">102.30</td><td class="n">0%</td><td>either (same result)</td></tr>
+    <tr id="z-kermadectonga2"><td><code>kermadectonga2</code></td><td><span class="badge good">Bird</span></td><td>72 / 0 / 0</td><td class="n">98.77</td><td class="n">99.07</td><td class="n">0%</td><td>either (same result)</td></tr>
+    <tr id="z-kurilsjapan"><td><code>kurilsjapan</code></td><td><span class="badge good">Bird</span></td><td>61 / 0 / 0</td><td class="n">87.72</td><td class="n">87.72</td><td class="n">0%</td><td>either (same result)</td></tr>
+    <tr id="z-newhebrides"><td><code>newhebrides</code> <span class="where">(row_weight 0)</span></td><td><span class="badge good">Bird</span></td><td>34 / 0 / 0</td><td class="n">102.39</td><td class="n">102.39</td><td class="n">0%</td><td>either (same result)</td></tr>
+    <tr id="z-newhebrides2"><td><code>newhebrides2</code></td><td><span class="badge good">Bird</span></td><td>38 / 0 / 0</td><td class="n">92.45</td><td class="n">96.55</td><td class="n">+4%</td><td>either (differs by 4%)</td></tr>
+    <tr id="z-puysegur"><td><code>puysegur</code> <span class="where">(row_weight 0)</span></td><td><span class="badge grey">constant 35 mm/yr</span></td><td>17 / 0 / 0</td><td class="n">n/a</td><td class="n">21.94</td><td class="n">n/a</td><td>either; PTHA18 used a constant rate (<a href="#notes">note 1</a>)</td></tr>
+    <tr id="z-puysegur2"><td><code>puysegur2</code></td><td><span class="badge grey">constant 35 mm/yr</span></td><td>14 / 0 / 0</td><td class="n">n/a</td><td class="n">24.91</td><td class="n">n/a</td><td>either; PTHA18 used a constant rate (<a href="#notes">note 1</a>)</td></tr>
+    <tr id="z-solomon"><td><code>solomon</code> <span class="where">(row_weight 0)</span></td><td><span class="badge warn">Bird + some traces</span></td><td>45 / 1 / 0<br><span class="where">trobriand</span></td><td class="n">84.31</td><td class="n">81.77</td><td class="n">-3%</td><td>either (differs by 3%)</td></tr>
+    <tr id="z-solomon2"><td><code>solomon2</code></td><td><span class="badge warn">Bird + some traces</span></td><td>41 / 1 / 0<br><span class="where">trobriand</span></td><td class="n">87.98</td><td class="n">85.59</td><td class="n">-3%</td><td>either (differs by 3%)</td></tr>
+    <tr id="z-southamerica"><td><code>southamerica</code></td><td><span class="badge good">Bird</span></td><td>165 / 0 / 0</td><td class="n">58.71</td><td class="n">58.71</td><td class="n">0%</td><td>either (same result)</td></tr>
+    <tr id="z-sunda"><td><code>sunda</code> <span class="where">(row_weight 0)</span></td><td><span class="badge warn">Bird + some traces</span></td><td>91 / 0 / 32<br><span class="where">Arakan</span></td><td class="n">45.42</td><td class="n">45.66</td><td class="n">+1%</td><td>either (same result)</td></tr>
+    <tr id="z-sunda2"><td><code>sunda2</code></td><td><span class="badge warn">Bird + some traces</span></td><td>89 / 0 / 31<br><span class="where">Arakan</span></td><td class="n">45.02</td><td class="n">45.34</td><td class="n">+1%</td><td>either (same result)</td></tr>
+    <tr id="z-alaskaaleutians"><td><code>alaskaaleutians</code></td><td><span class="badge good">Bird</span></td><td>78 / 0 / 0</td><td class="n">54.99</td><td class="n">55.35</td><td class="n">+1%</td><td>either (same result)</td></tr>
+    <tr id="z-cascadia"><td><code>cascadia</code></td><td><span class="badge good">Bird</span></td><td>22 / 0 / 0</td><td class="n">37.69</td><td class="n">37.69</td><td class="n">0%</td><td>either (same result)</td></tr>
+    <tr id="z-mexico"><td><code>mexico</code></td><td><span class="badge good">Bird</span></td><td>58 / 0 / 0</td><td class="n">64.18</td><td class="n">63.82</td><td class="n">-1%</td><td>either (same result)</td></tr>
+    <tr id="z-sandwich"><td><code>sandwich</code></td><td><span class="badge good">Bird</span></td><td>14 / 0 / 0</td><td class="n">71.30</td><td class="n">74.26</td><td class="n">+4%</td><td>either (differs by 4%)</td></tr>
+    <tr id="z-ryuku"><td><code>ryuku</code></td><td><span class="badge good">Bird</span></td><td>40 / 0 / 0</td><td class="n">79.50</td><td class="n">79.50</td><td class="n">0%</td><td>either (same result)</td></tr>
+    <tr id="z-hjort"><td><code>hjort</code></td><td><span class="badge good">Bird</span></td><td>13 / 0 / 0</td><td class="n">16.01</td><td class="n">18.82</td><td class="n"><span class="hot">+18%</span></td><td><b>bird-griffin</b> to match PTHA18</td></tr>
+    <tr id="z-makran"><td><code>makran</code> <span class="where">(row_weight 0)</span></td><td><span class="badge good">Bird</span></td><td>16 / 0 / 0</td><td class="n">41.27</td><td class="n">41.27</td><td class="n">0%</td><td>either (same result)</td></tr>
+    <tr id="z-makran2"><td><code>makran2</code></td><td><span class="badge good">Bird</span></td><td>20 / 0 / 0</td><td class="n">41.06</td><td class="n">40.51</td><td class="n">-1%</td><td>either (differs by 1%)</td></tr>
+    <tr id="z-macquarieislandnorth"><td><code>macquarieislandnorth</code></td><td><span class="badge good">Bird</span></td><td>13 / 0 / 0</td><td class="n">7.16</td><td class="n">17.03</td><td class="n"><span class="hot">+138%</span></td><td><b>bird-griffin</b> to match PTHA18<br><span class="where">no Berryman mapping: cannot be built yet</span></td></tr>
+    <tr id="z-macquarienorth"><td><code>macquarienorth</code> <span class="where">(row_weight 0)</span></td><td><span class="badge good">Bird</span></td><td>13 / 0 / 0</td><td class="n">7.16</td><td class="n">17.02</td><td class="n"><span class="hot">+138%</span></td><td><b>bird-griffin</b> to match PTHA18<br><span class="where">no Berryman mapping: cannot be built yet</span></td></tr>
+    <tr id="z-timor"><td><code>timor</code> <span class="where">(row_weight 0)</span></td><td><span class="badge bad">Griffin traces</span></td><td>0 / 22 / 0<br><span class="where">timor</span></td><td class="n">15.49</td><td class="n">23.00</td><td class="n"><span class="hot">+48%</span></td><td><b>bird-griffin</b> to match PTHA18</td></tr>
+    <tr id="z-timortrough"><td><code>timortrough</code></td><td><span class="badge bad">Griffin traces</span></td><td>0 / 22 / 0<br><span class="where">timor</span></td><td class="n">15.18</td><td class="n">22.99</td><td class="n"><span class="hot">+51%</span></td><td><b>bird-griffin</b> to match PTHA18</td></tr>
+    <tr id="z-flores"><td><code>flores</code> <span class="where">(row_weight 0)</span></td><td><span class="badge bad">Griffin traces</span></td><td>0 / 40 / 0<br><span class="where">flores_backthrust</span></td><td class="n">18.84</td><td class="n">41.51</td><td class="n"><span class="hot">+120%</span></td><td><b>bird-griffin</b> to match PTHA18<br><span class="where">no Berryman mapping: cannot be built yet</span></td></tr>
+    <tr id="z-floreswetar"><td><code>floreswetar</code></td><td><span class="badge bad">Griffin traces</span></td><td>0 / 40 / 0<br><span class="where">flores_backthrust</span></td><td class="n">18.90</td><td class="n">41.56</td><td class="n"><span class="hot">+120%</span></td><td><b>bird-griffin</b> to match PTHA18<br><span class="where">no Berryman mapping: cannot be built yet</span></td></tr>
+    <tr id="z-seram_thrust"><td><code>seram_thrust</code></td><td><span class="badge bad">Griffin traces</span></td><td>0 / 12 / 0<br><span class="where">seram_thrust</span></td><td class="n">37.95</td><td class="n">51.39</td><td class="n"><span class="hot">+35%</span></td><td><b>bird-griffin</b> to match PTHA18<br><span class="where">no Berryman mapping: cannot be built yet</span></td></tr>
+    <tr id="z-se_sulawesi"><td><code>se_sulawesi</code></td><td><span class="badge bad">Griffin traces</span></td><td>0 / 11 / 0<br><span class="where">se_sulawesi</span></td><td class="n">10.57</td><td class="n">32.01</td><td class="n"><span class="hot">+203%</span></td><td><b>bird-griffin</b> to match PTHA18<br><span class="where">no Berryman mapping: cannot be built yet</span></td></tr>
+    <tr id="z-tolo_thrust"><td><code>tolo_thrust</code></td><td><span class="badge bad">Griffin traces</span></td><td>0 / 6 / 0<br><span class="where">tolo_thrust</span></td><td class="n">10.43</td><td class="n">15.61</td><td class="n"><span class="hot">+50%</span></td><td><b>bird-griffin</b> to match PTHA18<br><span class="where">no Berryman mapping: cannot be built yet</span></td></tr>
+    <tr id="z-seramsouth"><td><code>seramsouth</code></td><td><span class="badge bad">Griffin traces</span></td><td>0 / 0 / 5<br><span class="where">seramsouth</span></td><td class="n">1.00</td><td class="n">37.99</td><td class="n"><span class="hot">+3699%</span></td><td><b>bird-griffin</b> to match PTHA18<br><span class="where">no Berryman mapping: cannot be built yet</span></td></tr>
+    <tr id="z-north_sulawesi"><td><code>north_sulawesi</code></td><td><span class="badge bad">Griffin traces</span></td><td>0 / 11 / 0<br><span class="where">north_sulawesi</span></td><td class="n">33.97</td><td class="n">29.09</td><td class="n"><span class="hot">-14%</span></td><td><b>bird-griffin</b> to match PTHA18<br><span class="where">no Berryman mapping: cannot be built yet</span></td></tr>
+    <tr id="z-sangihe"><td><code>sangihe</code></td><td><span class="badge bad">Griffin traces</span></td><td>0 / 13 / 0<br><span class="where">sangihe</span></td><td class="n">53.93</td><td class="n">59.45</td><td class="n"><span class="hot">+10%</span></td><td><b>bird-griffin</b> to match PTHA18</td></tr>
+    <tr id="z-sangihe_backthrust"><td><code>sangihe_backthrust</code></td><td><span class="badge bad">Griffin traces</span></td><td>0 / 15 / 0<br><span class="where">sangihe_backthrust</span></td><td class="n">18.97</td><td class="n">43.37</td><td class="n"><span class="hot">+129%</span></td><td><b>bird-griffin</b> to match PTHA18<br><span class="where">no Berryman mapping: cannot be built yet</span></td></tr>
+    <tr id="z-manokwari"><td><code>manokwari</code></td><td><span class="badge bad">Griffin traces</span></td><td>0 / 7 / 0<br><span class="where">manokwari</span></td><td class="n">17.98</td><td class="n">21.63</td><td class="n"><span class="hot">+20%</span></td><td><b>bird-griffin</b> to match PTHA18</td></tr>
+    <tr id="z-newguinea"><td><code>newguinea</code> <span class="where">(row_weight 0)</span></td><td><span class="badge bad">Griffin traces</span></td><td>0 / 23 / 0<br><span class="where">newguinea</span></td><td class="n">101.35</td><td class="n">48.96</td><td class="n"><span class="hot">-52%</span></td><td><b>bird-griffin</b> to match PTHA18</td></tr>
+    <tr id="z-newguinea2"><td><code>newguinea2</code></td><td><span class="badge bad">Griffin traces</span></td><td>0 / 21 / 0<br><span class="where">manus, newguinea</span></td><td class="n">96.42</td><td class="n">38.47</td><td class="n"><span class="hot">-60%</span></td><td><b>bird-griffin</b> to match PTHA18</td></tr>
+    <tr id="z-mussau"><td><code>mussau</code></td><td><span class="badge bad">Griffin traces</span></td><td>0 / 8 / 0<br><span class="where">mussau</span></td><td class="n">10.30</td><td class="n">8.31</td><td class="n"><span class="hot">-19%</span></td><td><b>bird-griffin</b> to match PTHA18<br><span class="where">no Berryman mapping: cannot be built yet</span></td></tr>
+    <tr id="z-moresby_trough"><td><code>moresby_trough</code></td><td><span class="badge bad">Griffin traces</span></td><td>0 / 13 / 0<br><span class="where">moresby_trough</span></td><td class="n">4.32</td><td class="n">10.27</td><td class="n"><span class="hot">+138%</span></td><td><b>bird-griffin</b> to match PTHA18<br><span class="where">no Berryman mapping: cannot be built yet</span></td></tr>
+    <tr id="z-trobriand"><td><code>trobriand</code></td><td><span class="badge bad">Griffin traces</span></td><td>0 / 12 / 0<br><span class="where">trobriand</span></td><td class="n">1.00</td><td class="n">12.92</td><td class="n"><span class="hot">+1192%</span></td><td><b>bird-griffin</b> to match PTHA18<br><span class="where">no Berryman mapping: cannot be built yet</span></td></tr>
+    <tr id="z-manus"><td><code>manus</code></td><td><span class="badge bad">Griffin traces</span></td><td>0 / 36 / 0<br><span class="where">manus</span></td><td class="n">5.99</td><td class="n">12.41</td><td class="n"><span class="hot">+107%</span></td><td><b>bird-griffin</b> to match PTHA18</td></tr>
+    <tr id="z-philippine"><td><code>philippine</code></td><td><span class="badge good">Bird</span></td><td>33 / 0 / 0</td><td class="n">98.79</td><td class="n">98.79</td><td class="n">0%</td><td>either (same result)</td></tr>
+  </table></div>
+  <p class="where">The measurements are in <code>ptha_python/data/bird/ptha18_convergence_sources.csv</code>, which <code>generate.py</code> reads for its note. Its columns: <code>zone</code>, <code>row_weight</code>, <code>use_bird_convergence</code>, <code>constant_mm_per_yr</code> (35 for the puysegur zones), <code>columns</code> (number of along-strike columns of PTHA18's mesh), <code>cols_bird</code>, <code>cols_griffin</code>, <code>cols_davies</code> (columns matched to each source), <code>traces</code>, <code>source</code> (<code>bird</code>, <code>mixed</code> or <code>griffin</code>), <code>conv_bird_griffin</code>, <code>conv_bird</code> (mm/yr) and <code>lon_c</code>, <code>lat_c</code> (centre of the mesh). "bird vs b-g" is the public table's value relative to PTHA18's table. "row_weight 0": PTHA18's zone table gives this zone weight 0 in its logic tree.</p>
+</section>
+
+<section>
+  <h2 id="notes">Notes</h2>
+  <ul class="tight" style="list-style:none;padding-left:0">
+    <li><b>1. puysegur and puysegur2</b>: PTHA18 did not use either table there but a constant 35 mm/yr (<code>use_bird_convergence = 0</code>). Both tables give nearly the same Bird value there (21.9 mm/yr on puysegur's mesh, 24.9 on puysegur2's), because PTHA18's table has Bird's own steps there. To use PTHA18's value, set <code>CONVERGENCE_OVERRIDE_MM_PER_YR = 35</code> in step 3 (<a href="step3.html#puysegur">details</a>).</li>
+    <li><b>2. Zones PTHA18 used Bird on, where the two tables still differ</b> (hjort, the two Macquarie zones, sandwich, newhebrides2): PTHA18's table kept some of Bird's steps of other boundary types, such as oceanic transform faults and, on the Macquarie Ridge, a spreading ridge. <code>bird</code> uses only the convergent types (SUB, OCB, CCB), so there it matches a farther convergent step. On the Macquarie Ridge, where the boundary is mostly a transform, that changes the value a lot (7.2 against 17.0 mm/yr on macquarieislandnorth's mesh).</li>
+    <li><b>3. solomon, solomon2, sunda, sunda2</b>: a few columns are matched to a trace of Griffin's or Davies' table (one column to <code>trobriand</code> on solomon and solomon2; 32 of 123 columns on sunda and 31 of 120 on sunda2 to Davies' Arakan trace). The zone values differ by 3% or less.</li>
+    <li><b>4. Zones PTHA18 never modelled</b> (for example Calabria): the Bird + Griffin table has no steps near them, so <code>bird-griffin</code> falls back to Bird's public catalogue, and the two give the same answer.</li>
+    <li><b>5. Eastern-Indonesia zones</b> (timor, flores, seram, tolo, sangihe, manus, mussau, trobriand, moresby_trough and others): their convergence in PTHA18 comes from Griffin's traces, which the public table does not have. The package builds a zone only when it has a Berryman et al. (2015) mapping (note 6).</li>
+    <li><b>6. Zones with no Berryman mapping</b> (marked in the table): step 1 needs the zone's seismogenic cutoff, which with <code>--ptha false</code> comes from Berryman et al. (2015) through <code>ZONE_TO_BERRYMAN_SEGMENTS</code> in <code>lib/berryman_params.py</code>. Without an entry step 1 stops. To build one, add the zone there and in <code>ZONE_DOMINANT_SEGMENT</code>, pointing at its Berryman row.</li>
+  </ul>
+</section>
+
+<nav class="pager" id="pager"></nav>
+<footer>ptha_python documentation. Numbers from PTHA18's meshes (NCI) as recorded in <code>ptha_python/data/bird/ptha18_convergence_sources.csv</code>, and from the two tables in <code>ptha_python/data/bird/</code>.</footer>
+</main>
+<aside class="toc" id="toc"></aside>
+</div>
+<script src="assets/nav.js"></script>
+</body>
+</html>

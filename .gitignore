@@ -1,0 +1,17 @@
+# Generated example folders (python ptha_python/generate.py ...) land in the repository root.
+# Only the source folders are tracked.
+/*/
+!/ptha_python/
+!/rptha/
+!/official_ptha_data/
+!/inputs_meshes/
+
+.venv/
+__pycache__/
+*.pyc
+
+# downloaded on demand (SLAB1.0 rasters, PTHA18 event files, the R session)
+ptha_python/data/slab1/*.grd
+ptha_python/validation/ptha18_reference/events/
+*.RData
+official_ptha_data/*/

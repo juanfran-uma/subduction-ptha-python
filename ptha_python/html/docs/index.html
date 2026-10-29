@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Home | ptha_python</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+<nav class="side" id="side"></nav>
+<main>
+
+<section id="top">
+  <div class="crumb">Documentation</div>
+  <h1>ptha_python: PTHA18 earthquake sources from public data</h1>
+  <p class="lead">One command builds a complete earthquake source model for a subduction zone, in the way the Australian tsunami hazard assessment <b>PTHA18</b> built its own: the fault surface cut into cells, how fast the plates converge, which earthquakes have happened on the interface, and how often each possible earthquake is expected. It uses public data only. Where PTHA18 published its own files, the package checks itself against them.</p>
+
+  <div class="grid g4">
+    <div class="card kpi"><div class="num">9</div><div class="lbl">numbered steps, from download to report (step 8 is optional, and 7b and 7c are extra optional steps)</div></div>
+    <div class="card kpi"><div class="num">32,000</div><div class="lbl">logic-tree branches in the standard tree</div></div>
+    <div class="card kpi"><div class="num">36</div><div class="lbl">zone names with a Berryman et al. (2015) mapping</div></div>
+    <div class="card kpi"><div class="num">8</div><div class="lbl">SLAB2.0 regions cached with the package, so step 1 needs no download</div></div>
+  </div>
+  <div class="callout"><span class="lbl">Start here</span>Run one zone end to end with the <a href="quickstart.html">Quick start</a>, then read <a href="report_guide.html">Reading report.html</a> for what the numbers mean. For the commands of specific zones, see <a href="recipes.html">Recipes</a>.</div>
+</section>
+
+<section id="glance">
+  <h2 id="at-a-glance">At a glance</h2>
+  <p>Four data sets go in on the left: three public files and the literature values of Berryman et al. (2015). The numbered steps turn them into a source model on the right. By default (<code>--ptha false</code>), PTHA18's own published files (bottom) are used only to check the result, never to build it.</p>
+  <figure class="fig">
+    <svg viewBox="0 0 960 380" role="img" aria-label="Public data sets feed the nine steps, which produce the mesh, the earthquake rates and the report; PTHA18's files are used only for checking">
+      <defs>
+        <marker id="ix-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8a93a3"/></marker>
+      </defs>
+      <text x="20" y="24" font-size="12" font-weight="700" fill="#5b6475">PUBLIC DATA IN</text>
+      <text x="360" y="24" font-size="12" font-weight="700" fill="#5b6475">THE NINE STEPS</text>
+      <text x="760" y="24" font-size="12" font-weight="700" fill="#5b6475">WHAT COMES OUT</text>
+
+      <g font-size="13">
+        <rect x="20" y="40" width="220" height="54" rx="9" fill="#e4f5ec" stroke="#2e9e6b"/>
+        <text x="32" y="62" font-weight="700">SLAB2.0 / SLAB1.0 (USGS)</text>
+        <text x="32" y="81" font-size="11.5" fill="#5b6475">depth of the plate surface</text>
+        <rect x="20" y="108" width="220" height="54" rx="9" fill="#fcf0e2" stroke="#d9822b"/>
+        <text x="32" y="130" font-weight="700">Bird (2003) plate model</text>
+        <text x="32" y="149" font-size="11.5" fill="#5b6475">how fast the plates converge</text>
+        <rect x="20" y="176" width="220" height="54" rx="9" fill="#f1eafb" stroke="#8a5cd1"/>
+        <text x="32" y="198" font-weight="700">GCMT catalogue</text>
+        <text x="32" y="217" font-size="11.5" fill="#5b6475">earthquakes from 1976 to 2017</text>
+        <rect x="20" y="244" width="220" height="54" rx="9" fill="#f0f2f5" stroke="#8a93a3" stroke-dasharray="5 4"/>
+        <text x="32" y="266" font-weight="700">Berryman et al. (2015)</text>
+        <text x="32" y="285" font-size="11.5" fill="#5b6475">depth limit, coupling, b-value</text>
+      </g>
+
+      <g font-size="12.5">
+        <rect x="300" y="40" width="190" height="40" rx="8" fill="#e4f5ec" stroke="#2e9e6b"/>
+        <text x="312" y="65"><tspan font-weight="700">1</tspan>  depth contours</text>
+        <rect x="500" y="40" width="190" height="40" rx="8" fill="#e4f5ec" stroke="#2e9e6b"/>
+        <text x="512" y="65"><tspan font-weight="700">2</tspan>  mesh of unit sources</text>
+        <rect x="300" y="115" width="190" height="40" rx="8" fill="#fcf0e2" stroke="#d9822b"/>
+        <text x="312" y="140"><tspan font-weight="700">3</tspan>  convergence rate</text>
+        <rect x="300" y="190" width="190" height="40" rx="8" fill="#f1eafb" stroke="#8a5cd1"/>
+        <text x="312" y="215"><tspan font-weight="700">4-5</tspan>  earthquakes on this zone</text>
+        <rect x="500" y="152" width="190" height="40" rx="8" fill="#e8f0fd" stroke="#2f6fdf"/>
+        <text x="512" y="177"><tspan font-weight="700">6-7</tspan>  logic tree, LEVELs 0-5</text>
+        <rect x="500" y="228" width="190" height="40" rx="8" fill="#e8f0fd" stroke="#2f6fdf"/>
+        <text x="512" y="253"><tspan font-weight="700">9</tspan>  report.html</text>
+      </g>
+
+      <g stroke="#8a93a3" stroke-width="1.8" fill="none" marker-end="url(#ix-ar)">
+        <path d="M240,67 L298,60"/>
+        <path d="M240,135 L298,135"/>
+        <path d="M240,203 L298,210"/>
+        <path d="M240,271 C270,271 270,60 298,64" stroke-dasharray="5 4"/>
+        <path d="M490,60 L498,60"/>
+        <path d="M595,80 L595,150"/>
+        <path d="M490,135 C520,135 520,168 498,170"/>
+        <path d="M490,210 C520,210 520,178 498,176"/>
+        <path d="M595,192 L595,226"/>
+        <path d="M690,60 L758,62"/>
+        <path d="M690,172 L758,160"/>
+        <path d="M690,248 L758,258"/>
+      </g>
+
+      <g font-size="13">
+        <rect x="760" y="40" width="180" height="54" rx="9" fill="#fff" stroke="#eb6834" stroke-width="1.6"/>
+        <text x="772" y="62" font-weight="700">The mesh</text>
+        <text x="772" y="81" font-size="11.5" fill="#5b6475">cells of about 50 km</text>
+        <rect x="760" y="130" width="180" height="54" rx="9" fill="#fff" stroke="#2f6fdf" stroke-width="1.6"/>
+        <text x="772" y="152" font-weight="700">Earthquake rates</text>
+        <text x="772" y="171" font-size="11.5" fill="#5b6475">every scenario, per year</text>
+        <rect x="760" y="230" width="180" height="54" rx="9" fill="#fff" stroke="#2f6fdf" stroke-width="1.6"/>
+        <text x="772" y="252" font-weight="700">report.html</text>
+        <text x="772" y="271" font-size="11.5" fill="#5b6475">every number, with figures</text>
+      </g>
+
+      <rect x="300" y="318" width="640" height="46" rx="9" fill="#f0f2f5" stroke="#8a93a3" stroke-dasharray="5 4"/>
+      <text x="316" y="339" font-size="13" font-weight="700">PTHA18's published files (NCI): checking only</text>
+      <text x="316" y="356" font-size="11.5" fill="#5b6475">step 8 runs the official inputs through the same engine; the scripts in validation/ compare mesh, rates and earthquake lists</text>
+      <path d="M620,318 L620,290" stroke="#8a93a3" stroke-width="1.8" stroke-dasharray="4 4" marker-end="url(#ix-ar)" fill="none"/>
+      <text x="628" y="306" font-size="11" fill="#5b6475">step 8</text>
+    </svg>
+    <figcaption><b>The whole package in one picture.</b> Colours follow the documentation everywhere: green for the geometry (steps 1-2), orange for the plate speed (step 3), purple for the earthquake catalogue (steps 4-5), blue for the input file, the engine and the report (steps 6, 7 and 9), grey and dashed for literature values and for the optional comparison with PTHA18.</figcaption>
+  </figure>
+</section>
+
+<section id="what">
+  <h2 id="what-it-does">What it does, in five points</h2>
+  <ol class="steps">
+    <li><b>Step 1</b> downloads the depth of the sinking plate (USGS SLAB) and draws depth lines every 5 km, measured from the nearby trench, down to the depth where large earthquakes stop. Where the data ends crookedly, it cuts the zone's ends square. <a href="step1.html">Step 1</a>, <a href="clean_ends.html">clean ends</a></li>
+    <li><b>Step 2</b> cuts that surface into cells of about 50 km (the <i>unit sources</i>) with rptha's method. With the default <code>--discretizer optimal</code> the mesh is repaired only if a cell is folded, collapsed or overlapping. <a href="step2.html">Step 2</a>, <a href="discretizer.html">optimal, lm and mid</a></li>
+    <li><b>Step 3</b> reads how fast the plates converge under each column of cells from Bird's (2003) plate model. <b>Steps 4 and 5</b> pick the earthquakes of the Global CMT catalogue that happened on this interface. <a href="step3.html">Step 3</a>, <a href="seismicity.html">steps 4-5</a></li>
+    <li><b>Steps 6 and 7</b> put everything in one input file and run the logic tree: 32,000 combinations of coupling, b-value, maximum magnitude and the shape of the Gutenberg-Richter law, each balanced against the plate motion, re-weighted by the observed earthquakes, and summarised into rates with uncertainty. <a href="input_json.html">Step 6</a>, <a href="engine.html">step 7</a></li>
+    <li><b>Step 9</b> writes <code>report.html</code> with every number and figure, including the mesh on a real map. <b>Step 8</b> (optional, needs R) runs PTHA18's own inputs through the same engine, so the two can be compared. <a href="official.html">Step 8</a>, <a href="report_guide.html">reading the report</a>, <a href="data_provenance.html">data provenance</a></li>
+  </ol>
+</section>
+
+<section id="start">
+  <h2 id="one-minute-run">A complete first run</h2>
+  <p>After <code>git clone</code>, create a virtual environment with Python 3.13 and run <code>pip install -r requirements.txt</code> (the exact commands for Windows, macOS and Linux are in the <a href="quickstart.html#install">Quick start</a>). Then, from the repository root, generate a folder for a zone and run all its steps. The Quick start also explains each option, what needs the network, and has a command builder.</p>
+  <div class="code"><pre>python ptha_python/generate.py kermadec --zone kermadectonga2 --folder kermadectonga2
+python kermadectonga2/steps/step_total.py --skip-official     <span class="cm"># steps 1-9; step 8 needs R</span></pre></div>
+  <p>Then open <code>kermadectonga2/report.html</code> in a browser. In the reference runs of this package (meshes of 26 to 312 unit sources, step 8 skipped, the data already downloaded) a complete run took between 2.1 and 4.6 minutes. The first run also downloads the GCMT catalogue (about 30 MB), and a zone whose SLAB grid is not shipped with the package downloads that too.</p>
+</section>
+
+<section id="map">
+  <h2 id="how-to-read">How to read this guide</h2>
+  <p>The guide has three kinds of page. The <b>procedure</b> pages follow the nine steps, one page per step or per choice inside a step. The <b>reference</b> pages list every option, file and column. The <b>how-to</b> pages give commands: the quick start, the recipes for each zone, and the notes on changing a setting. Pages open with a summary diagram and then go into detail. The left column lists every page in reading order; the right column lists the headings of the page you are on.</p>
+  <div class="tbl"><table class="fixed">
+    <colgroup><col style="width:40%"><col style="width:60%"></colgroup>
+    <tr><th>I want to...</th><th>Read</th></tr>
+    <tr><td>understand PTHA without being a seismologist</td><td><a href="concepts.html">PTHA in plain words</a>, then <a href="glossary.html">the glossary</a></td></tr>
+    <tr><td>run a zone now</td><td><a href="quickstart.html">Quick start</a>, then <a href="recipes.html">Recipes</a> for the zone</td></tr>
+    <tr><td>see what each step does</td><td><a href="pipeline.html">The nine steps</a></td></tr>
+    <tr><td>understand the geometry (contours, ends, mesh)</td><td><a href="step1.html">Contours from SLAB</a>, <a href="clean_ends.html">clean ends</a>, <a href="step2.html">the mesh</a>, <a href="discretizer.html">optimal, lm and mid</a>, <a href="cell_size.html">cell size</a>, <a href="mesh_file.html">an external mesh</a></td></tr>
+    <tr><td>understand the rates</td><td><a href="step3.html">plate convergence</a> (<a href="convergence_sources.html">Bird or Bird + Griffin</a>), <a href="seismicity.html">earthquake catalogue</a>, <a href="input_json.html">input file</a>, <a href="engine.html">logic tree</a>, <a href="rupture_size.html">rupture size</a>, <a href="segmentation.html">segmentation</a>, <a href="hs_vaus.html">HS and VAUS slip</a>, <a href="variable_mu.html">variable shear modulus</a></td></tr>
+    <tr><td>read a report</td><td><a href="report_guide.html">Reading report.html</a></td></tr>
+    <tr><td>know how the result compares with PTHA18</td><td><a href="official.html">The official PTHA18 run</a>, <a href="data_provenance.html">data provenance</a>, <a href="validation.html">validation</a></td></tr>
+    <tr><td>run a zone of my own, or change a setting</td><td><a href="zones.html">Zones you can run</a>, <a href="customise.html">Change a setting, re-run</a></td></tr>
+    <tr><td>find an option, a file or a column; fix an error</td><td><a href="reference.html">Options, files, columns</a>, <a href="troubleshooting.html">Troubleshooting</a></td></tr>
+    <tr><td>see which Python function does what in the R code</td><td><a href="code_map.html">Python and rptha, side by side</a></td></tr>
+  </table></div>
+
+  <h3>All pages</h3>
+  <div class="grid g3">
+    <a class="card" href="quickstart.html"><b>Quick start</b><br><span class="where">Install, generate, run, open the report, command builder.</span></a>
+    <a class="card" href="concepts.html"><b>PTHA in plain words</b><br><span class="where">Subduction, unit sources, rates, the logic tree, uncertainty.</span></a>
+    <a class="card" href="pipeline.html"><b>The nine steps</b><br><span class="where">What each step reads and writes, and which are optional.</span></a>
+    <a class="card" href="step1.html"><b>1. Contours from SLAB</b><br><span class="where">The trench, the depth contours, the seismogenic cutoff.</span></a>
+    <a class="card" href="clean_ends.html"><b>1. Clean ends</b><br><span class="where">How the ends of a zone are cut where the data is not usable.</span></a>
+    <a class="card" href="step2.html"><b>2. The mesh</b><br><span class="where">Cutting the surface into unit sources, and what to check.</span></a>
+    <a class="card" href="discretizer.html"><b>2. optimal, lm and mid</b><br><span class="where">The three ways step 2 builds the mesh.</span></a>
+    <a class="card" href="cell_size.html"><b>Cell size (strasser)</b><br><span class="where">The mean rule and the strasser cap.</span></a>
+    <a class="card" href="mesh_file.html"><b>Your own mesh (mesh_file)</b><br><span class="where">Using your own quadrilateral mesh with --mesh-file.</span></a>
+    <a class="card" href="step3.html"><b>3. Plate convergence</b><br><span class="where">Bird (2003), per column of the mesh.</span></a>
+    <a class="card" href="convergence_sources.html"><b>3. Bird or Bird + Griffin, per zone</b><br><span class="where">The two plate tables and where they differ.</span></a>
+    <a class="card" href="seismicity.html"><b>4-5. Earthquake catalogue</b><br><span class="where">The GCMT catalogue and the selection rule.</span></a>
+    <a class="card" href="input_json.html"><b>6. The input file</b><br><span class="where">What goes into the logic tree, and where each value comes from.</span></a>
+    <a class="card" href="engine.html"><b>7. Logic tree and rates</b><br><span class="where">LEVELs 0 to 5, from the branches to the percentiles.</span></a>
+    <a class="card" href="rupture_size.html"><b>Rupture size</b><br><span class="where">The rptha rule and the local rule with q.</span></a>
+    <a class="card" href="segmentation.html"><b>Segmented vs unsegmented</b><br><span class="where">LEVEL 0, and what splitting the zone changes.</span></a>
+    <a class="card" href="hs_vaus.html"><b>7b. HS and VAUS slip</b><br><span class="where">Heterogeneous slip, as an illustration beside the rates.</span></a>
+    <a class="card" href="variable_mu.html"><b>7c. Variable shear modulus</b><br><span class="where">PTHA18's second set of rates.</span></a>
+    <a class="card" href="official.html"><b>8. The official PTHA18 run</b><br><span class="where">The comparison target, and how it is built.</span></a>
+    <a class="card" href="data_provenance.html"><b>Data provenance</b><br><span class="where">What comes from public data and what from PTHA18.</span></a>
+    <a class="card" href="report_guide.html"><b>Reading report.html</b><br><span class="where">Each section of the report and its numbers.</span></a>
+    <a class="card" href="validation.html"><b>Validation</b><br><span class="where">The checks against PTHA18's files, and how to run them.</span></a>
+    <a class="card" href="zones.html"><b>Zones you can run</b><br><span class="where">Every zone name, its region, and its rules.</span></a>
+    <a class="card" href="recipes.html"><b>Recipes: one per zone</b><br><span class="where">The command and settings for each zone.</span></a>
+    <a class="card" href="customise.html"><b>Change a setting, re-run</b><br><span class="where">Edit a step and run it again.</span></a>
+    <a class="card" href="reference.html"><b>Options, files, columns</b><br><span class="where">Every option, flag, file and column.</span></a>
+    <a class="card" href="troubleshooting.html"><b>Troubleshooting</b><br><span class="where">Errors, download problems, and what to do.</span></a>
+    <a class="card" href="code_map.html"><b>Code map</b><br><span class="where">Which Python code reproduces which R function.</span></a>
+    <a class="card" href="glossary.html"><b>Glossary</b><br><span class="where">Every technical term, in alphabetical order.</span></a>
+  </div>
+</section>
+
+<section id="trust">
+  <h2 id="how-far-to-trust">How far to trust the results</h2>
+  <div class="grid g2">
+    <div class="card">
+      <h4><span class="badge good">checked against PTHA18</span></h4>
+      <ul class="tight">
+        <li>Given PTHA18's own contours, the mesh is compared with PTHA18's mesh.</li>
+        <li>Given PTHA18's own inputs, the logic tree is run by the same engine as this package, and its branches and rates are compared with PTHA18's published tables.</li>
+        <li>The earthquake selection and the plate convergence are compared with PTHA18's own lists and values.</li>
+      </ul>
+      <p class="where">Details: <a href="validation.html">Validation</a>.</p>
+    </div>
+    <div class="card">
+      <h4><span class="badge warn">different by design</span></h4>
+      <ul class="tight">
+        <li>The contours come from SLAB automatically, while PTHA18 edited its own by hand, so meshes differ by a few kilometres, most at the ends of a zone.</li>
+        <li>Where PTHA18 extended a zone beyond the SLAB data by hand, this package does not invent geometry.</li>
+        <li>Options marked <b>not PTHA18's procedure</b> in the <a href="reference.html#generate-options">reference</a> change the calculation on purpose. They are off by default.</li>
+      </ul>
+      <p class="where">Details: <a href="reference.html#caveats">known limits</a>.</p>
+    </div>
+  </div>
+</section>
+
+<nav class="pager" id="pager"></nav>
+<footer>ptha_python documentation. Figures in the report come from the generated folder itself.</footer>
+</main>
+<aside class="toc" id="toc"></aside>
+</div>
+<script src="assets/nav.js"></script>
+</body>
+</html>

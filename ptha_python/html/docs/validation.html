@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Validation | ptha_python</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+<nav class="side" id="side"></nav>
+<main>
+
+<section id="top">
+  <div class="crumb">Results</div>
+  <h1>Validation</h1>
+  <p class="lead">How the Python code is checked. The validation scripts compare whole results with the files PTHA18 published, zone by zone. Each check says what it compares, so a pass means what it says and no more.</p>
+</section>
+
+<section>
+  <h2 id="at-a-glance">At a glance</h2>
+  <div class="tbl"><table class="fixed">
+    <colgroup><col style="width:28%"><col style="width:42%"><col style="width:30%"></colgroup>
+    <tr><th>Check</th><th>What it compares</th><th>Needs</th></tr>
+    <tr><td><code>mesh</code></td><td>the mesh built on PTHA18's own contours, with PTHA18's unit-source grid and statistics. It passes a zone when the dimensions are equal, the total area is within 0.2 percent and the mean dip within 0.05 degrees; the node offsets (median and maximum, in metres) are printed. It covers 14 zones by default (<code>--zones</code> picks others).</td><td>the files in <code>validation/ptha18_reference/</code>. Any that are missing are downloaded from NCI the first time, so this check needs the network then</td></tr>
+    <tr><td><code>engine</code></td><td>the logic tree on PTHA18's official input against PTHA18's branch tables: the Gutenberg-Richter <i>a</i>, and the prior and posterior weight of every branch. It covers 4 zones: puysegur2, kermadectonga2, kurilsjapan and southamerica.</td><td>PTHA18's extracted trees (<code>official_ptha_data/trees/</code>) and inputs (<code>inputs/input_ZONE.json</code>)</td></tr>
+    <tr><td><code>events</code></td><td>the rate of every earthquake scenario, the mean and the five percentiles, against PTHA18's published rates, for four zones PTHA18 did not segment: puysegur2, cascadia, makran2 and philippine. It also checks that the event lists match in the same order.</td><td>PTHA18's extracted inputs, and its published event file of each zone (downloaded from NCI into <code>validation/ptha18_reference/events/</code>)</td></tr>
+    <tr><td><code>gcmt</code></td><td>the earthquake selection of step 5, applied to PTHA18's mesh, against the events PTHA18 selected, for the zone and for each PTHA18 segment. It covers 8 zones.</td><td>the GCMT NDK files, given with <code>--ndk</code>, and PTHA18's extracted GCMT observations (<code>official_ptha_data/trees/official_gcmt_observations.csv</code>)</td></tr>
+    <tr><td><code>segmentation</code></td><td>the Bird segments of the mesh of each example folder: they must tile the mesh with no gap or overlap (a PASS or FAIL). PTHA18's segment count and the distance of each of its boundaries to the nearest Bird boundary are printed for information. 7 zones.</td><td>a run folder in the repository root whose name starts with the zone name and that holds <code>data/slab2/unit_source_grid.npy</code> (a zone without one is skipped)</td></tr>
+    <tr><td><code>berryman_segments</code></td><td>the default segment boundaries, the end points of Berryman et al. (2015), against PTHA18's own segment indices. A pass means the two agree within 2 columns wherever both split the zone. It covers 9 zones.</td><td>PTHA18's mesh</td></tr>
+    <tr><td><code>official_segments</code></td><td>the engine on PTHA18's own segmented input, as step 8 builds it, against PTHA18's tree of every segment. It covers 7 zones.</td><td>PTHA18's extracted trees of those zones</td></tr>
+    <tr><td><code>events_segmented</code></td><td>the rate and the five percentiles of every scenario of the same 7 segmented zones, against PTHA18's published rates</td><td>PTHA18's published event files</td></tr>
+  </table></div>
+</section>
+
+<section>
+  <h2 id="validate">Running the checks</h2>
+  <p>Run the checks from the repository root. With no name, <code>validate_against_ptha18.py</code> runs the checks in the order of the table above. The <code>gcmt</code> check is skipped unless <code>--ndk</code> is given. A name runs one check.</p>
+  <div class="code"><pre>python ptha_python/validation/validate_against_ptha18.py                     <span class="cm"># all checks</span>
+python ptha_python/validation/validate_against_ptha18.py mesh                <span class="cm"># one check</span>
+python ptha_python/validation/validate_against_ptha18.py gcmt --ndk kermadectonga2/data/gcmt</pre></div>
+  <p>Each check prints one line per zone with its difference and a PASS or FAIL. The last line is the summary, for example <code>SUMMARY: mesh PASS, ...</code>. The script exits with 1 if any check fails. A check whose extracted inputs are missing stops the whole script at that point with exit code 1, and prints the command that creates them (<code>official_ptha_data/fetch_official_inputs.py</code> with the zone names). On a copy without those files the default run therefore ends at <code>engine</code>, after <code>mesh</code> has passed: run <code>mesh</code> alone, or extract the inputs first.</p>
+  <p>The other scripts in <code>ptha_python/validation/</code> cover parts that are not in the list above:</p>
+  <div class="tbl"><table class="fixed">
+    <colgroup><col style="width:34%"><col style="width:66%"></colgroup>
+    <tr><th>Script</th><th>What it checks</th></tr>
+    <tr><td><code>validate_variable_mu.py</code> <span class="tag">optional</span></td><td>step 7c, the variable shear modulus: the relabelled magnitudes (<code>mu_Mw</code>), the engine (<code>engine</code>) and the heterogeneous and variable-area slip rates (<code>hs_vaus</code>). Run it with one or more of these names, or with none to run all three. It needs <code>official_ptha_data/public_nc/</code> (PTHA18's published event files), <code>inputs/geometry/unit_source_statistics_ZONE.nc</code> and <code>inputs/input_puysegur2.json</code>, all produced by <code>fetch_official_inputs.py</code> and step 8 (<code>--download-official-hs-vaus</code> fetches the event files).</td></tr>
+    <tr><td><code>validate_mesh_file.py</code> <span class="tag">optional</span></td><td>the <code>--mesh-file</code> option, on the Alaska and Aleutians mesh in <code>inputs_meshes/</code>: the cell geometry against PTHA18's unit-source table, and the rates with the mesh and with the table. It needs <code>inputs/input_alaskaaleutians.json</code> and <code>inputs/geometry/unit_source_statistics_alaskaaleutians.nc</code>, which <code>fetch_official_inputs.py</code> produces.</td></tr>
+    <tr><td><code>recover_peak_slip_weights.py</code></td><td>recovers the table of PTHA18's peak-slip quantile weights, which the HS and VAUS rates use (<code>ptha_python/data/ptha18_peak_slip_quantile_weights.csv</code>). The table is not published, so it is recovered from PTHA18's results.</td></tr>
+  </table></div>
+  <div class="callout warn"><span class="lbl">Input files</span>Several checks need files that step 8 or <code>official_ptha_data/fetch_official_inputs.py</code> produce, such as the extracted trees and the published event files. The check prints the command to get them when they are missing. That command needs R with rptha, as step 8 does.</div>
+</section>
+
+<section>
+  <h2 id="reference">The reference files</h2>
+  <p><code>ptha_python/validation/ptha18_reference/</code> holds PTHA18's files that the checks read, copied from NCI's public server:</p>
+  <ul>
+    <li><code>contours/SOURCEZONE_CONTOURS/</code>: PTHA18's contour shapefiles, one per zone (51 zones, also in <code>SOURCEZONE_CONTOURS.zip</code>).</li>
+    <li><code>unit_source_grid/</code>: PTHA18's unit-source grids, as shapefiles (16 zones).</li>
+    <li><code>nc/</code>: PTHA18's unit-source statistics, one NetCDF file per zone (32 files).</li>
+    <li><code>events/</code>: PTHA18's published uniform-slip event files, created by the <code>events</code> check when it first runs.</li>
+  </ul>
+  <p>The branch tables and the published event files are not in the repository. <code>official_ptha_data/fetch_official_inputs.py</code> downloads PTHA18's saved session (1.34 GB, once) and extracts them. See <a href="official.html">The official PTHA18 run</a>.</p>
+</section>
+
+<section>
+  <h2 id="limits">What is not validated</h2>
+  <ul>
+    <li><b>Zones PTHA18 never modelled.</b> A zone built with <code>--ptha false</code> that PTHA18 did not model has no reference, so the checks say nothing about its numbers. Its code path is the same as for the modelled zones.</li>
+    <li><b>The options that are not PTHA18's procedure.</b> <code>--columns average</code>, <code>--cell-size strasser</code>, <code>--rupture-size local</code> and the <code>-edited</code> column rules are not compared with PTHA18. None of them is the default. The default <code>--convergence bird</code> also differs from PTHA18 in the zones where PTHA18 used Griffin's traces (see <a href="convergence_sources.html">Bird or Bird with Griffin</a>).</li>
+    <li><b>The external mesh.</b> <code>--mesh-file</code> is checked on one mesh only, the Alaska and Aleutians file.</li>
+    <li><b>The report's layout.</b> The page is not tested. Its numbers are written from the CSV files of the steps, listed in <a href="report_guide.html#numbers">Reading report.html</a>.</li>
+    <li><b>The tsunami steps.</b> This package stops at earthquake rates. The tsunami simulation and the hazard curves are not in it, so nothing here checks them.</li>
+  </ul>
+</section>
+
+<nav class="pager" id="pager"></nav>
+<footer>Check names, outputs and file lists are taken from <code>ptha_python/validation/</code>.</footer>
+</main>
+<aside class="toc" id="toc"></aside>
+</div>
+<script src="assets/nav.js"></script>
+</body>
+</html>

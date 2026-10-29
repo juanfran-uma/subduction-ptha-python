@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quick start | ptha_python</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+.builder { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 18px; }
+.builder > * { min-width: 0; }
+.field { margin-bottom: 13px; }
+.field label.t { display: block; font-weight: 600; font-size: 13px; margin-bottom: 5px; }
+.field .hint { color: var(--muted); font-size: 12px; margin-top: 4px; }
+select, input[type=text], input[type=number] { width: 100%; padding: 7px 10px; border: 1px solid var(--line); border-radius: 7px; font: inherit; background: #fff; }
+.seg { display: flex; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; }
+.seg button { flex: 1; border: none; background: #fff; padding: 7px 6px; font: inherit; font-size: 13px; cursor: pointer; border-right: 1px solid var(--line); }
+.seg button:last-child { border-right: none; }
+.seg button.on { background: var(--accent); color: #fff; font-weight: 600; }
+.chk { display: block; font-size: 14px; margin: 3px 0; }
+.chk input { margin-right: 6px; vertical-align: -1px; }
+.out-cmd { margin-bottom: 14px; }
+@media (max-width: 900px) { .builder { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="side" id="side"></nav>
+<main>
+
+<section id="top">
+  <div class="crumb">Start</div>
+  <h1>Quick start</h1>
+  <p class="lead">Three steps: generate a folder for a zone, run it, open the report. Every command is run from the repository root, the folder that holds <code>ptha_python/</code>, <code>rptha/</code>, <code>official_ptha_data/</code> and <code>inputs_meshes/</code>. This page goes from <code>git clone</code> to an open <code>report.html</code>: the installation, what needs the network, one complete first run with its run time, where the results land, what to look at, and a command builder for any combination of options.</p>
+</section>
+
+<section>
+  <h2 id="at-a-glance">At a glance</h2>
+  <figure class="fig">
+    <svg viewBox="0 0 960 180" role="img" aria-label="Three commands: generate.py makes a folder, step_total.py runs its nine steps, report.html is the result">
+      <defs><marker id="qs-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8a93a3"/></marker></defs>
+      <g font-size="12.5">
+        <rect x="10" y="20" width="280" height="130" rx="10" fill="#fff" stroke="#2f6fdf" stroke-width="1.6"/>
+        <text x="24" y="44" font-weight="700" font-size="14">1  generate.py</text>
+        <text x="24" y="66" fill="#5b6475">makes a new folder for the zone:</text>
+        <text x="24" y="86" font-family="Consolas, monospace" font-size="12">kermadectonga2/steps/</text>
+        <text x="24" y="104" fill="#5b6475">12 scripts with the zone filled in,</text>
+        <text x="24" y="122" fill="#5b6475">a README and RUN.html</text>
+        <rect x="340" y="20" width="280" height="130" rx="10" fill="#fff" stroke="#2f6fdf" stroke-width="1.6"/>
+        <text x="354" y="44" font-weight="700" font-size="14">2  step_total.py</text>
+        <text x="354" y="66" fill="#5b6475">runs steps 1 to 9 in order,</text>
+        <text x="354" y="86" fill="#5b6475">stops at the first required</text>
+        <text x="354" y="104" fill="#5b6475">step that fails; 7b, 7c and 8</text>
+        <text x="354" y="122" fill="#5b6475">are optional</text>
+        <rect x="670" y="20" width="280" height="130" rx="10" fill="#fff" stroke="#eb6834" stroke-width="1.6"/>
+        <text x="684" y="44" font-weight="700" font-size="14">3  report.html</text>
+        <text x="684" y="66" fill="#5b6475">open it in a browser: every</text>
+        <text x="684" y="86" fill="#5b6475">number and figure, the mesh</text>
+        <text x="684" y="104" fill="#5b6475">on a real map, and the</text>
+        <text x="684" y="122" fill="#5b6475">comparison with PTHA18</text>
+      </g>
+      <g stroke="#8a93a3" stroke-width="2" fill="none" marker-end="url(#qs-ar)"><path d="M290,85 L338,85"/><path d="M620,85 L668,85"/></g>
+    </svg>
+    <figcaption><b>The whole workflow.</b> A folder is generated once and can be run again as often as needed. <code>generate.py</code> never overwrites a folder: a name that is taken becomes <code>NAME_2</code>, then <code>NAME_3</code>, and so on.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <h2 id="install">Install</h2>
+  <p>Everything needed to go from an empty machine to a first run. Only the activation command of the virtual environment differs between systems.</p>
+  <ol class="steps">
+    <li><b>Get the code.</b> Clone the repository and go into it. This folder is the repository root, and every command in this guide is run from there.
+      <div class="code"><pre>git clone &lt;repository URL&gt;
+cd &lt;the cloned folder&gt;</pre></div>
+      The folders that <code>generate.py</code> creates are listed in <code>.gitignore</code>, so a zone run never shows up in <code>git status</code> and is never committed by accident.</li>
+    <li><b>Check Python.</b> The code was written and run with <b>Python 3.13</b>; other versions were not tested. <code>python --version</code> must print 3.13.x. On Windows with several versions installed, <code>py -3.13</code> picks the right one. On macOS and Linux the command may be <code>python3</code> until the environment below is active.</li>
+    <li><b>Create a virtual environment and install the packages</b> of <code>requirements.txt</code> (numpy, scipy, pandas, matplotlib, shapely, geopandas, pyproj, netCDF4 and pillow; certifi, which step 4 uses, comes with pyproj).
+      <div class="tabs">
+        <button data-pane="qs-ps" class="on">Windows PowerShell</button><button data-pane="qs-cmd">Windows cmd</button><button data-pane="qs-unix">macOS and Linux</button>
+      </div>
+      <div class="pane on" id="qs-ps"><div class="code"><pre>py -3.13 -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r requirements.txt</pre></div>If PowerShell refuses to run the activation script, run <code>Set-ExecutionPolicy -Scope CurrentUser RemoteSigned</code> once and activate again.</div>
+      <div class="pane" id="qs-cmd"><div class="code"><pre>py -3.13 -m venv .venv
+.venv\Scripts\activate.bat
+pip install -r requirements.txt</pre></div></div>
+      <div class="pane" id="qs-unix"><div class="code"><pre>python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt</pre></div></div>
+      The prompt shows <code>(.venv)</code> when the environment is active. Activate it again in every new terminal; every <code>python</code> command below uses it.</li>
+    <li><b>Check the install.</b> <code>python ptha_python/generate.py --help</code> prints every option. A <code>ModuleNotFoundError</code> means the environment is not active or the <code>pip install</code> did not finish.</li>
+  </ol>
+
+  <h3>What needs the network</h3>
+  <p><code>generate.py</code> and the steps that are not in the table are offline. A file that is already on disk is never downloaded again, so only the first run of a zone downloads.</p>
+  <div class="tbl"><table class="fixed">
+    <colgroup><col style="width:17%"><col style="width:83%"></colgroup>
+    <tr><th>Step</th><th>What is downloaded</th></tr>
+    <tr><td><b>1</b></td><td>The SLAB depth grid of the region, only when it is not on disk. The SLAB2.0 grids of the regions <code>cal</code>, <code>car</code>, <code>hel</code>, <code>ker</code>, <code>mak</code>, <code>png</code>, <code>puy</code> and <code>sum</code> ship in <code>ptha_python/data/slab2/</code>, so a zone name that ends in 2 (<code>kermadectonga2</code>, <code>puysegur2</code>, <code>calabria2</code>) in one of those regions downloads nothing. Any other region, and every zone whose name does not end in 2 (SLAB1.0, for example <code>cascadia</code> or <code>kermadectonga</code>), is downloaded into the folder's <code>data/slab2/</code> or <code>data/slab1/</code>: SLAB2.0 from ScienceBase (a zip of tens of MB), SLAB1.0 from earthquake.usgs.gov. A run with <code>--mesh-file</code> downloads nothing here.</td></tr>
+    <tr><td><b>4</b></td><td>The GCMT catalogue, from the Lamont-Doherty server: one cumulative file of about 23 MB and one small file for every month since January 2021, about 30 MB in all. Months that are not yet published answer HTTP 404 and are skipped, which is normal.</td></tr>
+    <tr><td><b>8</b></td><td>Only if it runs: PTHA18's saved session (1.34 GB, once) and the zone's tables from NCI. It also needs R with the rptha package, see below.</td></tr>
+    <tr><td><b>9</b></td><td>Nothing is downloaded when the report is written. When <code>report.html</code> is opened in a browser, its maps load the Leaflet library from cdnjs.cloudflare.com and the Esri map tiles from server.arcgisonline.com, so the maps cannot draw offline.</td></tr>
+  </table></div>
+
+  <div class="callout"><span class="lbl">R is needed only for step 8</span>Step 8 builds PTHA18's own run so that the report can compare the two. It needs R, the R package rptha (the <code>rptha/</code> folder of this repository holds only data files, not the package) and, on Windows, Rtools; the install commands are printed by step 8 itself when it cannot find <code>Rscript</code>. Without R, add <code>--skip-official</code> to the run command: step 8 is not tried, the other steps run as usual, and the report has no comparison section. If you do not add it and R is missing, step 8 prints "Rscript not found", the runner continues, and the result is the same. Step 8 also needs a zone that PTHA18 modelled; for any other zone it writes a one-line note and stops without an error.</div>
+  <div class="callout warn"><span class="lbl">If step 1 stops with a download error (HTTP 403)</span>Either SLAB host can refuse a scripted download: ScienceBase (SLAB2.0) with a "Just a moment..." page, or earthquake.usgs.gov (SLAB1.0) with its own firewall. Retrying does not help. The error message of step 1 gives the exact link for your region and the folder to save the file into. Download it in a normal browser, put it in place, and run the step again. Details: <a href="troubleshooting.html#step1">Troubleshooting</a>.</div>
+</section>
+
+<section>
+  <h2 id="generate">1. Generate a folder</h2>
+  <p>Name the region and the zone. The zone names are listed in <a href="zones.html">Zones you can run</a>, and the regions with <code>python ptha_python/list_regions.py</code>. <code>generate.py</code> reads only local files and takes a second or two.</p>
+  <div class="code"><pre>python ptha_python/generate.py kermadec --zone kermadectonga2 --folder kermadectonga2</pre></div>
+  <p>The program prints the settings it chose, then writes the folder: twelve scripts in <code>kermadectonga2/steps/</code> (the step scripts 1 to 9, with 7b and 7c, and <code>step_total.py</code>), a <code>README.md</code> with the settings and literature values of the run, and <code>RUN.html</code>. If <code>--folder</code> is not given, the folder is named after the region, in lower case with other characters replaced by underscores. Every option is listed in <a href="reference.html#generate-options">Options, files, columns</a>; the recommended options for each zone are on <a href="recipes.html">Recipes</a>.</p>
+  <p>All the options of <code>generate.py</code>. Only the region is required and every other option has a default. <code>--zone</code> is needed in practice whenever the region name matches more than one zone: <code>kermadec</code> alone stops with the choice between <code>kermadectonga</code> and <code>kermadectonga2</code>. The <a href="#builder">command builder</a> below writes the command for you, and <a href="reference.html#generate-options">Options, files, columns</a> describes each option in full.</p>
+  <div class="tbl"><table>
+    <tr><th>Argument</th><th>Needed?</th><th>Meaning</th><th>Default</th></tr>
+    <tr><td><code>NAME</code></td><td><b>NEEDED</b></td><td>the SLAB region: a region name or a three-letter prefix, as printed by <code>list_regions.py</code>; <code>generate.py</code> stops if none or several match</td><td>required</td></tr>
+    <tr><td><code>--zone ZONE</code></td><td>OPTIONAL (guessed from the name)</td><td>the source zone the folder is built for. With <code>--ptha true</code>, a PTHA18 source zone; with <code>--ptha false</code>, a zone listed in <code>lib/berryman_params.py</code></td><td>guessed from the region name; <code>generate.py</code> stops and asks for <code>--zone</code> if it cannot choose one</td></tr>
+    <tr><td><code>--folder FOLDER</code></td><td>OPTIONAL</td><td>the folder to create, relative to the repository root; it may be nested (<code>runs/calabria2</code>)</td><td>the region name in lower case</td></tr>
+    <tr><td><code>--id ID</code></td><td>OPTIONAL</td><td>the ScienceBase item id of the SLAB2.0 region. When given, it selects the region instead of the name, so it is useful when the name matches more than one region; the 27 ids are listed by <code>list_regions.py</code></td><td>none</td></tr>
+    <tr><td><code>--ptha true|false</code></td><td>OPTIONAL</td><td><code>true</code>: the steps may read PTHA18's own cell width, scaling and row count (the zone must be one PTHA18 modelled). <code>false</code>: steps 1 to 7 and 9 read no PTHA18 file</td><td><code>false</code></td></tr>
+    <tr><td><code>--discretizer optimal|lm|mid</code></td><td>OPTIONAL</td><td>how contours become unit sources: <code>optimal</code> is rptha's mesh, repaired only if a cell is broken; <code>lm</code> is rptha's method as PTHA18 runs it; <code>mid</code> is rptha's older, deprecated method</td><td><code>optimal</code></td></tr>
+    <tr><td><code>--columns trench|average|trench-edited|average-edited</code></td><td>OPTIONAL</td><td>unit sources along strike: <code>trench</code> is the trench length / 50 km (PTHA18's rule); <code>average</code> uses the average row length instead; the <code>-edited</code> values keep that mesh unless a cell misreads the dip by more than 8 degrees, and then redesign it</td><td><code>trench</code></td></tr>
+    <tr><td><code>--cell-size mean|strasser</code></td><td>OPTIONAL</td><td><code>mean</code>: cells of about 50 x 50 km on average (PTHA18's rule). <code>strasser</code>: no cell larger than the smallest rupture divided by <code>--cell-k</code></td><td><code>mean</code></td></tr>
+    <tr><td><code>--cell-k K</code></td><td>OPTIONAL (only with --cell-size strasser)</td><td>with <code>--cell-size strasser</code>, the divisor applied to the smallest rupture</td><td><code>1.5</code></td></tr>
+    <tr><td><code>--clip LON_MIN,LON_MAX,LAT_MIN,LAT_MAX</code></td><td>OPTIONAL</td><td>step 1 uses only this window of the SLAB raster, for a region that covers more than the source zone. Longitudes are in the raster's own convention (0 to 360 for the Caribbean: <code>--clip 297,307,5,18.5</code>). A value that starts with a minus sign must be written with an equals sign, <code>--clip=-180,-170,-40,-10</code>, or the command line reads it as another option</td><td>none</td></tr>
+    <tr><td><code>--mesh-file FILE</code></td><td>OPTIONAL</td><td>use an external quadrilateral mesh instead of building one from SLAB; step 2 reads the file (step 1 has nothing to fetch)</td><td>none</td></tr>
+    <tr><td><code>--mesh-depth-units auto|m|km</code></td><td>OPTIONAL (only with --mesh-file)</td><td>depth units of <code>--mesh-file</code>; <code>auto</code> reads metres if any depth exceeds 200, else km</td><td><code>auto</code></td></tr>
+    <tr><td><code>--rupture-size rptha|local</code></td><td>OPTIONAL</td><td><code>rptha</code>: one block of cells per magnitude (PTHA18's rule). <code>local</code>: each rupture is sized from the real area of the cells where it sits, with the overlap correction q</td><td><code>rptha</code></td></tr>
+    <tr><td><code>--variable-mu on|off</code></td><td>OPTIONAL</td><td><code>on</code> also runs step 7c: rates with PTHA18's variable shear modulus, next to the constant 30 GPa ones</td><td><code>off</code></td></tr>
+    <tr><td><code>--convergence bird|bird-griffin</code></td><td>OPTIONAL</td><td>plate-boundary table of step 3: Bird (2003), or Bird plus Griffin's traces (the table PTHA18 used)</td><td><code>bird</code></td></tr>
+    <tr><td><code>--segmented true|false</code></td><td>OPTIONAL</td><td><code>true</code> also runs the zone as along-strike segments, with the LEVEL 0 weights</td><td><code>false</code></td></tr>
+    <tr><td><code>--segment-boundaries berryman|bird</code></td><td>OPTIONAL (only with --segmented true)</td><td>with <code>--segmented true</code>, where the segments end: Berryman et al. (2015) Table 3.1 end points, or where Bird's plate pair changes</td><td><code>berryman</code></td></tr>
+  </table></div>
+</section>
+
+<section>
+  <h2 id="run">2. Run the folder</h2>
+  <p>One command runs all nine steps in order, each as its own program, and stops at the first required step that fails:</p>
+  <div class="code"><pre>python kermadectonga2/steps/step_total.py --skip-official</pre></div>
+  <p>The output names each step as it starts (<code>&gt;&gt;&gt; step1_fetch_slab2.py</code>), the program prints its own progress below the name, and the last lines are <code>Done in 3.3 min. See kermadectonga2/report.html</code>.</p>
+  <p><b>What <code>--skip-official</code> does.</b> It leaves out step 8, the only step that needs R and the only one that downloads PTHA18's files (1.34 GB). Step 8 is then not tried at all, the other steps run as usual, and the report has no comparison section. Use it whenever R with rptha is not installed, or when the comparison is not wanted. The other flags of the runner, <code>--skip-hs</code>, <code>--auto-clip</code> and <code>--download-official-hs-vaus</code>, are described in <a href="reference.html#step-total">Options, files, columns</a>.</p>
+
+  <h3>How long it takes</h3>
+  <p>These are the total times printed by <code>step_total.py --skip-official</code> in the reference runs of this package, with the SLAB grid and the GCMT files already on disk. The first run of a zone adds the downloads listed above, and that time depends on the connection.</p>
+  <div class="tbl"><table class="fixed">
+    <colgroup><col style="width:20%"><col style="width:42%"><col style="width:20%"><col style="width:18%"></colgroup>
+    <tr><th>Zone</th><th>Options</th><th>Unit sources</th><th>Time</th></tr>
+    <tr><td><code>calabria2</code></td><td><code>--columns average-edited --rupture-size local</code></td><td>48</td><td>2.1 min</td></tr>
+    <tr><td><code>puysegur2</code></td><td><code>--rupture-size local --variable-mu on</code></td><td>26</td><td>3.3 min</td></tr>
+    <tr><td><code>alaskaaleutians</code></td><td><code>--mesh-file ... --rupture-size local</code></td><td>312</td><td>3.8 min</td></tr>
+    <tr><td><code>kermadectonga2</code></td><td><code>--segmented true</code></td><td>219</td><td>4.6 min</td></tr>
+  </table></div>
+  <p>Step 8, when it runs, adds the one-time download of the saved session and the time R takes to load it, which is minutes.</p>
+
+  <h3>Running a step again</h3>
+  <p>Each step can also be run on its own, in order, when one step needs to be repeated after a change: for example <code>python kermadectonga2/steps/step7_run.py</code>. The steps read their inputs from the folder, so a later step sees what an earlier one wrote. <a href="pipeline.html">The nine steps</a> lists what each one reads and writes. Two things to know before repeating steps: step 6 keeps an existing input JSON, so a hand edit survives, unless it is run with <code>--force</code>; and step 7 replaces the whole <code>outputs/</code> folder, so step 7b (and 7c) must be run again after it.</p>
+  <p>When <code>step_total.py</code> finishes, it appends its exact command, the date and the run time to <code>RUN.html</code>, so the folder records how it was run.</p>
+</section>
+
+<section>
+  <h2 id="open">3. Open the report</h2>
+  <p>Open <code>kermadectonga2/report.html</code> in a browser: double-click it in the file manager, or from the repository root use <code>start kermadectonga2\report.html</code> (Windows), <code>open kermadectonga2/report.html</code> (macOS) or <code>xdg-open kermadectonga2/report.html</code> (Linux). It holds every number and figure of the run, the mesh on a real map (the map needs an internet connection), and, when step 8 has run, the comparison with PTHA18's own run. The report is written for reading from top to bottom; <a href="report_guide.html">Reading report.html</a> explains each section.</p>
+
+  <h3>Where the results are</h3>
+  <p>Everything a run writes stays inside its folder, which is named by <code>--folder</code>.</p>
+  <div class="code"><pre>kermadectonga2/
+  report.html           the report (step 9); a segmented run also has report_unsegmented.html
+  README.md, RUN.html   the settings of the run, and the commands used
+  steps/                the 12 scripts
+  inputs/               the input JSON of the engine, and geometry/ (the contours, or your mesh file)
+  data/                 the SLAB grid if it was downloaded, the saved mesh, the plate convergence, gcmt/
+  figures/              the geometry figures: trench and contours, mesh maps
+  outputs/              the numbers: rate curves, percentiles, branches, scenario rates (CSV),
+                        figures/, exports/ (the CSV files behind the report), hs_slip_fields/ ...
+  outputs_official/     PTHA18's run, only if step 8 ran</pre></div>
+
+  <h3>What to look at first</h3>
+  <ul class="tight">
+    <li><b>The mesh</b>: the cells should follow the trench and the plate interface without holes or folds. Step 2 prints whether it had to repair the mesh: with the default <code>--discretizer optimal</code>, a mesh is repaired only when a cell is broken.</li>
+    <li><b>The rate curve</b>: the mean exceedance rate falls as the magnitude grows, with percentiles around it (<code>outputs/exceedance_rate_percentiles.csv</code>).</li>
+    <li><b>The branch table</b>: <code>outputs/logic_tree_branches_kermadectonga2.csv</code> has one row per branch, 32,000 in the standard tree, with its prior and posterior weight.</li>
+    <li><b>The comparison</b>, if step 8 ran: the area, mean dip and convergence of the mesh against PTHA18's.</li>
+  </ul>
+</section>
+
+<section>
+  <h2 id="builder">Command builder</h2>
+  <p>Pick a region and the options; the two commands appear on the right, ready to copy. Options left at their default are not written. The folder defaults to the region name, as the program does. A combination that <code>generate.py</code> refuses is not turned into a command: a red box says why. Combinations that are accepted but that leave an option without effect, or that cannot finish, get a note below the commands.</p>
+  <div class="builder">
+    <div>
+      <div class="field"><label class="t" for="b-region">Region (required)</label>
+        <input type="text" id="b-region" value="kermadec" autocomplete="off"><div class="hint">a region name or prefix, see list_regions.py</div></div>
+      <div class="field"><label class="t" for="b-zone">Zone (--zone)</label>
+        <input type="text" id="b-zone" value="kermadectonga2" autocomplete="off"><div class="hint">empty: guessed from the region name, and refused if several zones match</div></div>
+      <div class="field"><label class="t" for="b-folder">Folder (--folder)</label>
+        <input type="text" id="b-folder" value="kermadectonga2" autocomplete="off"><div class="hint">relative to the repository root, may be nested</div></div>
+      <div class="field"><label class="t">--ptha</label>
+        <div class="seg" data-key="ptha"><button data-v="false" class="on">false</button><button data-v="true">true</button></div>
+        <div class="hint">false: steps 1-7 and 9 read no PTHA18 file</div></div>
+      <div class="field"><label class="t">--discretizer</label>
+        <div class="seg" data-key="discretizer"><button data-v="optimal" class="on">optimal</button><button data-v="lm">lm</button><button data-v="mid">mid</button></div></div>
+      <div class="field"><label class="t" for="b-columns">--columns</label>
+        <select id="b-columns"><option value="trench">trench (default)</option><option value="average">average</option><option value="trench-edited">trench-edited</option><option value="average-edited">average-edited</option></select></div>
+      <div class="field"><label class="t">--cell-size</label>
+        <div class="seg" data-key="cell"><button data-v="mean" class="on">mean</button><button data-v="strasser">strasser</button></div></div>
+      <div class="field"><label class="t" for="b-cellk">--cell-k (strasser only)</label>
+        <input type="number" id="b-cellk" value="1.5" step="0.1" min="0.1"></div>
+      <div class="field"><label class="t">--convergence</label>
+        <div class="seg" data-key="conv"><button data-v="bird" class="on">bird</button><button data-v="bird-griffin">bird-griffin</button></div></div>
+      <div class="field"><label class="t">--rupture-size</label>
+        <div class="seg" data-key="rup"><button data-v="rptha" class="on">rptha</button><button data-v="local">local</button></div></div>
+      <div class="field"><label class="t">--variable-mu</label>
+        <div class="seg" data-key="mu"><button data-v="off" class="on">off</button><button data-v="on">on</button></div></div>
+      <div class="field"><label class="t">--segmented</label>
+        <div class="seg" data-key="seg"><button data-v="false" class="on">false</button><button data-v="true">true</button></div></div>
+      <div class="field"><label class="t">--segment-boundaries</label>
+        <div class="seg" data-key="sb"><button data-v="berryman" class="on">berryman</button><button data-v="bird">bird</button></div>
+        <div class="hint">used with --segmented true only</div></div>
+      <div class="field"><label class="t" for="b-clip">--clip (optional)</label>
+        <input type="text" id="b-clip" placeholder="LON_MIN,LON_MAX,LAT_MIN,LAT_MAX" autocomplete="off"></div>
+      <div class="field"><label class="t" for="b-mesh">--mesh-file (optional)</label>
+        <input type="text" id="b-mesh" placeholder="inputs_meshes/file.dat" autocomplete="off"><div class="hint">replaces the SLAB geometry of steps 1 and 2</div></div>
+      <div class="field"><label class="t" for="b-units">--mesh-depth-units (with --mesh-file)</label>
+        <select id="b-units"><option value="auto">auto (default)</option><option value="m">m</option><option value="km">km</option></select></div>
+      <div class="field"><label class="t" for="b-id">--id (optional)</label>
+        <input type="text" id="b-id" placeholder="ScienceBase item id" autocomplete="off"><div class="hint">one of the 27 ids in list_regions.py</div></div>
+      <div class="field"><label class="t">step_total flags</label>
+        <label class="chk"><input type="checkbox" id="b-skipoff" checked>--skip-official (no R)</label>
+        <label class="chk"><input type="checkbox" id="b-skiphs">--skip-hs</label>
+        <label class="chk"><input type="checkbox" id="b-autoclip">--auto-clip (needs one earlier run)</label>
+        <label class="chk"><input type="checkbox" id="b-dlhs">--download-official-hs-vaus (step 8, needs R)</label></div>
+    </div>
+    <div>
+      <div class="out-cmd"><div class="crumb" style="margin-bottom:6px">1. generate</div>
+        <div class="code"><pre id="b-gen"></pre></div></div>
+      <div class="out-cmd"><div class="crumb" style="margin-bottom:6px">2. run</div>
+        <div class="code"><pre id="b-run"></pre></div></div>
+      <p class="where" id="b-open"></p>
+      <div id="b-err" class="callout warn" hidden></div>
+      <div id="b-note" class="callout" hidden><span class="lbl">Notes on this combination</span><ul class="tight" id="b-notes"></ul></div>
+      <div class="callout"><span class="lbl">Check before running</span>The builder refuses the combinations that <code>generate.py</code> refuses: <code>--cell-size strasser</code> needs <code>--discretizer optimal</code>, no <code>--mesh-file</code> and a positive <code>--cell-k</code>; the <code>-edited</code> values of <code>--columns</code> need <code>--discretizer optimal</code>, <code>--cell-size mean</code> and no <code>--mesh-file</code>; <code>--clip</code> needs four numbers with the minimum below the maximum; <code>--ptha true</code> needs a zone that PTHA18 modelled. It cannot check that the region name matches exactly one region, that <code>--id</code> is one of the 27 ids, that the <code>--mesh-file</code> exists, or that an empty zone can be guessed: <code>generate.py</code> checks those. Options marked <b>not PTHA18's procedure</b> in <a href="reference.html#generate-options">the reference</a> change the result away from PTHA18's. If the folder already exists, <code>generate.py</code> creates <code>NAME_2</code> instead (then <code>NAME_3</code>) and prints the name it used; use that name in the second command.</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2 id="segmented">A segmented run</h2>
+  <p>The same zone can also be run split along strike, as LEVEL 0 of the logic tree. It is a separate folder, so both runs can be compared:</p>
+  <div class="code"><pre>python ptha_python/generate.py kermadec --zone kermadectonga2 --folder kermadectonga2_seg --segmented true
+python kermadectonga2_seg/steps/step_total.py --skip-official</pre></div>
+  <p>The segmented folder adds <code>report_unsegmented.html</code> and a LEVEL 0 section to the report. What the split changes is on <a href="segmentation.html">Segmented vs unsegmented</a>.</p>
+</section>
+
+<section>
+  <h2 id="external-mesh">A run on your own mesh</h2>
+  <p>A quadrilateral mesh that you already have can replace the SLAB geometry: the unit sources are the cells of the file, used as given. The file has one line per unit source with twelve numbers, its four corners as longitude, latitude and depth, in order round the cell. The repository includes one such file, for the Alaska-Aleutians zone:</p>
+  <div class="code"><pre>python ptha_python/generate.py alaska --zone alaskaaleutians --mesh-file inputs_meshes/alaskaaleutians_quadrilateral_coors.dat --folder alaskaaleutians_mesh --ptha false --rupture-size local
+python alaskaaleutians_mesh/steps/step_total.py --skip-official</pre></div>
+  <p>In this case step 1 has nothing to fetch and step 2 reads the file instead of cutting SLAB contours into cells. Steps 3 to 9 run as usual. <code>--mesh-file</code> cannot be combined with <code>--cell-size strasser</code> or with the <code>-edited</code> values of <code>--columns</code>, and <code>--discretizer</code>, <code>--columns</code> and <code>--clip</code> have no effect with it. <code>--zone</code> still matters: it selects the literature values and the plate convergence of the zone.</p>
+  <p>The file is copied into the folder's <code>inputs/geometry/</code>, and its depth units are read automatically. The format, its checks and the difference from a SLAB mesh are on <a href="mesh_file.html">External mesh</a>.</p>
+</section>
+
+<section>
+  <h2 id="recipes">Other zones</h2>
+  <p><a href="recipes.html">Recipes</a> gives, for each known zone, the command to generate and run it and the settings that matter for that zone. A zone whose mesh is unusual (a strongly curved trench, or a region that covers more than one zone) needs a <code>--clip</code>, a different <code>--columns</code> or <code>--cell-size</code>, or an external mesh; the recipes say which.</p>
+</section>
+
+<nav class="pager" id="pager"></nav>
+<footer>Commands and options from <code>generate.py</code> and <code>ptha_python/templates/step_total.py.tmpl</code>.</footer>
+</main>
+<aside class="toc" id="toc"></aside>
+</div>
+<script src="assets/nav.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var sel = {};
+  document.querySelectorAll(".seg").forEach(function (s) {
+    var k = s.getAttribute("data-key");
+    sel[k] = s.querySelector("button.on").getAttribute("data-v");
+    s.querySelectorAll("button").forEach(function (b) {
+      b.addEventListener("click", function () {
+        s.querySelectorAll("button").forEach(function (o) { o.classList.toggle("on", o === b); });
+        sel[k] = b.getAttribute("data-v");
+        update();
+      });
+    });
+  });
+  // The zone names of lib/berryman_params.py (ZONE_TO_BERRYMAN_SEGMENTS), and
+  // those of them that are not PTHA18 source zones (--ptha true refuses them).
+  var BERRYMAN = ("alaskaaleutians antilles2 calabria calabria2 cascadia cyprus2 hellenic2 hellenic_east2 " +
+    "hellenic_west2 hjort izumariana kermadectonga kermadectonga2 kurilsjapan makran makran2 manokwari manus " +
+    "mexico newguinea newguinea2 newhebrides newhebrides2 philippine puysegur puysegur2 ryuku sandwich sangihe " +
+    "solomon solomon2 southamerica sunda sunda2 timor timortrough").split(" ");
+  var NOT_PTHA18 = "antilles2 calabria calabria2 cyprus2 hellenic2 hellenic_east2 hellenic_west2".split(" ");
+  // a plain decimal number, as Python's float() reads it (no hex, no inf)
+  var NUM = /^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$/;
+  // A value is written bare when it is plain; otherwise it is wrapped in double
+  // quotes, which PowerShell, cmd.exe and bash all read the same way.
+  var q = function (v) { return /^[A-Za-z0-9_.\/\:+=-]+$/.test(v) ? v : '"' + v + '"'; };
+  var unsafe = /["$`%]/;
+  function update() {
+    var errs = [], notes = [];
+    var region = $("b-region").value.trim();
+    var zone = $("b-zone").value.trim();
+    var folderRaw = $("b-folder").value.trim();
+    var id = $("b-id").value.trim();
+    var clip = $("b-clip").value.trim();
+    var mesh = $("b-mesh").value.trim();
+    var cellk = $("b-cellk").value.trim();
+    var columns = $("b-columns").value;
+    var units = $("b-units").value;
+    var disc = sel.discretizer, cell = sel.cell;
+    var edited = columns.indexOf("-edited") > 0;
+
+    [["region", region], ["zone", zone], ["folder", folderRaw], ["--id", id], ["--clip", clip], ["--mesh-file", mesh]]
+      .forEach(function (f) {
+        if (unsafe.test(f[1])) errs.push(f[0] + " must not contain a double quote, a dollar sign, a percent sign or a backtick.");
+      });
+    if (!region) errs.push("Enter a region: it is required.");
+
+    // folder: relative to the repository root, forward slashes (as generate.py reads it)
+    var folderIn = folderRaw.replace(/\\/g, "/").replace(/^\/+|\/+$/g, "");
+    if (/^([A-Za-z]:|[\\\/])/.test(folderRaw) || folderIn.split("/").indexOf("..") >= 0)
+      errs.push("--folder must be a path inside the repository root: no drive letter, no leading slash and no '..'.");
+
+    if (id && !/^[0-9a-f]{24}$/.test(id))
+      errs.push("--id must be a ScienceBase item id: 24 hexadecimal characters, one of the 27 printed by list_regions.py.");
+
+    if (clip) {
+      var parts = clip.split(",").map(function (x) { return x.trim(); });
+      var nums = parts.map(Number);
+      var ok = parts.length === 4 && parts.every(function (x) { return NUM.test(x); }) &&
+               nums[0] < nums[1] && nums[2] < nums[3];
+      if (!ok) errs.push("--clip needs four numbers LON_MIN,LON_MAX,LAT_MIN,LAT_MAX, with LON_MIN below LON_MAX and LAT_MIN below LAT_MAX.");
+      else clip = parts.join(",");
+    }
+    if (cell === "strasser") {
+      if (disc !== "optimal") errs.push("--cell-size strasser needs --discretizer optimal.");
+      if (mesh) errs.push("--cell-size strasser cannot be combined with --mesh-file.");
+      if (cellk !== "" && !(NUM.test(cellk) && Number(cellk) > 0)) errs.push("--cell-k must be a positive number.");
+    }
+    if (edited) {
+      if (disc !== "optimal") errs.push("--columns " + columns + " needs --discretizer optimal.");
+      if (cell !== "mean") errs.push("--columns " + columns + " needs --cell-size mean.");
+      if (mesh) errs.push("--columns " + columns + " cannot be combined with --mesh-file.");
+    }
+    if (sel.ptha === "true" && zone && NOT_PTHA18.indexOf(zone) >= 0)
+      errs.push("--ptha true needs a zone that PTHA18 modelled, and '" + zone + "' is not one. Use --ptha false for it.");
+
+    // accepted by generate.py, but worth a note
+    if (!zone) {
+      notes.push("With no zone, generate.py guesses it from the region name and stops if several zones match (kermadec matches kermadectonga and kermadectonga2). Then add --zone." +
+        (sel.ptha === "true" ? " With --ptha true the zone must be one PTHA18 modelled." : ""));
+    } else if (BERRYMAN.indexOf(zone) < 0) {
+      notes.push("'" + zone + "' has no Berryman et al. (2015) mapping in lib/berryman_params.py. generate.py" +
+        (sel.ptha === "true" ? " accepts it only if PTHA18 modelled it, and step 1" : " accepts it, but step 1") +
+        " stops until the zone is added there (see Zones you can run).");
+    }
+    if (mesh) {
+      var ignored = [];
+      if (disc !== "optimal") ignored.push("--discretizer");
+      if (columns !== "trench") ignored.push("--columns");
+      if (clip) ignored.push("--clip");
+      if (ignored.length) notes.push(ignored.join(", ") + (ignored.length > 1 ? " have" : " has") + " no effect with --mesh-file: the cells are the ones of the file.");
+    } else if (units !== "auto") {
+      notes.push("--mesh-depth-units has no effect without --mesh-file.");
+    }
+    if (!mesh && disc !== "optimal" && columns !== "trench" && !edited)
+      notes.push("--columns is used only with --discretizer optimal.");
+    if (cell !== "strasser" && cellk !== "" && cellk !== "1.5")
+      notes.push("--cell-k is used only with --cell-size strasser.");
+    if (sel.seg === "false" && sel.sb !== "berryman")
+      notes.push("--segment-boundaries is used only with --segmented true.");
+    if (sel.mu === "on" && $("b-skiphs").checked)
+      notes.push("--variable-mu on has no effect with --skip-hs: step 7c needs step 7b, so both are skipped.");
+    if ($("b-dlhs").checked && $("b-skipoff").checked)
+      notes.push("--download-official-hs-vaus has no effect with --skip-official: step 8 does not run.");
+    if ($("b-dlhs").checked && $("b-skiphs").checked)
+      notes.push("--download-official-hs-vaus has nothing to compare with --skip-hs: step 7b does not run.");
+    if ($("b-autoclip").checked)
+      notes.push("--auto-clip needs steps 1 to 3 to have run once on this folder, and it rewrites the input JSON of step 6, so a hand edit of that file is lost. Run the command without it first.");
+
+    var folder = folderIn || region.toLowerCase().replace(/[^a-z0-9_]+/g, "_").replace(/^_+|_+$/g, "");
+    var g = ["python ptha_python/generate.py " + q(region || "NAME")];
+    if (zone) g.push("--zone " + q(zone));
+    g.push("--folder " + q(folder));
+    if (id) g.push("--id " + q(id));
+    if (sel.ptha !== "false") g.push("--ptha " + sel.ptha);
+    if (disc !== "optimal") g.push("--discretizer " + disc);
+    if (columns !== "trench") g.push("--columns " + columns);
+    if (cell !== "mean") g.push("--cell-size " + cell);
+    if (cell === "strasser" && cellk !== "" && cellk !== "1.5") g.push("--cell-k " + cellk);
+    if (sel.conv !== "bird") g.push("--convergence " + sel.conv);
+    if (sel.rup !== "rptha") g.push("--rupture-size " + sel.rup);
+    if (sel.mu !== "off") g.push("--variable-mu " + sel.mu);
+    if (sel.seg !== "false") g.push("--segmented " + sel.seg);
+    if (sel.seg === "true" && sel.sb !== "berryman") g.push("--segment-boundaries " + sel.sb);
+    // written with an equals sign: a window that starts with a minus sign is
+    // otherwise read by argparse as another option
+    if (clip) g.push('--clip="' + clip + '"');
+    if (mesh) {
+      g.push("--mesh-file " + q(mesh));
+      if (units !== "auto") g.push("--mesh-depth-units " + units);
+    }
+    var r = ["python " + q(folder + "/steps/step_total.py")];
+    if ($("b-skipoff").checked) r.push("--skip-official");
+    if ($("b-skiphs").checked) r.push("--skip-hs");
+    if ($("b-autoclip").checked) r.push("--auto-clip");
+    if ($("b-dlhs").checked) r.push("--download-official-hs-vaus");
+
+    var box = $("b-err");
+    box.hidden = errs.length === 0;
+    box.textContent = errs.length ? "Not runnable yet: " + errs.join(" ") : "";
+    $("b-gen").textContent = errs.length ? "" : g.join(" ");
+    $("b-run").textContent = errs.length ? "" : r.join(" ");
+    $("b-open").textContent = errs.length ? "" : "3. open " + folder + "/report.html in a browser";
+    var nb = $("b-notes");
+    nb.textContent = "";
+    notes.forEach(function (n) { var li = document.createElement("li"); li.textContent = n; nb.appendChild(li); });
+    $("b-note").hidden = errs.length > 0 || notes.length === 0;
+  }
+  ["b-region", "b-zone", "b-folder", "b-cellk", "b-clip", "b-mesh", "b-id"].forEach(function (id) {
+    $(id).addEventListener("input", update);
+  });
+  ["b-columns", "b-units", "b-skipoff", "b-skiphs", "b-autoclip", "b-dlhs"].forEach(function (id) {
+    $(id).addEventListener("change", update);
+  });
+  update();
+})();
+</script>
+</body>
+</html>

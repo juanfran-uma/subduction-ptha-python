@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your own mesh (mesh_file) | ptha_python</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+figure.fig svg .b0{fill:var(--card);stroke:var(--line);stroke-width:1.5}
+figure.fig svg .b1{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.5}
+figure.fig svg .b2{fill:var(--good-soft);stroke:var(--good);stroke-width:1.5}
+figure.fig svg .t1{font-size:14px;font-weight:600;fill:var(--ink)}
+figure.fig svg .t2{font-size:12px;fill:var(--muted)}
+figure.fig svg .mono{font-family:var(--mono);font-size:11px;fill:var(--ink)}
+figure.fig svg .ar{stroke:var(--muted);stroke-width:1.6}
+figure.fig svg .ah{fill:var(--muted)}
+figure.fig svg .cell{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.2}
+figure.fig svg .node{fill:var(--warn)}
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="side" id="side"></nav>
+<main>
+
+<section id="top">
+  <div class="crumb">Geometry: from SLAB to mesh</div>
+  <h1>Your own mesh: <code>--mesh-file</code></h1>
+  <p class="lead">Instead of building the unit sources from SLAB, <code>generate.py --mesh-file FILE</code> uses the cells of a mesh you already have. The file gives the four corners of every cell. Steps 1 and 2 then do not use SLAB at all, and steps 3 to 9 (convergence, earthquake catalogue, logic tree, ruptures, rates, the report) run on that mesh unchanged.</p>
+  <div class="grid g4">
+    <div class="card kpi"><div class="num">312</div><div class="lbl">cells in the bundled alaskaaleutians file: 78 along strike x 4 down dip</div></div>
+    <div class="card kpi"><div class="num">12</div><div class="lbl">numbers per line: four corners, each lon, lat, depth</div></div>
+    <div class="card kpi"><div class="num">200</div><div class="lbl">depth, in the file's units: above it the file is read as metres, otherwise as km</div></div>
+    <div class="card kpi"><div class="num">0</div><div class="lbl">folded, collapsed or overlapping cells in the bundled file</div></div>
+  </div>
+</section>
+
+<section>
+  <h2 id="at-a-glance">At a glance</h2>
+  <figure class="fig"><svg viewBox="0 0 880 270" role="img" aria-label="From the mesh file to the pipeline: the file's lines are read into a node array, which steps 3 to 9 use unchanged">
+    <defs><marker id="mf-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker></defs>
+    <rect x="10" y="20" width="250" height="110" rx="8" class="b0"/>
+    <text x="135" y="44" text-anchor="middle" class="t1">mesh file (.dat)</text>
+    <text x="22" y="68" class="mono">lon1 lat1 dep1  lon2 lat2 dep2</text>
+    <text x="22" y="84" class="mono">lon3 lat3 dep3  lon4 lat4 dep4</text>
+    <text x="22" y="104" class="t2">one line per cell, 4 corners round it,</text>
+    <text x="22" y="120" class="t2">any order; depth m or km, either sign</text>
+    <line x1="260" y1="75" x2="310" y2="75" class="ar" marker-end="url(#mf-ah)"/>
+    <rect x="310" y="20" width="250" height="110" rx="8" class="b1"/>
+    <text x="435" y="44" text-anchor="middle" class="t1">pyptha/mesh_file.py</text>
+    <text x="322" y="66" class="t2">neighbours = cells sharing corners</text>
+    <text x="322" y="84" class="t2">top and bottom carried cell to cell</text>
+    <text x="322" y="102" class="t2">rows x columns, dip to the right of strike</text>
+    <text x="322" y="120" class="t2">not structured: refused with a message</text>
+    <line x1="560" y1="75" x2="610" y2="75" class="ar" marker-end="url(#mf-ah)"/>
+    <rect x="610" y="20" width="260" height="110" rx="8" class="b2"/>
+    <text x="740" y="44" text-anchor="middle" class="t1">node array, as from SLAB</text>
+    <g transform="translate(650,58)">
+      <rect x="0" y="0" width="40" height="20" class="cell"/><rect x="40" y="0" width="40" height="20" class="cell"/><rect x="80" y="0" width="40" height="20" class="cell"/><rect x="120" y="0" width="40" height="20" class="cell"/>
+      <rect x="0" y="20" width="40" height="20" class="cell"/><rect x="40" y="20" width="40" height="20" class="cell"/><rect x="80" y="20" width="40" height="20" class="cell"/><rect x="120" y="20" width="40" height="20" class="cell"/>
+      <circle cx="0" cy="0" r="3" class="node"/><circle cx="40" cy="0" r="3" class="node"/><circle cx="80" cy="0" r="3" class="node"/><circle cx="120" cy="0" r="3" class="node"/><circle cx="160" cy="0" r="3" class="node"/>
+      <circle cx="0" cy="40" r="3" class="node"/><circle cx="160" cy="40" r="3" class="node"/>
+      <text x="166" y="10" class="t2">trench</text>
+    </g>
+    <text x="622" y="122" class="t2">lon, lat, depth km at every node</text>
+    <line x1="740" y1="130" x2="740" y2="170" class="ar" marker-end="url(#mf-ah)"/>
+    <rect x="310" y="170" width="560" height="80" rx="8" class="b0"/>
+    <text x="590" y="196" text-anchor="middle" class="t1">steps 3-9, unchanged</text>
+    <text x="590" y="218" text-anchor="middle" class="t2">convergence, GCMT, logic tree, ruptures, rates, HS/VAUS, report</text>
+    <text x="590" y="236" text-anchor="middle" class="t2">step 1 does not read SLAB; step 6 writes the geometry mode "mesh_file"</text>
+  </svg><figcaption>The reader works out the structure from the corners the cells share, so the order of the lines and of the corners within a line does not matter.</figcaption></figure>
+</section>
+
+<section>
+  <h2 id="format">The input file</h2>
+  <p>One line per cell, twelve numbers: the four corners of the cell in turn, each as longitude, latitude and depth. The corners must go round the cell, each one next to the following one. Where the ring starts, which way it goes, and the order of the lines do not matter. The bundled file, <code>inputs_meshes/alaskaaleutians_quadrilateral_coors.dat</code>, starts like this (depths in metres, negative down):</p>
+  <pre class="out">214.465729605253 59.8961038363627 -12430.9885537709 215.08649030082 59.1729825031043 -100 215.656666430792 59.2300001036757 -100 215.071975316661 59.9768523955977 -12692.9232869399</pre>
+  <ul class="tight">
+    <li><b>Depth units.</b> <code>--mesh-depth-units auto</code> (default) reads the file as metres if any depth has an absolute value above 200, and as km otherwise. A subduction interface never reaches 200 km, so this is safe for real data. Force it with <code>--mesh-depth-units m</code> or <code>km</code>.</li>
+    <li><b>Depth sign.</b> Detected from the median depth: depths negative below sea level and depths positive downwards are both accepted. Depths of both signs are refused, because the reader cannot tell down from up.</li>
+    <li><b>Units in the bundled file.</b> The file is in metres with depths negative downwards. The reader reports it as 0.10 to 45.00 km: its shallowest corners sit at 0.1 km, not at the 0 km trench of PTHA18. The mesh is used as given.</li>
+  </ul>
+</section>
+
+<section>
+  <h2 id="detects">What the reader detects</h2>
+  <p>The reader, <code>pyptha/mesh_file.py</code>, does not assume any order. It works out the structure from the corners that the cells share:</p>
+  <ol class="steps">
+    <li><b>Top, bottom and sides of every cell.</b> The orientation is carried from cell to cell across shared edges, so all cells agree. The depth then decides, once for the whole mesh, which pair of opposite edges runs down dip (the one with the largest depth change) and which side is the trench. A rule per cell would fail on fine meshes of flat or skewed slabs.</li>
+    <li><b>Neighbours.</b> Two cells are down-dip neighbours when one's bottom edge is the other's top edge. They are along-strike neighbours when they share a side edge. Corners are matched to a tolerance of 1e-6 degrees in longitude and latitude and 1 m in depth.</li>
+    <li><b>The top row.</b> The cells with nothing above them must form one chain along strike, and every column must be a chain of the same length.</li>
+    <li><b>Orientation.</b> The columns are reversed if needed, so that the fault dips to the right of the strike. This is rptha's convention, and the one the rest of the pipeline assumes.</li>
+  </ol>
+  <p>A file that is not a complete rows x columns mesh is refused with a message that says what is wrong. The messages, by cause:</p>
+  <div class="tbl"><table>
+    <tr><th>Message (shortened)</th><th>Cause</th></tr>
+    <tr><td><code>expected 12 numbers per line (4 corners x lon, lat, depth), found N</code></td><td>the wrong number of columns in the file</td></tr>
+    <tr><td><code>depth_units must be 'auto', 'm' or 'km'</code>; <code>depths of both signs: cannot tell down from up</code></td><td>a bad <code>--mesh-depth-units</code>, or depths above and below zero in one file</td></tr>
+    <tr><td><code>an edge is shared by more than two cells</code>; <code>cells i and j do not share their corners</code>; <code>node (r, c) gets two different positions</code></td><td>cells that overlap, or whose corners do not coincide (triangles, a hole, an irregular mesh)</td></tr>
+    <tr><td><code>the cells do not form one connected mesh</code>; <code>cell i: more than one cell below it</code>; <code>cell j: its neighbours disagree on its orientation</code></td><td>separate pieces, branching, or cells that cannot be oriented consistently</td></tr>
+    <tr><td><code>the mesh is flat: cannot tell down dip from along strike</code></td><td>no depth change in the file</td></tr>
+    <tr><td><code>the N trench-row cells do not form one chain along strike</code>; <code>the trench row breaks or branches along strike</code>; <code>columns of different lengths</code>; <code>N cells but C columns x R rows</code>; <code>the node lattice has holes</code></td><td>not a complete rows x columns lattice (a column shorter than the others, a missing cell)</td></tr>
+    <tr><td><code>--mesh-file: &lt;path&gt; not found</code></td><td>raised by <code>generate.py</code> before anything is written</td></tr>
+  </table></div>
+  <p class="where">Where in the code: <code>pyptha/mesh_file.py</code> <code>read_quadrilateral_mesh()</code>. <code>generate.py</code> reads the file once when you run it, so a bad file stops the run before any folder is built.</p>
+</section>
+
+<section>
+  <h2 id="steps">What steps 1 and 2 do instead</h2>
+  <div class="io">
+    <div><b>Step 1</b>does not read SLAB, does not find a trench and does not write contours. It records the mesh file name in <code>data/step1_contours_info.json</code> and stops. The figure of step 1 is not drawn.</div>
+    <div><b>Step 2</b>reads the file and prints what it found. It saves <code>data/slab2/unit_source_grid.npy</code>, with <code>unit_source_grid.meta.json</code> holding the file's name (<code>mesh_file</code>), its SHA-256 (<code>mesh_file_sha256</code>) and the depth units (<code>mesh_depth_units</code>), and it draws <code>figures/scratch_mesh_map.png</code> from the cells.</div>
+  </div>
+  <p>This is what step 2 prints for the bundled alaskaaleutians file (the reference run):</p>
+  <pre class="out">  unit sources from the external mesh inputs/geometry/alaskaaleutians_quadrilateral_coors.dat
+      mesh file: 78 along-strike x 4 down-dip = 312 unit sources, depth 0.10-45.00 km (file in m)
+  mesh check: {'bowties': 0, 'degenerate': 0, 'overlap_fraction': 0.0, 'nonfinite': 0, 'total': 0, 'area_proj': 53.76164305174557}
+  area 676,341 km2, mean dip 15.96 deg, cells 33.6-59.0 km along strike x 29.1-95.9 km down dip, trench depth 0.10-0.10 km
+
+  saved grid -> &lt;folder&gt;/data/slab2/unit_source_grid.npy
+  saved mesh figure -> &lt;folder&gt;/figures/scratch_mesh_map.png</pre>
+  <p>The first line after the title gives the number of columns and rows, the depth range and the unit the file was read in (<code>m</code> or <code>km</code>); if the columns had to be reversed so the fault dips to the right of the strike, it adds <code>, columns reversed so the fault dips to the right of the strike</code>. The mesh check prints the counts of folded (<code>bowties</code>), collapsed (<code>degenerate</code>) and overlapping (<code>overlap_fraction</code>) cells, and <code>total</code> is 0 for a healthy mesh (<a href="discretizer.html#defects">what the defects are</a>). The area line gives the total area, the angle-weighted mean dip, and the ranges of cell lengths, widths and trench-row depths. A mesh from SLAB prints more (the mesh-shape block, the per-unit-source statistics, the comparison with PTHA18); a mesh file does not.</p>
+  <p>Steps 3 and 5 read the saved grid <code>data/slab2/unit_source_grid.npy</code>, as they do for a SLAB mesh. Step 6 writes the geometry block of the input JSON with <code>"mode": "mesh_file"</code>, the path of the copied file (<code>mesh_file</code>) and <code>mesh_depth_units</code>. Steps 7, 7b and 9 then read the mesh file again from that block each time (with the same depth units), instead of reusing the saved grid and checking a fingerprint as they do for a SLAB mesh. So if you replace the copy in <code>inputs/geometry/</code>, re-run step 2 as well, or steps 3 and 5 keep the old mesh. Step 9's report shows the mesh-file description in place of the SLAB contour figure.</p>
+  <p>The zone name still matters. It supplies the parameters that do not come from the mesh: the plate convergence, the earthquake catalogue window and the Berryman et al. (2015) parameters. Step 8 reads PTHA18's own run for the comparison when the zone is one of PTHA18's.</p>
+</section>
+
+<section>
+  <h2 id="use">How to use it</h2>
+<pre class="code">python ptha_python/generate.py alaska --zone alaskaaleutians --folder alaskaaleutians_mesh --ptha false --rupture-size local --mesh-file inputs_meshes/alaskaaleutians_quadrilateral_coors.dat
+python alaskaaleutians_mesh/steps/step_total.py</pre>
+  <p><code>--mesh-depth-units m|km</code> overrides the unit detection. <code>generate.py</code> copies the file into the run's <code>inputs/geometry/</code>, so the run does not depend on where the file is later.</p>
+  <p>Options that describe a SLAB mesh do not apply. Combined with <code>--mesh-file</code>, <code>--cell-size strasser</code> and <code>--columns trench-edited</code> or <code>average-edited</code> stop <code>generate.py</code> with a message. <code>--discretizer</code>, <code>--columns trench</code> or <code>average</code>, <code>--cell-k</code>, <code>--clip</code> and <code>step1 --auto-clip</code> are accepted and have no effect. Step 2 uses the mesh as given: it does not discretise, repair or edit anything, and it ignores the unit-source width and row count that <code>--ptha true</code> would read for the zone.</p>
+</section>
+
+<section>
+  <h2 id="checks">How to check a mesh file</h2>
+  <ul class="tight">
+    <li><b>At generate time.</b> The file is read in full, so a file with the wrong number of columns, a hole, or mixed depth signs stops the run with the reason.</li>
+    <li><b>In step 2's log.</b> Compare the column and row counts and the total area with what you expect from the file. The log prints the counts of folded, collapsed and overlapping cells. A non-zero count means the mesh needs a look in the figure.</li>
+    <li><b>In the figure.</b> <code>figures/scratch_mesh_map.png</code> shows every cell on a map. Look for cells on the wrong side of the trench and for a trench that is not where you expect.</li>
+    <li><b>Against PTHA18.</b> <code>validation/validate_mesh_file.py</code> reads the bundled alaskaaleutians file and compares its cells with PTHA18's own unit-source table for that zone. It needs PTHA18's official input, which <code>official_ptha_data/fetch_official_inputs.py</code> extracts. Run it from the repository root: <code>python ptha_python/validation/validate_mesh_file.py</code>.</li>
+  </ul>
+</section>
+
+<section>
+  <h2 id="limits">Limits</h2>
+  <ul class="tight">
+    <li><b>Structured quadrilateral meshes only</b>: rows down dip and columns along strike, with cells sharing their corners. Triangular meshes would need a different rupture builder, because the rupture rule and the HS generator work on rows and columns.</li>
+    <li><b>The mesh is used as given.</b> If its trench is not at 0 km (the bundled file puts it at 0.1 km), or its cells are uneven, the results follow it. For uneven cells, <code>--rupture-size local</code> makes the ruptures follow the real cell sizes.</li>
+    <li><b>The report</b> leaves out the SLAB-specific parts: the contour figure of step 1 and the SLAB product.</li>
+  </ul>
+</section>
+
+<nav class="pager" id="pager"></nav>
+<footer>Code: <code>pyptha/mesh_file.py</code>, <code>templates/step1_fetch_slab2.py.tmpl</code>, <code>templates/step2_build_grid.py.tmpl</code> and the geometry block written by <code>templates/step6_write_input.py.tmpl</code>. Other pages: <a href="step2.html">step 2</a>, <a href="cell_size.html">cell size</a>.</footer>
+</main>
+<aside class="toc" id="toc"></aside>
+</div>
+<script src="assets/nav.js"></script>
+</body>
+</html>

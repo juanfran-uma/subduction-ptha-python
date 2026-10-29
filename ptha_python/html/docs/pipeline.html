@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The nine steps | ptha_python</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+<nav class="side" id="side"></nav>
+<main>
+
+<section id="top">
+  <div class="crumb">Start</div>
+  <h1>The nine steps</h1>
+  <p class="lead">A run is nine numbered scripts, plus the two lettered ones 7b and 7c, in a fixed order, and <code>step_total.py</code> runs them all. Each script reads the files the earlier ones wrote and writes its own. Steps 1 to 7 and step 9 are required; steps 7b, 7c and 8 are optional. This page lists what each step reads and writes, and how a run goes from start to report.</p>
+</section>
+
+<section>
+  <h2 id="diagram">The flow</h2>
+  <figure class="fig">
+    <svg viewBox="0 0 960 330" role="img" aria-label="Nine steps in four stages: geometry (steps 1 and 2), convergence (step 3), earthquakes (steps 4 and 5), and the engine and report (steps 6, 7 and 9). Steps 7b, 7c and 8 are optional and drawn dashed.">
+      <defs><marker id="pl-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8a93a3"/></marker></defs>
+      <text x="20" y="22" font-size="12" font-weight="700" fill="#5b6475">GEOMETRY</text>
+      <text x="250" y="22" font-size="12" font-weight="700" fill="#5b6475">PLATE SPEED</text>
+      <text x="470" y="22" font-size="12" font-weight="700" fill="#5b6475">EARTHQUAKES</text>
+      <text x="700" y="22" font-size="12" font-weight="700" fill="#5b6475">ENGINE AND REPORT</text>
+      <g font-size="13">
+        <rect x="20" y="36" width="200" height="60" rx="9" fill="#e4f5ec" stroke="#2e9e6b" stroke-width="1.6"/>
+        <text x="32" y="60" font-weight="700">1  Contours from SLAB</text>
+        <text x="32" y="80" font-size="11.5" fill="#5b6475">depth below the trench, every 5 km</text>
+        <rect x="20" y="130" width="200" height="60" rx="9" fill="#e4f5ec" stroke="#2e9e6b" stroke-width="1.6"/>
+        <text x="32" y="154" font-weight="700">2  The mesh</text>
+        <text x="32" y="174" font-size="11.5" fill="#5b6475">unit sources, area, mean dip</text>
+        <rect x="250" y="130" width="200" height="60" rx="9" fill="#fcf0e2" stroke="#d9822b" stroke-width="1.6"/>
+        <text x="262" y="154" font-weight="700">3  Plate convergence</text>
+        <text x="262" y="174" font-size="11.5" fill="#5b6475">Bird (2003), per column</text>
+        <rect x="470" y="36" width="200" height="60" rx="9" fill="#f1eafb" stroke="#8a5cd1" stroke-width="1.6"/>
+        <text x="482" y="60" font-weight="700">4  GCMT catalogue</text>
+        <text x="482" y="80" font-size="11.5" fill="#5b6475">download, 1976 to 2017</text>
+        <rect x="470" y="130" width="200" height="60" rx="9" fill="#f1eafb" stroke="#8a5cd1" stroke-width="1.6"/>
+        <text x="482" y="154" font-weight="700">5  Earthquakes of this zone</text>
+        <text x="482" y="174" font-size="11.5" fill="#5b6475">selection rule, one list</text>
+        <rect x="700" y="36" width="240" height="60" rx="9" fill="#e8f0fd" stroke="#2f6fdf" stroke-width="1.6"/>
+        <text x="712" y="60" font-weight="700">6  The input file</text>
+        <text x="712" y="80" font-size="11.5" fill="#5b6475">everything in one JSON</text>
+        <rect x="700" y="130" width="240" height="60" rx="9" fill="#e8f0fd" stroke="#2f6fdf" stroke-width="1.6"/>
+        <text x="712" y="154" font-weight="700">7  Logic tree, LEVELs 0-5</text>
+        <text x="712" y="174" font-size="11.5" fill="#5b6475">the rates and their outputs</text>
+        <rect x="700" y="224" width="240" height="60" rx="9" fill="#e8f0fd" stroke="#2f6fdf" stroke-width="1.6"/>
+        <text x="712" y="248" font-weight="700">9  report.html</text>
+        <text x="712" y="268" font-size="11.5" fill="#5b6475">every number and figure</text>
+        <rect x="250" y="224" width="200" height="60" rx="9" fill="#f0f2f5" stroke="#8a93a3" stroke-dasharray="5 4"/>
+        <text x="262" y="248" font-weight="700">7b  HS and VAUS slip</text>
+        <text x="262" y="268" font-size="11.5" fill="#5b6475">optional, beside the rates</text>
+        <rect x="470" y="224" width="200" height="60" rx="9" fill="#f0f2f5" stroke="#8a93a3" stroke-dasharray="5 4"/>
+        <text x="482" y="248" font-weight="700">7c  Variable shear modulus</text>
+        <text x="482" y="268" font-size="11.5" fill="#5b6475">optional, after 7b</text>
+        <rect x="20" y="224" width="200" height="60" rx="9" fill="#f0f2f5" stroke="#8a93a3" stroke-dasharray="5 4"/>
+        <text x="32" y="248" font-weight="700">8  Official PTHA18 run</text>
+        <text x="32" y="268" font-size="11.5" fill="#5b6475">optional, needs R</text>
+      </g>
+      <g stroke="#8a93a3" stroke-width="1.8" fill="none" marker-end="url(#pl-ar)">
+        <path d="M120,96 L120,128"/>
+        <path d="M220,160 L248,160"/>
+        <path d="M570,96 L570,128"/>
+        <path d="M450,160 L468,160"/>
+        <path d="M670,160 L698,160"/>
+        <path d="M800,96 L800,128"/>
+        <path d="M800,190 L800,222"/>
+      </g>
+      <text x="20" y="318" font-size="12" fill="#5b6475">Step 3 also feeds step 6 directly, and step 6 gathers steps 1 to 5 into the input file. Steps 7b and 7c are optional; their output never changes the rates of step 7.</text>
+    </svg>
+    <figcaption><b>Nine steps in four stages.</b> Colours follow the rest of the guide: green for the geometry, orange for the plate speed, purple for the earthquakes, blue for the engine and the report, and grey and dashed for the optional steps.</figcaption>
+  </figure>
+</section>
+
+<section id="pl-detail">
+  <h2 id="flow">What each step reads and writes</h2>
+  <p>Paths are inside the generated folder, and <code>ZONE</code> is the zone name (for example <code>kermadectonga2</code>). A step stops with a message that names the step to run first when a file it needs is missing.</p>
+  <div class="tbl"><table class="fixed">
+    <colgroup><col style="width:15%"><col style="width:33%"><col style="width:40%"><col style="width:12%"></colgroup>
+    <tr><th>Step</th><th>Reads</th><th>Writes</th><th>Required</th></tr>
+    <tr><td><b>1</b> <a href="step1.html">Contours from SLAB</a></td><td>the SLAB depth grid of the region: the folder's <code>data/slab2/</code> or <code>data/slab1/</code> first, then <code>ptha_python/data/slab2/</code>, and only if it is in neither, downloaded into the folder. The seismogenic cutoff from <code>lib/berryman_params.py</code></td><td><code>inputs/geometry/ZONE_slab2_contours.shp</code> (with its <code>.dbf</code>, <code>.shx</code>, <code>.prj</code>, <code>.cpg</code>), <code>data/step1_contours_info.json</code>, <code>figures/step1_trench_and_contours.png</code>. With <code>--mesh-file</code> it only writes <code>data/step1_contours_info.json</code>, noting the mesh file</td><td>yes</td></tr>
+    <tr><td><b>2</b> <a href="step2.html">The mesh</a></td><td>the contours of step 1, or the mesh file copied into <code>inputs/geometry/</code></td><td><code>data/slab2/unit_source_grid.npy</code> and <code>unit_source_grid.meta.json</code> (the saved mesh and the settings it was built with), <code>figures/scratch_mesh_map.png</code>. It prints the number of cells, the total area, the mean dip and the mesh checks</td><td>yes</td></tr>
+    <tr><td><b>3</b> <a href="step3.html">Plate convergence</a></td><td>the saved mesh, and the plate table chosen by <code>--convergence</code> (<code>ptha_python/data/bird/</code>)</td><td><code>data/convergence.txt</code> (the area-weighted rate), <code>data/convergence_per_column.json</code>, <code>data/convergence_per_cell.npy</code>. If the last or first columns sit on a different plate boundary it also writes <code>data/plate_boundary_change.json</code> (and deletes an old one when there is none)</td><td>yes</td></tr>
+    <tr><td><b>4</b> <a href="seismicity.html">GCMT catalogue</a></td><td>nothing from the folder. It downloads</td><td><code>data/gcmt/*.ndk</code> (the cumulative file and one file per month, all kept), and <code>data/gcmt/gcmt_catalogue_1976_present.csv</code>, the worldwide events from 1976-01-01 to 2017-03-01</td><td>yes</td></tr>
+    <tr><td><b>5</b> <a href="seismicity.html">Earthquakes of this zone</a></td><td>the <code>.ndk</code> files of step 4 (it parses them again to get the magnitudes) and the saved mesh</td><td><code>data/gcmt/ZONE_gcmt_subset.csv</code>. With <code>--segmented true</code> also one <code>ZONE_gcmt_subset_SEGMENT.csv</code> per segment and <code>data/gcmt/segments.json</code></td><td>yes</td></tr>
+    <tr><td><b>6</b> <a href="input_json.html">The input file</a></td><td>the contours (or the mesh file), the saved mesh, the convergence files, the earthquake subset, the constants at the top of <code>step2_build_grid.py</code>, and the literature values of <code>lib/berryman_params.py</code></td><td><code>inputs/input_ZONE_scratch.json</code>. An existing file is kept, so a hand edit survives, unless <code>--force</code> is given</td><td>yes</td></tr>
+    <tr><td><b>7</b> <a href="engine.html">Logic tree and rates</a></td><td>the input file of step 6 (and the saved mesh of step 2, when its settings match)</td><td>the whole <code>outputs/</code> folder, replaced as a unit: <code>rate_curves.csv</code>, <code>exceedance_rate_percentiles.csv</code>, <code>logic_tree_branches_ZONE.csv</code>, <code>logic_tree_summary.csv</code>, <code>scenario_rates_ZONE.csv</code>, <code>conditional_prob_ZONE.csv</code>, <code>integrated_slip_ZONE.csv</code>, <code>segmentation.csv</code> and <code>figures/</code>; a segmented run also has these per segment</td><td>yes</td></tr>
+    <tr><td><b>7b</b> <a href="hs_vaus.html">HS and VAUS slip</a></td><td>the input file (it rebuilds the mesh and the scenarios) and <code>outputs/scenario_rates_ZONE.csv</code> of step 7</td><td><code>outputs/hs_slip_fields/</code> and <code>outputs/vaus_slip_fields/</code>, each with <code>summary.csv</code> and <code>comparison_features.npz</code></td><td>no</td></tr>
+    <tr><td><b>7c</b> <a href="variable_mu.html">Variable shear modulus</a></td><td>the input file, <code>outputs/scenario_rates_ZONE.csv</code> (step 7) and <code>outputs/hs_slip_fields/summary.csv</code> (step 7b)</td><td><code>inputs/input_ZONE_scratch_variable_mu.json</code>; in <code>outputs/</code> the files with <code>_variable_mu</code> in their name (scenario rates, rate curves, percentiles, branches, summary, <code>variable_mu_deviation_ZONE.csv</code>); and extra <code>variable_mu_*</code> columns in both <code>summary.csv</code> files of step 7b</td><td>no. <code>step_total.py</code> runs it only for a folder made with <code>--variable-mu on</code>. On its own it does nothing in a folder made with <code>--variable-mu off</code> unless run with <code>--force</code></td></tr>
+    <tr><td><b>8</b> <a href="official.html">The official PTHA18 run</a></td><td>R with rptha, and the files of <code>official_ptha_data/</code>; PTHA18's saved session (1.34 GB) and the zone's tables are downloaded the first time</td><td><code>inputs/input_ZONE_official.json</code>, <code>outputs_official/</code> (the official run's CSV files, and <code>ptha18_reference/</code> with PTHA18's mesh table, convergence, GCMT count and cell outlines, plus the HS and VAUS comparison with <code>--download-hs</code>), read by step 9. For a zone PTHA18 never modelled it writes <code>outputs_official_status.txt</code> and stops without an error, before looking for R. At the repository root it also leaves <code>inputs/input_ZONE.json</code> and <code>runs/python/ZONE_official/</code></td><td>no</td></tr>
+    <tr><td><b>9</b> <a href="report_guide.html">Report</a></td><td>everything the steps above wrote; the rates are not recomputed</td><td><code>report.html</code> (and <code>report_unsegmented.html</code> for a segmented run), <code>outputs/exports/</code> (<code>mesh_cells.csv</code>, <code>convergence.csv</code>, <code>convergence_profile.csv</code>, <code>posterior_mean_rate_curve.csv</code>, and on a segmented run <code>scenario_rates_source_zone.csv</code>; each with an <code>_official</code> twin when step 8 ran), and the mesh figures in <code>figures/</code> (<code>scratch_mesh_map.png</code> redrawn from the final input file, <code>scratch_mesh_map_convergence.png</code>, <code>mesh_profile.png</code>, and <code>segments_map.png</code> on a segmented run)</td><td>yes</td></tr>
+  </table></div>
+  <p>Steps 7b, 7c and 8 change only their own outputs and the report sections that show them. Step 7 is the exception that matters when repeating steps: it replaces <code>outputs/</code> entirely, so run 7b (and 7c) again after it.</p>
+</section>
+
+<section>
+  <h2 id="step-total">step_total.py: all the steps at once</h2>
+  <p><code>step_total.py</code> does no work of its own. It starts each step script as a separate program, in the order of the table, so the result is the same as running them by hand. It prints <code>&gt;&gt;&gt; stepN_name.py</code> before each step and <code>Done in N min. See FOLDER/report.html</code> at the end, and then appends the command line, the date and the run time to <code>RUN.html</code>.</p>
+  <ul class="tight">
+    <li><b>Required steps</b> (1 to 7 and 9): the first one that fails stops the run with its exit code and the advice to fix the error and run again.</li>
+    <li><b>Optional steps</b> (7b, 7c, 8): a failure is printed and the run goes on to step 9, which writes the report without the section of the failed step.</li>
+    <li><code>--skip-official</code> leaves out step 8. <code>--skip-hs</code> leaves out 7b and 7c. Step 7c is also left out, with a message, when the folder was made with <code>--variable-mu off</code>.</li>
+    <li><code>--auto-clip</code> passes <code>--auto-clip</code> to step 1 and <code>--force</code> to step 6, so the input file is rebuilt and a hand edit of it is lost. <code>--download-official-hs-vaus</code> passes <code>--download-hs</code> to step 8.</li>
+  </ul>
+  <p>Every flag is described, with its effect, in <a href="reference.html#step-total">Options, files, columns</a>.</p>
+</section>
+
+<section>
+  <h2 id="numbers">What a finished run gives</h2>
+  <p>After step 9 the folder holds the numbers of the run in three places. The report shows them with their figures. The CSV files in <code>outputs/</code> hold them for other tools, with columns listed on <a href="reference.html#columns">Options, files, columns</a>. The input file keeps the values the run was given, so a run can be read back.</p>
+  <ul class="tight">
+    <li><b>The geometry</b>: the number of cells, their total area and mean dip (step 2, in the report and in the README).</li>
+    <li><b>The convergence</b>: one value for each column of cells (step 3).</li>
+    <li><b>The branches</b>: one row per branch with its prior and posterior weight (step 7).</li>
+    <li><b>The rates</b>: the mean rate and the percentiles, for each magnitude (step 7).</li>
+  </ul>
+</section>
+
+<section>
+  <h2 id="failures">When a step fails</h2>
+  <p><code>step_total.py</code> stops at the first required step that fails, and prints which step it was. Fix the error the step printed, then either run <code>step_total.py</code> again (the earlier steps are repeated, which is harmless because the downloads are kept) or run the remaining steps one at a time, starting with the failed one. The optional steps do not stop the run: their failure is printed and the report is written without their section.</p>
+  <p>The common causes, with their fixes, are on <a href="troubleshooting.html">Troubleshooting</a>.</p>
+</section>
+
+<section>
+  <h2 id="runtime">Time and shortcuts</h2>
+  <p>The time of a run depends on the zone, its options and the machine, and <code>step_total.py</code> prints the total time at the end. In the reference runs, with step 8 skipped and the data already downloaded, the whole run took between 2.1 and 4.6 minutes for meshes of 26 to 312 unit sources (the table is on <a href="quickstart.html#run">Quick start</a>). The first run of a folder downloads its data, so it takes longer than a re-run. Four options shorten a run, each at a cost. The last two are flags of step 7b itself, given when that step is run on its own, for example <code>python NAME/steps/step7b_stochastic_slip.py --max-fields-per-mw 50</code>:</p>
+  <ul class="tight">
+    <li><code>--skip-official</code> skips step 8, which needs R, and the comparison with PTHA18 that it feeds.</li>
+    <li><code>--skip-hs</code> skips the optional steps 7b and 7c.</li>
+    <li><code>--max-placements-per-mw</code> and <code>--max-fields-per-mw</code> cap the number of heterogeneous-slip fields of step 7b. The result is faster and less exact.</li>
+  </ul>
+</section>
+
+<nav class="pager" id="pager"></nav>
+<footer>Step names and outputs from the step templates of each generated folder.</footer>
+</main>
+<aside class="toc" id="toc"></aside>
+</div>
+<script src="assets/nav.js"></script>
+</body>
+</html>

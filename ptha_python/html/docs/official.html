@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>8. The official PTHA18 run | ptha_python</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+<nav class="side" id="side"></nav>
+<main>
+
+<section id="top">
+  <div class="crumb">Results</div>
+  <h1>8. The official PTHA18 run</h1>
+  <p class="lead">Step 8 answers one question: what would this same engine give with PTHA18's own inputs? It takes PTHA18's published mesh, its parameters, its convergence and its observed earthquakes, and runs them through exactly the engine step 7 uses. The difference between the two runs is then only the inputs, never the code. It is optional, and it needs R.</p>
+</section>
+
+<section>
+  <h2 id="at-a-glance">At a glance</h2>
+  <figure class="fig">
+    <svg viewBox="0 0 960 260" role="img" aria-label="Step 8: PTHA18's saved session and NCI files go through R into an official input file, which runs through the same engine as step 7; step 9 compares the two runs">
+      <defs><marker id="of-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8a93a3"/></marker></defs>
+      <g font-size="12.5">
+        <rect x="10" y="20" width="220" height="62" rx="9" fill="#f0f2f5" stroke="#8a93a3"/><text x="22" y="44" font-weight="700">PTHA18's saved R session</text><text x="22" y="64" font-size="11.5" fill="#5b6475">1.34 GB, downloaded once (NCI)</text>
+        <rect x="10" y="100" width="220" height="62" rx="9" fill="#f0f2f5" stroke="#8a93a3"/><text x="22" y="124" font-weight="700">unit_source_statistics_&lt;zone&gt;.nc</text><text x="22" y="144" font-size="11.5" fill="#5b6475">PTHA18's cell table (NCI)</text>
+        <rect x="10" y="180" width="220" height="62" rx="9" fill="#f0f2f5" stroke="#8a93a3"/><text x="22" y="204" font-weight="700">sourcezone_parameters.csv</text><text x="22" y="224" font-size="11.5" fill="#5b6475">PTHA18's zone table (in rptha)</text>
+        <rect x="280" y="80" width="230" height="102" rx="9" fill="#fff" stroke="#8a93a3" stroke-width="1.6"/><text x="292" y="104" font-weight="700">fetch_official_inputs.py</text><text x="292" y="124" font-size="11.5" fill="#5b6475">R extracts the tree and weights;</text><text x="292" y="141" font-size="11.5" fill="#5b6475">the convergence is recovered; checks</text><text x="292" y="158" font-size="11.5" fill="#5b6475">against the session</text>
+        <rect x="560" y="80" width="160" height="102" rx="9" fill="#e8f0fd" stroke="#2f6fdf"/><text x="572" y="104" font-weight="700">+ Bird model</text><text x="572" y="124" font-size="11.5" fill="#5b6475">per-column profiles on</text><text x="572" y="141" font-size="11.5" fill="#5b6475">PTHA18's mesh (if the</text><text x="572" y="158" font-size="11.5" fill="#5b6475">zone uses Bird)</text>
+        <rect x="770" y="20" width="180" height="62" rx="9" fill="#e8f0fd" stroke="#2f6fdf" stroke-width="1.8"/><text x="782" y="44" font-weight="700">the same engine</text><text x="782" y="64" font-size="11.5" fill="#5b6475">run_logic_tree.py</text>
+        <rect x="770" y="100" width="180" height="62" rx="9" fill="#fff" stroke="#2f6fdf"/><text x="782" y="124" font-weight="700">outputs_official/</text><text x="782" y="144" font-size="11.5" fill="#5b6475">same files as outputs/</text>
+        <rect x="770" y="180" width="180" height="62" rx="9" fill="#fff" stroke="#2f6fdf"/><text x="782" y="204" font-weight="700">report.html</text><text x="782" y="224" font-size="11.5" fill="#5b6475">this run vs official</text>
+      </g>
+      <g stroke="#8a93a3" stroke-width="1.8" fill="none" marker-end="url(#of-ar)">
+        <path d="M230,51 C255,51 255,110 278,112"/><path d="M230,131 L278,131"/><path d="M230,211 C255,211 255,152 278,150"/>
+        <path d="M510,131 L558,131"/><path d="M720,120 C745,120 745,55 768,53"/><path d="M860,82 L860,98"/><path d="M860,162 L860,178"/>
+      </g>
+    </svg>
+    <figcaption><b>Step 8 in one picture.</b> Grey: PTHA18's files. Everything the official run uses comes from them; nothing is typed by hand.</figcaption>
+  </figure>
+  <div class="io">
+    <div><b>Needs</b>R with the rptha package (<code>Rscript</code> on the PATH, or in <code>C:\Program Files\R\</code>); <code>curl</code>; a zone that PTHA18 modelled; an internet connection the first time. Steps 1 to 7 are not required (step 8 reads none of their files, except to see whether the run is segmented), but step 9 compares the two runs. <a href="#prerequisites">Details</a>.</div>
+    <div><b>Writes</b>the shared <code>inputs/input_&lt;zone&gt;.json</code> of the repository, the folder's copy <code>inputs/input_&lt;zone&gt;_official.json</code>, <code>outputs_official/</code> and <code>outputs_official/ptha18_reference/</code>; a segmented folder also <code>runs/python/&lt;zone&gt;_official_segmented/</code> and <code>ptha18_reference/official_segments.json</code>.</div>
+  </div>
+</section>
+
+<section>
+  <h2 id="why-r">Why it needs R</h2>
+  <p>PTHA18's logic-tree weights after its Bayesian update, and its parameter table per zone, live inside the R objects of its saved session: values that only exist once R loads them. No Python reader can get at them directly. So step 8 calls R once, through <code>official_ptha_data/fetch_official_inputs.py</code> and its R script <code>extract_official_tree.R</code>, to extract the official tree, and from then on everything is Python. Step 8 checks that <code>Rscript</code> is installed before it starts.</p>
+  <div class="callout warn"><span class="lbl">Zones PTHA18 never modelled</span>calabria2, caribbean2 and antilles2 have no official run: they are not in PTHA18's <code>sourcezone_parameters.csv</code>. Step 8 then writes <code>outputs_official_status.txt</code> (first line <code>not_a_ptha18_zone</code>), prints that there is no official run to compare with, and ends normally. Step 9 reads that file and leaves out the comparison sections, saying why. Steps 1 to 7 and 9 are complete without it.</div>
+  <div class="callout warn"><span class="lbl">Retired zones</span>PTHA18 retires a zone by giving it <code>row_weight = 0</code> in its table (kermadectonga, puysegur, newhebrides, sunda, solomon, makran, timor, flores, newguinea, macquarienorth, and others). Their rows exist, but the saved session holds no logic tree for them. <code>fetch_official_inputs.py</code> stops at once with "is a retired source zone" and names the successor, for example <code>kermadectonga2</code>, so step 8 fails (exit code 1) before the long download of the session. Use the zone with the "2" name.</div>
+</section>
+
+<section>
+  <h2 id="prerequisites">What you need installed, and what happens without R</h2>
+  <ul class="tight">
+    <li><b>R</b>, found in this order: <code>Rscript</code> on the PATH, then the newest <code>R-*</code> folder under <code>C:\Program Files\R\</code> (Windows). On Linux or macOS <code>Rscript</code> must be on the PATH.</li>
+    <li><b>The rptha R package</b> and its dependencies. This repository's <code>rptha/</code> folder holds only a few data files (<code>sourcezone_parameters.csv</code> and other tables), not the R package. Clone <a href="https://github.com/GeoscienceAustralia/ptha">GeoscienceAustralia/ptha</a> somewhere (on Windows also install Rtools, because rptha has Fortran code) and from that clone run:
+      <div class="code"><pre>Rscript -e "install.packages(c('geosphere','sp','sf','raster','FNN','minpack.lm','geometry','ncdf4'), repos='https://cloud.r-project.org')"
+Rscript -e "install.packages('R/rptha', repos=NULL, type='source')"</pre></div></li>
+    <li><b><code>curl</code></b> on the PATH, which downloads the session and the zone's files. Step 8 stops with "curl not found" otherwise.</li>
+    <li>The Python packages of <code>requirements.txt</code> (netCDF4 for PTHA18's cell table; geopandas for PTHA18's published cell outlines, optional: if that fails the report just omits that layer).</li>
+    <li>About 1.4 GB of disk for the saved session, and minutes of time and memory the first time R loads it. Reruns reuse the downloaded session and the extracted trees.</li>
+  </ul>
+  <p><b>Without R</b>, step 8 prints "Rscript not found" with the install instructions above and exits with an error, before downloading anything. Nothing else breaks: <code>step_total.py</code> says that step 8 is optional and continues to step 9 (or you skip it with <code>--skip-official</code>), and the report is complete for this run, without any comparison section. R is needed on every run of step 8, even when the trees were already extracted.</p>
+</section>
+
+<section>
+  <h2 id="steps">What it does, in order</h2>
+  <ol class="steps">
+    <li><b>Download</b> (once) PTHA18's saved session (1.34 GB) and the zone's cell table <code>unit_source_statistics_&lt;zone&gt;.nc</code> from NCI's public server.</li>
+    <li><b>Extract with R</b> the official logic tree and each zone's parameters.</li>
+    <li><b>Read</b> the zone's row of PTHA18's <code>sourcezone_parameters.csv</code>: coupling, b-value, largest observed magnitude, and whether it uses Bird's convergence.</li>
+    <li><b>Recover the convergence</b> from the session. PTHA18 stores the slip on the fault, and the script inverts it back to the horizontal rate.</li>
+    <li><b>Read PTHA18's observed earthquakes</b> (the LEVEL 3 data: magnitude threshold, event count, window in years and each magnitude) out of the same session, so the Bayesian update reproduces PTHA18's.</li>
+    <li><b>Write</b> <code>inputs/input_&lt;zone&gt;.json</code>, with a <code>_provenance</code> note on each field, and geometry mode <code>official_statistics</code> (the engine reads PTHA18's cell table directly, with no meshing).</li>
+    <li><b>Check</b> it against the session: the geometry area, the mean dip, the convergence, a control inversion (the same inversion returns 35 mm/yr on puysegur2, when that zone is among the extracted ones), and the Mw_max axis. Each check prints PASS or FAIL; any FAIL ends the run with "VERIFICATION FAILED" and exit code 1.</li>
+    <li><b>Add PTHA18's Bird model</b> when the zone uses Bird: the per-column profiles computed on PTHA18's own mesh with <code>lib/bird_convergence.py</code> and the Bird+Griffin table, checked against the official convergence (<a href="step3.html#tables">step 3</a>).</li>
+    <li><b>Add PTHA18's segments</b>, only when the folder is segmented: every segment row of <code>sourcezone_parameters.csv</code> for the zone (its columns of PTHA18's mesh, coupling, b range, <code>mw_max_observed</code>) with the GCMT events the saved session gives that segment. The run is then PTHA18's own segmented model, written to <code>runs/python/&lt;zone&gt;_official_segmented/</code>. The validation script checks this against PTHA18's segment trees and scenario rates (<code>validate_against_ptha18.py official_segments</code> and <code>events_segmented</code>).</li>
+    <li><b>Set the percentile magnitudes</b> of the official input to every 0.1 from 7.2 to 9.8, the same as step 6's, so the report compares the two runs at every one of them (only LEVEL 5's output rows change, no rate does).</li>
+    <li><b>Run the engine</b> on the folder's copy of that file, and copy its output to <code>outputs_official/</code> (an existing <code>outputs_official/</code> is replaced).</li>
+    <li><b>Write the PTHA18 reference</b> for the report into <code>outputs_official/ptha18_reference/</code> (<a href="#reference">below</a>).</li>
+  </ol>
+  <p class="where">Where in the code: <code>steps/step8_official.py</code> (<code>check_rscript()</code>, <code>add_bird_model()</code>, <code>add_official_segments()</code>, <code>write_reference()</code>, <code>main()</code>), <code>official_ptha_data/fetch_official_inputs.py</code>, <code>lib/bird_convergence.py</code> (<code>column_convergence()</code>, <code>ptha18_uses_bird_convergence()</code>).</p>
+</section>
+
+<section>
+  <h2 id="reference">The only step that reads PTHA18</h2>
+  <p>With <code>--ptha false</code>, steps 1 to 7, 7b and 9 open no file of PTHA18 or of rptha (<a href="reference.html#ptha-reads">what each step reads</a>; the check is described in <a href="data_provenance.html">Data provenance</a>). Everything of PTHA18 that the report compares with is therefore collected here, by step 8, in <code>outputs_official/ptha18_reference/</code>. The report reads PTHA18 from nowhere else:</p>
+  <div class="tbl"><table class="fixed">
+    <colgroup><col style="width:36%"><col style="width:64%"></colgroup>
+    <tr><th>File</th><th>What the report does with it</th></tr>
+    <tr><td><code>unit_source_statistics_&lt;zone&gt;.nc</code></td><td>PTHA18's mesh in the mesh figures, side by side with this run's</td></tr>
+    <tr><td><code>official_convergence_per_cell.npy</code></td><td>Bird's convergence on PTHA18's mesh (PTHA18's own Bird + Griffin table), next to this run's</td></tr>
+    <tr><td><code>official_convergence_per_column.json</code></td><td>the same match <b>per along-strike column</b> of PTHA18's mesh; step 9 exports it as <code>outputs/exports/convergence_profile_official.csv</code>, beside this run's profile</td></tr>
+    <tr><td><code>official_grid_lonlat.npy</code></td><td>PTHA18's published cell outlines on the map</td></tr>
+    <tr><td><code>official_gcmt.json</code></td><td>PTHA18's LEVEL 3 event count and window</td></tr>
+    <tr><td><code>hs_comparison.csv</code>, <code>vaus_comparison.csv</code></td><td>step 7b's fields against PTHA18's HS and VAUS catalogues (<a href="hs_vaus.html#official-comparison">how</a>). Only if step 7b ran and PTHA18's catalogues are in <code>official_ptha_data/public_nc/</code>: <code>step8_official.py --download-hs</code> fetches them</td></tr>
+  </table></div>
+  <p>A segmented folder also gets <code>official_segments.json</code> there: PTHA18's own segments of the zone (name, <code>alongstrike_slice</code>, spreadsheet coupling, <code>mw_max_observed</code>, event count), which step 9 uses to label the segment comparison.</p>
+  <p>Without step 8 the report is complete for this run and simply has no comparison.</p>
+</section>
+
+<section>
+  <h2 id="layout">Options and the outputs_official/ layout</h2>
+  <p>Step 8 has one command-line option:</p>
+  <div class="tbl"><table class="fixed">
+    <colgroup><col style="width:30%"><col style="width:70%"></colgroup>
+    <tr><th>option</th><th>meaning</th></tr>
+    <tr><td><code>--download-hs</code></td><td>download PTHA18's published HS and VAUS catalogues for the zone (<code>all_stochastic_slip_earthquake_events_&lt;zone&gt;.nc</code> and <code>all_variable_uniform_slip_earthquake_events_&lt;zone&gt;.nc</code>, from NCI, hundreds of MB each) into <code>official_ptha_data/public_nc/</code>, and compare step 7b's fields with them. It does something only if step 7b has already run (otherwise there is nothing to compare, and step 8 says "step 7b has not run"). A file that PTHA18 never published for the zone (HTTP 404) is skipped with a message. Off by default, because it is a large download. <code>step_total.py --download-official-hs-vaus</code> passes it on; <code>step_total.py --skip-official</code> skips step 8.</td></tr>
+  </table></div>
+  <p>Step 8 does not read <code>--ptha</code> or any other <code>generate.py</code> option except the zone and whether the run is segmented (from step 6's input JSON, if it exists). Its other settings are not options: the catalogue magnitude tolerance for the HS/VAUS comparison is 0.05 (<code>OFFICIAL_MW_TOL</code>), and the percentile magnitudes are every 0.1 from 7.2 to 9.8.</p>
+  <p>What a run leaves behind, in the folder (<code>&lt;folder&gt;/</code>) and in the repository root:</p>
+  <pre class="out">&lt;folder&gt;/inputs/input_&lt;zone&gt;_official.json      the official input, the folder's own copy
+&lt;folder&gt;/outputs_official/                      the engine's output for that input, the same files as outputs/
+    logic_tree_summary.csv, rate_curves.csv, exceedance_rate_percentiles.csv,
+    scenario_rates_&lt;zone&gt;.csv, conditional_prob_&lt;zone&gt;.csv, integrated_slip_&lt;zone&gt;.csv,
+    logic_tree_branches_&lt;zone&gt;.csv, segmentation.csv, figures/
+    (a segmented folder: also the per-segment files, as in outputs/)
+&lt;folder&gt;/outputs_official/ptha18_reference/      what the report reads of PTHA18 (table above)
+&lt;folder&gt;/outputs_official_status.txt             only for a zone PTHA18 did not model
+
+inputs/input_&lt;zone&gt;.json                         shared, written by fetch_official_inputs.py
+inputs/geometry/unit_source_statistics_&lt;zone&gt;.nc  PTHA18's cell table, downloaded once
+official_ptha_data/session/compute_rates_all_sources_session.RData   the 1.34 GB session
+official_ptha_data/trees/                          the trees and parameters extracted by R
+official_ptha_data/public_nc/                      HS and VAUS catalogues (--download-hs)
+runs/python/&lt;zone&gt;_official/                      the engine's own output folder (or _official_segmented)</pre>
+  <p class="where">The session is looked for first in <code>official_ptha_data/session/</code>, then in the repository root, then in the folder above it, and downloaded to the first place if none has it. A file smaller than 1 GB is rejected as truncated. A <code>.part</code> file left by an interrupted download is never used.</p>
+</section>
+
+<section>
+  <h2 id="compared">What the report compares</h2>
+  <p>When <code>outputs_official/</code> exists, step 9 adds PTHA18's side to these parts of the report (<a href="report_guide.html#official">the report guide</a>):</p>
+  <ul class="tight">
+    <li><b>Table of this run against PTHA18:</b> mean dip, convergence, edge multiplier, prior to posterior shift (total variation distance) and the exceedance rate at Mw 7.2, each with the percentage difference. On a segmented run, also each segment's convergence.</li>
+    <li><b>The exceedance-rate curve:</b> PTHA18's logic-tree mean curve, dashed, next to this run's band.</li>
+    <li><b>Mesh:</b> PTHA18's cell table drawn beside this run's mesh (plus its published outlines on the web map), and the convergence on both meshes, with the convergence profile per along-strike column of each.</li>
+    <li><b>Observed earthquakes:</b> PTHA18's LEVEL 3 count and window next to this run's step 5 count.</li>
+    <li><b>Branch weights and the prior fan</b> of PTHA18's run, and its integrated slip.</li>
+    <li><b>HS and VAUS:</b> per magnitude, step 7b's fields against PTHA18's catalogue (event counts, mean peak slip, active cells, concentration, spectral distance), only when the catalogues are present.</li>
+    <li><b>CSV exports</b> in <code>outputs/exports/</code>: the files with the suffix <code>_official</code> (for example <code>posterior_mean_rate_curve_official.csv</code>, <code>mesh_cells_official.csv</code>, <code>convergence_official.csv</code>, <code>convergence_profile_official.csv</code>), next to this run's.</li>
+  </ul>
+</section>
+
+<section>
+  <h2 id="differences">What differs between the two runs</h2>
+  <p>Only the inputs. On kermadectonga2:</p>
+  <div class="tbl"><table>
+    <tr><th>Input</th><th>This run (steps 1-7)</th><th>Official run (step 8)</th></tr>
+    <tr><td>Mesh</td><td>from SLAB2.0 automatically: 73 columns x 3 rows = 219 cells, 542,856 km<sup>2</sup></td><td>PTHA18's own cell table, 72 columns (<code>data/bird/ptha18_convergence_sources.csv</code>)</td></tr>
+    <tr><td>Convergence</td><td>Bird (public catalogue) on this mesh: 99.16 mm/yr</td><td>Bird (PTHA18's table) on PTHA18's mesh: 98.77 mm/yr</td></tr>
+    <tr><td>Coupling min / preferred / max</td><td>0.21 / 0.31 / 0.72 (Berryman et al. 2015, its Whole margin row)</td><td>the same zone values, from PTHA18's zone table</td></tr>
+    <tr><td>Largest observed Mw</td><td>8.1 (Berryman's largest value for the zone; largest GCMT magnitude 7.999)</td><td>from PTHA18's zone table</td></tr>
+    <tr><td>Observed earthquakes</td><td>9, selected by <a href="seismicity.html">step 5</a></td><td>PTHA18's own selection, from its saved session</td></tr>
+    <tr><td>Engine, tree, settings</td><td colspan="2" style="text-align:center">identical: the same code runs both</td></tr>
+  </table></div>
+  <p>The comparison of the two results is in the report that step 9 writes after step 8 has run (<code>report.html</code>, its comparison section).</p>
+  <div class="callout"><span class="lbl">Why the official run is trustworthy</span>With PTHA18's own inputs, this engine is checked against PTHA18's published results: the validation script compares the branch weights, the scenario rates and the percentiles with PTHA18's own. See <a href="validation.html">Validation</a>.</div>
+</section>
+
+<section>
+  <h2 id="run">Run it</h2>
+  <div class="code"><pre>python ptha_python/generate.py kermadec --zone kermadectonga2 --folder kermadectonga2
+python kermadectonga2/steps/step8_official.py
+python kermadectonga2/steps/step8_official.py --download-hs   <span class="cm"># also PTHA18's HS/VAUS catalogues, for step 7b's comparison</span>
+python kermadectonga2/steps/step9_report.py   <span class="cm"># to see the comparison</span>
+
+<span class="cm"># a SEGMENTED folder: the same commands on its own folder; step 8 then runs PTHA18's segmented model</span>
+python ptha_python/generate.py kermadec --zone kermadectonga2 --folder kermadectonga2_seg --segmented true
+python kermadectonga2_seg/steps/step8_official.py
+python kermadectonga2_seg/steps/step9_report.py</pre></div>
+  <p>The first run on a machine downloads the session and loads it into R, which takes minutes; later runs reuse the downloaded session and the extracted trees (R is still started). <code>step_total.py --skip-official</code> skips step 8 entirely. Run it from the repository root, like every other step.</p>
+</section>
+
+<nav class="pager" id="pager"></nav>
+<footer>Sources: <code>templates/step8_official.py.tmpl</code>, <code>official_ptha_data/fetch_official_inputs.py</code>, and the PTHA18 numbers in <code>ptha_python/data/bird/ptha18_convergence_sources.csv</code>.</footer>
+</main>
+<aside class="toc" id="toc"></aside>
+</div>
+<script src="assets/nav.js"></script>
+</body>
+</html>

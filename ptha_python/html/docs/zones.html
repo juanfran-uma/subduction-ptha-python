@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zones you can run | ptha_python</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+<nav class="side" id="side"></nav>
+<main>
+
+<section id="top">
+  <div class="crumb">Your own runs</div>
+  <h1>Zones you can run</h1>
+  <p class="lead">Every zone name that <code>generate.py</code> accepts for <code>--zone</code>, the SLAB region and SLAB product each one is built from, and the rules that tie the names together. With <code>--ptha false</code> (the default) the valid names are the 36 zones in <code>lib/berryman_params.py</code> (<code>ZONE_TO_BERRYMAN_SEGMENTS</code>), because a zone's seismogenic cutoff, coupling, b-value and largest observed magnitude come from Berryman et al. (2015) through that file. With <code>--ptha true</code> the valid names are the 51 zones that have an unsegmented row in rptha's <code>sourcezone_parameters.csv</code>.</p>
+</section>
+
+<section>
+  <h2 id="at-a-glance">At a glance</h2>
+  <p>Each run needs two names. The first argument picks the SLAB raster, and <code>--zone</code> picks the zone's parameters.</p>
+  <div class="grid g3">
+    <div class="card"><h4>The region</h4><p>The first argument of <code>generate.py</code>: a SLAB region, by its three-letter prefix (<code>ker</code>) or part of its title (<code>kermadec</code>). The prefix always works. <code>python ptha_python/list_regions.py</code> prints the regions.</p></div>
+    <div class="card"><h4>The zone</h4><p><code>--zone</code>: a name from the table below, spelled exactly (<code>ryuku</code>, not <code>ryukyu</code>, is the spelling PTHA18 used). It sets the Berryman et al. (2015) values and, for six zones, the trench ends.</p></div>
+    <div class="card"><h4>The folder</h4><p><code>--folder</code>: any path relative to the repository root. It is never overwritten: a name that is taken becomes <code>NAME_2</code>.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2 id="rules">Rules for the names</h2>
+  <ul class="tight">
+    <li><b>A zone name is not always a region name.</b> The first argument is matched against the region titles and prefixes. <code>generate.py antilles2</code> fails with "no SLAB2.0 region matches", because no region title is part of <code>antilles2</code>. A zone name that contains a region title does match (<code>kermadectonga2</code> contains <code>kermadec</code>), but <code>solomon2</code> and <code>newhebrides</code> do not match a region. Always give the region and <code>--zone</code>: <code>generate.py caribbean --zone antilles2</code>.</li>
+    <li><b>The trailing 2 chooses the SLAB product.</b> A zone whose name ends in 2 is built from the SLAB2.0 raster, and any other zone from SLAB1.0. The two names are different zones: <code>kermadectonga</code> (SLAB1.0) and <code>kermadectonga2</code> (SLAB2.0) are both in the table.</li>
+    <li><b>A name that is not in the table.</b> With <code>--ptha false</code> the program accepts it, prints a note, and step 1 then stops because the zone has no Berryman et al. (2015) mapping (for example <code>cascadia2</code>). With <code>--ptha true</code> a name without a row in <code>sourcezone_parameters.csv</code> is refused at once.</li>
+    <li><b>Some zones are cut at the trench end points of Berryman et al. (2015)</b>, automatically and without an option. These are marked in the table.</li>
+    <li><b>Without <code>--zone</code></b>, the zone is found from the region's name. It works when exactly one zone name matches (<code>cascadia</code>, <code>alaska</code>, <code>kuril</code>). It stops with "matches more than one zone" when a region holds several, as <code>kermadec</code> (<code>kermadectonga</code> and <code>kermadectonga2</code>) and <code>hellenic</code> do, and it finds no zone at all for regions such as <code>caribbean</code> or <code>vanuatu</code>. Pass <code>--zone</code> whenever in doubt.</li>
+    <li><b>Retired zones.</b> PTHA18 retired some zones in favour of a "2" version by giving them a weight of 0 (the table marks them). They can be generated, but step 8 stops for them (<a href="troubleshooting.html#optional">Troubleshooting</a>). The run itself needs no PTHA18 file.</li>
+  </ul>
+</section>
+
+<section>
+  <h2 id="zones">All zones for <code>--ptha false</code></h2>
+  <p>Sorted by zone name: 36 zones, 13 built from SLAB2.0 and 23 from SLAB1.0. The <b>PTHA18</b> column says whether <code>sourcezone_parameters.csv</code> has an unsegmented row for the zone: 21 have one that is in use, 8 are retired (weight 0) and 7 have none, so only those 7 are refused by <code>--ptha true</code>. Six zones are cut at Berryman's end points: step 1 cuts the two ends along the down-dip lines through the end points of Berryman et al. (2015) Table 3.1. The commands for the zones with a worked recipe are on <a href="recipes.html">Recipes</a>.</p>
+  <div class="tbl"><table class="fixed">
+    <colgroup><col style="width:15%"><col style="width:25%"><col style="width:9%"><col style="width:13%"><col style="width:38%"></colgroup>
+    <tr><th>Zone (<code>--zone</code>)</th><th>SLAB region (first argument)</th><th>SLAB product</th><th>PTHA18</th><th>Notes</th></tr>
+    <tr><td><code>alaskaaleutians</code></td><td>Alaska (<code>alu</code>)</td><td>SLAB1.0</td><td>yes</td><td>&nbsp;</td></tr>
+    <tr><td><code>antilles2</code></td><td>Caribbean (<code>car</code>)</td><td>SLAB2.0</td><td>no</td><td>the region covers more than the Lesser Antilles: pass <code>--clip 297,307,5,18.5</code></td></tr>
+    <tr><td><code>calabria</code></td><td>Calabria (<code>cal</code>)</td><td>SLAB1.0</td><td>no</td><td>cut at Berryman's end points (automatic); the USGS address has no SLAB1.0 grid for <code>cal</code>, so step 1 cannot download one</td></tr>
+    <tr><td><code>calabria2</code></td><td>Calabria (<code>cal</code>)</td><td>SLAB2.0</td><td>no</td><td>cut at Berryman's end points (automatic)</td></tr>
+    <tr><td><code>cascadia</code></td><td>Cascadia (<code>cas</code>)</td><td>SLAB1.0</td><td>yes</td><td>&nbsp;</td></tr>
+    <tr><td><code>cyprus2</code></td><td>Hellenic Arc (<code>hel</code>)</td><td>SLAB2.0</td><td>no</td><td>cut at Berryman's end points (automatic); the Hellenic Arc raster spans 13 to 40 E and 27 to 44 N, which holds both end points of the zone</td></tr>
+    <tr><td><code>hellenic2</code></td><td>Hellenic Arc (<code>hel</code>)</td><td>SLAB2.0</td><td>no</td><td>cut at Berryman's end points (automatic)</td></tr>
+    <tr><td><code>hellenic_east2</code></td><td>Hellenic Arc (<code>hel</code>)</td><td>SLAB2.0</td><td>no</td><td>cut at Berryman's end points (automatic)</td></tr>
+    <tr><td><code>hellenic_west2</code></td><td>Hellenic Arc (<code>hel</code>)</td><td>SLAB2.0</td><td>no</td><td>cut at Berryman's end points (automatic)</td></tr>
+    <tr><td><code>hjort</code></td><td>none: the Puysegur raster (<code>puy</code>) has no data inside the zone (54.9 to 59.5 S)</td><td>SLAB1.0</td><td>yes</td><td>use <code>--mesh-file</code></td></tr>
+    <tr><td><code>izumariana</code></td><td>Izu-Bonin (<code>izu</code>)</td><td>SLAB1.0</td><td>yes</td><td>&nbsp;</td></tr>
+    <tr><td><code>kermadectonga</code></td><td>Kermadec (<code>ker</code>)</td><td>SLAB1.0</td><td>retired (weight 0)</td><td>retired, step 8 stops: <code>kermadectonga2</code> is its successor</td></tr>
+    <tr><td><code>kermadectonga2</code></td><td>Kermadec (<code>ker</code>)</td><td>SLAB2.0</td><td>yes</td><td>&nbsp;</td></tr>
+    <tr><td><code>kurilsjapan</code></td><td>Kamchatka-Kuril Islands-Japan (<code>kur</code>)</td><td>SLAB1.0</td><td>yes</td><td>&nbsp;</td></tr>
+    <tr><td><code>makran</code></td><td>Makran (<code>mak</code>)</td><td>SLAB1.0</td><td>retired (weight 0)</td><td>the USGS address has no SLAB1.0 grid for <code>mak</code>, so step 1 cannot download one; retired, step 8 stops: <code>makran2</code> is its successor</td></tr>
+    <tr><td><code>makran2</code></td><td>Makran (<code>mak</code>)</td><td>SLAB2.0</td><td>yes</td><td>&nbsp;</td></tr>
+    <tr><td><code>manokwari</code></td><td>New Guinea (<code>png</code>), which has data in only 59 of the 470 cells of the zone's bounding box</td><td>SLAB1.0</td><td>yes</td><td>the USGS address has no SLAB1.0 grid for <code>png</code>, so step 1 cannot download one</td></tr>
+    <tr><td><code>manus</code></td><td>New Guinea (<code>png</code>), which has data in only 293 of the 9,009 cells of the zone's bounding box</td><td>SLAB1.0</td><td>yes</td><td>the USGS address has no SLAB1.0 grid for <code>png</code>, so step 1 cannot download one</td></tr>
+    <tr><td><code>mexico</code></td><td>Central America (<code>cam</code>)</td><td>SLAB1.0</td><td>yes</td><td>the USGS address has no SLAB1.0 grid for <code>cam</code>, so step 1 cannot download one</td></tr>
+    <tr><td><code>newguinea</code></td><td>New Guinea (<code>png</code>)</td><td>SLAB1.0</td><td>retired (weight 0)</td><td>the USGS address has no SLAB1.0 grid for <code>png</code>, so step 1 cannot download one; retired, step 8 stops: <code>newguinea2</code> is its successor</td></tr>
+    <tr><td><code>newguinea2</code></td><td>New Guinea (<code>png</code>)</td><td>SLAB2.0</td><td>yes</td><td>&nbsp;</td></tr>
+    <tr><td><code>newhebrides</code></td><td>Vanuatu (<code>van</code>)</td><td>SLAB1.0</td><td>retired (weight 0)</td><td>retired, step 8 stops: <code>newhebrides2</code> is its successor</td></tr>
+    <tr><td><code>newhebrides2</code></td><td>Vanuatu (<code>van</code>)</td><td>SLAB2.0</td><td>yes</td><td>&nbsp;</td></tr>
+    <tr><td><code>philippine</code></td><td>Philippines (<code>phi</code>)</td><td>SLAB1.0</td><td>yes</td><td>&nbsp;</td></tr>
+    <tr><td><code>puysegur</code></td><td>Puysegur (<code>puy</code>)</td><td>SLAB1.0</td><td>retired (weight 0)</td><td>the USGS address has no SLAB1.0 grid for <code>puy</code>, so step 1 cannot download one; retired, step 8 stops: <code>puysegur2</code> is its successor</td></tr>
+    <tr><td><code>puysegur2</code></td><td>Puysegur (<code>puy</code>)</td><td>SLAB2.0</td><td>yes</td><td>&nbsp;</td></tr>
+    <tr><td><code>ryuku</code></td><td>Ryukyu (<code>ryu</code>)</td><td>SLAB1.0</td><td>yes</td><td>&nbsp;</td></tr>
+    <tr><td><code>sandwich</code></td><td>Scotia Sea (<code>sco</code>)</td><td>SLAB1.0</td><td>yes</td><td>&nbsp;</td></tr>
+    <tr><td><code>sangihe</code></td><td>not verified: Sumatra-Java (<code>sum</code>) has no data there</td><td>SLAB1.0</td><td>yes</td><td>&nbsp;</td></tr>
+    <tr><td><code>solomon</code></td><td>Solomon Islands (<code>sol</code>)</td><td>SLAB1.0</td><td>retired (weight 0)</td><td>retired, step 8 stops: <code>solomon2</code> is its successor</td></tr>
+    <tr><td><code>solomon2</code></td><td>Solomon Islands (<code>sol</code>)</td><td>SLAB2.0</td><td>yes</td><td>&nbsp;</td></tr>
+    <tr><td><code>southamerica</code></td><td>South America (<code>sam</code>)</td><td>SLAB1.0</td><td>yes</td><td>&nbsp;</td></tr>
+    <tr><td><code>sunda</code></td><td>Sumatra-Java (<code>sum</code>)</td><td>SLAB1.0</td><td>retired (weight 0)</td><td>retired, step 8 stops: <code>sunda2</code> is its successor</td></tr>
+    <tr><td><code>sunda2</code></td><td>Sumatra-Java (<code>sum</code>)</td><td>SLAB2.0</td><td>yes</td><td>&nbsp;</td></tr>
+    <tr><td><code>timor</code></td><td>Sumatra-Java (<code>sum</code>)</td><td>SLAB1.0</td><td>retired (weight 0)</td><td>retired, step 8 stops; the SLAB1.0 <code>sum</code> raster ends at 124 E, the zone reaches 130.5 E</td></tr>
+    <tr><td><code>timortrough</code></td><td>Sumatra-Java (<code>sum</code>)</td><td>SLAB1.0</td><td>yes</td><td>the SLAB1.0 <code>sum</code> raster ends at 124 E, the zone reaches 130.5 E</td></tr>
+  </table></div>
+  <div class="callout warn"><span class="lbl">SLAB1.0 grids</span>The SLAB1.0 grids are fetched from <code>earthquake.usgs.gov/static/lfs/data/slab/models/PREFIX_slab1.0_clip.grd</code>. The server answers with real files for <code>alu</code>, <code>cas</code>, <code>izu</code>, <code>kur</code>, <code>ker</code>, <code>phi</code>, <code>ryu</code>, <code>sco</code>, <code>sol</code>, <code>sam</code>, <code>sum</code> and <code>van</code>, and with AccessDenied (the same answer it gives for a file that does not exist) for <code>cal</code>, <code>car</code>, <code>cam</code>, <code>hel</code>, <code>mak</code>, <code>png</code> and <code>puy</code>. The zones on those regions that end without a 2 (<code>calabria</code>, <code>makran</code>, <code>mexico</code>, <code>newguinea</code>, <code>puysegur</code>) cannot be built from SLAB1.0 unless you put a grid called <code>PREFIX_slab1.0_clip.grd</code> in the folder's <code>data/slab1/</code> yourself. Where a zone has a 2 version (<code>calabria2</code>, <code>makran2</code>, <code>newguinea2</code>, <code>puysegur2</code>), use it. <code>mexico</code> has none.</div>
+  <div class="callout"><span class="lbl">Check the result</span>The program does not check that the region fits the zone. Look at the step 1 figure, and at the trench it finds, before running the rest of the steps.</div>
+</section>
+
+<section>
+  <h2 id="ptha-true">Zones for <code>--ptha true</code></h2>
+  <p><code>sourcezone_parameters.csv</code> has 93 rows. 51 of them have no <code>segment_name</code>, and those 51 names are what <code>--zone</code> accepts with <code>--ptha true</code>. Of the 51, 29 are in the table above (every zone of the table except the seven marked "no" in the PTHA18 column). The other 22 have no Berryman et al. (2015) mapping, so the program prints "NOT AVAILABLE" for their cutoff and step 1 stops for them:</p>
+  <p><code>arutrough</code>, <code>banda_detachment</code>, <code>flores</code>, <code>floreswetar</code>, <code>macquarieislandnorth</code>, <code>macquarienorth</code>, <code>moresby_trough</code>, <code>mussau</code>, <code>north_sulawesi</code>, <code>outer_rise_timor</code>, <code>outerrise_kermadectonga</code>, <code>outerrise_puysegur</code>, <code>outerrisenewhebrides</code>, <code>outerrisesolomon</code>, <code>outerrisesunda</code>, <code>sangihe_backthrust</code>, <code>se_sulawesi</code>, <code>seram_thrust</code>, <code>seramsouth</code>, <code>tanimbar</code>, <code>tolo_thrust</code>, <code>trobriand</code>.</p>
+  <p>They are outer-rise, backthrust, detachment, transform and small local thrust sources, which Berryman et al. (2015) do not treat as subduction interface segments. In practice the names that can run with <code>--ptha true</code> are the 29 zones that appear in both lists.</p>
+</section>
+
+<section>
+  <h2 id="add">Adding a zone</h2>
+  <p>A zone that PTHA18 never modelled, or one that is not in the table, is added in <code>lib/berryman_params.py</code>. Its name goes into <code>ZONE_TO_BERRYMAN_SEGMENTS</code> (the Berryman et al. (2015) Table 3.1 rows it covers) and <code>ZONE_DOMINANT_SEGMENT</code> (the row that sets its seismogenic cutoff). Rows that Table 3.1 has but <code>BERRYMAN_ROWS</code> lacks must be added too. Without that mapping the zone's cutoff, coupling and b-value are not known, and step 1 stops. If the zone is one part of a SLAB region, <code>ZONE_TRENCH_ENDS</code> holds its two end points. Run <code>generate.py</code> with <code>--ptha false</code>; it needs no row in <code>sourcezone_parameters.csv</code>.</p>
+</section>
+
+<nav class="pager" id="pager"></nav>
+<footer>The zone list is the set of zones in <code>lib/berryman_params.py</code>; the SLAB product follows the trailing-2 rule of step 1. Counts are those of <code>sourcezone_parameters.csv</code> and <code>lib/berryman_params.py</code>.</footer>
+</main>
+<aside class="toc" id="toc"></aside>
+</div>
+<script src="assets/nav.js"></script>
+</body>
+</html>

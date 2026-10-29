@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Options, files, columns | ptha_python</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+.tree { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; font-family: var(--mono); font-size: 12.5px; line-height: 1.7; white-space: pre; overflow-x: auto; max-width: 900px; }
+.tree .d { color: var(--accent); font-weight: 600; }
+.tree .c { color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="side" id="side"></nav>
+<main>
+
+<section id="top">
+  <div class="crumb">Your own runs</div>
+  <h1>Options, files, columns</h1>
+  <p class="lead">The single reference for the program: every option of <code>generate.py</code> with its default and its allowed values, every flag of <code>step_total.py</code> and of the individual steps, the constants at the top of each step script, the folder a run creates, what each script prints, its exit codes, and the columns of the output files. All commands are run from the repository root.</p>
+</section>
+
+<section>
+  <h2 id="at-a-glance">At a glance</h2>
+  <div class="tbl"><table>
+    <tr><th>Program</th><th>Run it as</th><th>What it does</th></tr>
+    <tr><td><code>generate.py</code></td><td><code>python ptha_python/generate.py NAME [options]</code></td><td>Creates a folder with the step scripts (steps 1 to 9, 7b, 7c and <code>step_total.py</code>), their settings, a <code>RUN.html</code> and a <code>README.md</code>. It runs nothing else and never overwrites a folder.</td></tr>
+    <tr><td><code>step_total.py</code></td><td><code>python FOLDER/steps/step_total.py [flags]</code></td><td>Runs steps 1 to 9 in order, stopping at the first required step that fails.</td></tr>
+    <tr><td>Each step</td><td><code>python FOLDER/steps/stepN_name.py [flags]</code></td><td>Runs one step. Used to repeat a single step after a change.</td></tr>
+    <tr><td><code>list_regions.py</code></td><td><code>python ptha_python/list_regions.py</code></td><td>Lists the SLAB2.0 regions with their ScienceBase ids, and the same regions with their prefixes and SLAB1.0 zones.</td></tr>
+  </table></div>
+  <p>More programs (the engine, the official-data fetcher, the validation scripts and the examples) are listed under <a href="#other-programs">The other programs</a>.</p>
+</section>
+
+<section>
+  <h2 id="generate-options">generate.py options</h2>
+  <p>Every option is listed here. The defaults are the values used when the option is not given, so a command with only a region name is valid. Options marked <b>not PTHA18's procedure</b> change the calculation away from what PTHA18 did; they are described in full on their own pages.</p>
+  <div class="tbl"><table class="fixed">
+    <colgroup><col style="width:17%"><col style="width:13%"><col style="width:11%"><col style="width:20%"><col style="width:39%"></colgroup>
+    <tr><th>Option</th><th>Needed?</th><th>Default</th><th>Values</th><th>What it does</th></tr>
+    <tr><td><code>name</code></td><td><b>NEEDED</b></td><td>required</td><td>a region name or prefix, e.g. <code>cascadia</code>, <code>"south america"</code>, <code>kermadec</code>, <code>ker</code></td><td>Picks the SLAB2.0 (or SLAB1.0) region from the list in <code>list_regions.py</code>. Case, spaces and hyphens do not matter, and an exact prefix or title wins. If the name matches more than one region, the program lists them and asks for <code>--id</code>.</td></tr>
+    <tr><td><code>--zone</code></td><td>OPTIONAL</td><td>taken from the name</td><td>a zone name from <a href="zones.html">Zones you can run</a></td><td>The source zone the folder is built for. With <code>--ptha false</code> any name is accepted, and a name with no Berryman et al. (2015) mapping is accepted with a note (step 1 then stops). With <code>--ptha true</code> it must be an unsegmented <code>sourcename</code> of <code>sourcezone_parameters.csv</code>. Without it, the zone is found from the name, which works only when exactly one zone matches.</td></tr>
+    <tr><td><code>--folder</code></td><td>OPTIONAL</td><td>the name in lower case, with each run of characters other than <code>a-z</code>, <code>0-9</code> and <code>_</code> replaced by <code>_</code></td><td>a path relative to the repository root, may be nested (<code>runs/calabria2</code>)</td><td>The folder to create. If it already exists, the program uses <code>FOLDER_2</code>, <code>FOLDER_3</code> and so on (the suffix goes at the end of the whole path), so earlier runs are kept.</td></tr>
+    <tr><td><code>--id</code></td><td>OPTIONAL (only if the region name is ambiguous)</td><td>found from the name</td><td>a ScienceBase item id from <code>list_regions.py</code></td><td>Picks the SLAB region by its id. The id must be one of the 27 known ones.</td></tr>
+    <tr><td><code>--ptha</code></td><td>OPTIONAL</td><td><code>false</code></td><td><code>true</code>, <code>false</code></td><td><code>false</code>: steps 1 to 7 and 9 read no PTHA18 or rptha file (see <a href="#ptha-reads">what --ptha reads</a>). <code>true</code>: the steps may also read PTHA18's own files for the zone's unit-source width, scaling and row count, and the zone must be one PTHA18 modelled.</td></tr>
+    <tr><td><code>--discretizer</code></td><td>OPTIONAL</td><td><code>optimal</code></td><td><code>optimal</code>, <code>lm</code>, <code>mid</code></td><td>How step 2 cuts the contours into cells. <code>optimal</code> keeps rptha's mesh unless a cell is broken. <code>lm</code> is rptha's method exactly as PTHA18 ran it, with no repairs. <code>mid</code> is rptha's older method, which PTHA18 does not use. See <a href="discretizer.html">optimal, lm and mid</a>.</td></tr>
+    <tr><td><code>--columns</code></td><td>OPTIONAL</td><td><code>trench</code></td><td><code>trench</code>, <code>average</code>, <code>trench-edited</code>, <code>average-edited</code></td><td>How many unit sources run along strike. <code>trench</code> is trench length divided by 50 km, as rptha and PTHA18 do. <code>average</code> uses the average row length instead. The <code>-edited</code> values keep that mesh unless a cell reads a dip more than 8 degrees from the dip of its plane, and then step 2 designs a replacement. <code>average</code> and the <code>-edited</code> values are <b>not PTHA18's procedure</b>. The <code>-edited</code> values need <code>--discretizer optimal</code> and <code>--cell-size mean</code>, and cannot be combined with <code>--mesh-file</code>.</td></tr>
+    <tr><td><code>--cell-size</code></td><td>OPTIONAL</td><td><code>mean</code></td><td><code>mean</code>, <code>strasser</code></td><td><code>mean</code> sizes cells to about 50 x 50 km on average, as rptha and PTHA18 do. <code>strasser</code> caps every cell at the smallest rupture the run builds, divided by <code>--cell-k</code>. It is <b>not PTHA18's procedure</b> and gives 3 to 7 times more unit sources. It needs <code>--discretizer optimal</code> and cannot be combined with <code>--mesh-file</code>. See <a href="cell_size.html">Cell size</a>.</td></tr>
+    <tr><td><code>--cell-k</code></td><td>OPTIONAL (only with <code>--cell-size strasser</code>)</td><td><code>1.5</code></td><td>a positive number</td><td>Used with <code>--cell-size strasser</code> only. The cell cap is the smallest rupture divided by this number: 1.5 gives cells of at most 36 x 29 km, 2 gives at most 27 x 22 km.</td></tr>
+    <tr><td><code>--clip</code></td><td>OPTIONAL</td><td>none</td><td><code>LON_MIN,LON_MAX,LAT_MIN,LAT_MAX</code></td><td>Step 1 uses only this window of the SLAB raster. Use it when a region covers more than the zone you want, for example the Lesser Antilles part of the Caribbean region. The longitudes follow the raster's own convention. Needs LON_MIN below LON_MAX and LAT_MIN below LAT_MAX. A value that starts with a minus sign must be written with an equals sign (<code>--clip=-180,-170,-50,-40</code>), otherwise the argument parser stops with an error.</td></tr>
+    <tr><td><code>--mesh-file</code></td><td>OPTIONAL</td><td>none</td><td>a text file with one unit source per line, see <a href="mesh_file.html">External mesh</a></td><td>Uses this mesh instead of building one from SLAB: step 1 only notes the file and step 2 reads it. The file is copied into <code>inputs/geometry/</code>.</td></tr>
+    <tr><td><code>--mesh-depth-units</code></td><td>OPTIONAL (only with <code>--mesh-file</code>)</td><td><code>auto</code></td><td><code>auto</code>, <code>m</code>, <code>km</code></td><td>Depth units of the <code>--mesh-file</code>. <code>auto</code> reads the file as metres if any depth is larger than 200 in absolute value, and as kilometres otherwise. The sign convention (depths negative or positive downward) is detected.</td></tr>
+    <tr><td><code>--variable-mu</code></td><td>OPTIONAL</td><td><code>off</code></td><td><code>on</code>, <code>off</code></td><td><code>off</code>: every rate uses a constant rigidity of 30 GPa. <code>on</code>: step_total also runs step 7c, which adds PTHA18's variable shear modulus rates next to the constant ones. Needs step 7b. See <a href="variable_mu.html">Variable shear modulus</a>.</td></tr>
+    <tr><td><code>--rupture-size</code></td><td>OPTIONAL</td><td><code>rptha</code></td><td><code>rptha</code>, <code>local</code></td><td><code>rptha</code>: one block of cells per magnitude, sized from the zone's mean cell, as rptha and PTHA18 do. <code>local</code>: each rupture is sized from the real area of the cells where it sits, and its probability is multiplied by q, the rupture-overlap correction. <code>local</code> is <b>not PTHA18's procedure</b>. See <a href="rupture_size.html">Rupture size</a>.</td></tr>
+    <tr><td><code>--convergence</code></td><td>OPTIONAL</td><td><code>bird</code></td><td><code>bird</code>, <code>bird-griffin</code></td><td>Which plate-boundary table step 3 reads. <code>bird</code> is Bird (2003)'s public catalogue. <code>bird-griffin</code> is the table PTHA18 used: Bird plus Jonathan Griffin's source-zone traces with their own plate rates. See <a href="convergence_sources.html">Bird or Bird + Griffin</a>.</td></tr>
+    <tr><td><code>--segmented</code></td><td>OPTIONAL</td><td><code>false</code></td><td><code>true</code>, <code>false</code></td><td><code>false</code>: the zone runs unsegmented (LEVEL 0 weight 1). <code>true</code>: the zone is also split along strike, and LEVEL 0 combines the unsegmented branch (weight 0.5) with the union of its segments (weight 0.5). See <a href="segmentation.html">Segmented vs unsegmented</a>.</td></tr>
+    <tr><td><code>--segment-boundaries</code></td><td>OPTIONAL (only with <code>--segmented true</code>)</td><td><code>berryman</code></td><td><code>berryman</code>, <code>bird</code></td><td>With <code>--segmented true</code>: where the segments end. <code>berryman</code> uses the trench end points of Berryman et al. (2015) Table 3.1. <code>bird</code> uses the places where Bird (2003)'s plate pair changes along the trench.</td></tr>
+  </table></div>
+
+  <h3 id="constraints">Combinations the program refuses</h3>
+  <p><code>generate.py</code> checks these before it writes anything, and stops with a message (exit code 1).</p>
+  <ul class="tight">
+    <li><code>--cell-size strasser</code> needs <code>--discretizer optimal</code> and cannot be combined with <code>--mesh-file</code>. <code>--cell-k</code> must be positive.</li>
+    <li><code>--columns trench-edited</code> and <code>--columns average-edited</code> need <code>--discretizer optimal</code> and <code>--cell-size mean</code>, and cannot be combined with <code>--mesh-file</code>.</li>
+    <li><code>--clip</code> must have four numbers with the minimum below the maximum in both longitude and latitude.</li>
+    <li><code>--mesh-file</code> must name a file that exists and reads as a structured quadrilateral mesh.</li>
+    <li>The region must match exactly one SLAB region, and with <code>--ptha true</code> the zone must be an unsegmented <code>sourcename</code> of <code>sourcezone_parameters.csv</code>.</li>
+  </ul>
+  <p>Two combinations are not refused at generation but fail later. <code>--variable-mu on</code> needs step 7b: <code>step_total.py --skip-hs</code> skips step 7c as well, because 7c needs 7b's scenarios, and step 7c run alone stops if 7b's output is missing. A zone with no Berryman et al. (2015) mapping is accepted, with a note, and stops at step 1.</p>
+</section>
+
+<section>
+  <h2 id="ptha-reads">What --ptha reads</h2>
+  <p>The default, <code>--ptha false</code>, keeps the public-data pipeline free of PTHA18's files. The only step that ever reads PTHA18's files is step 8, the official run, and it runs only when R and rptha are available.</p>
+  <div class="tbl"><table>
+    <tr><th>Value</th><th>Steps 1 to 7 and 9</th><th>Step 8 (official run)</th></tr>
+    <tr><td><code>--ptha false</code> (default)</td><td>read no PTHA18 or rptha file. The unit-source width is 50 km, the row count comes from the geometry, and the rigidity is 30 GPa with the Strasser scaling relation.</td><td>runs PTHA18's official inputs through the same engine, as the comparison target.</td></tr>
+    <tr><td><code>--ptha true</code></td><td>may read PTHA18's files: the zone's unit-source width, scaling relation and rigidity from <code>sourcezone_parameters.csv</code>, and the official down-dip row count from the <code>.nc</code> file.</td><td>as above.</td></tr>
+  </table></div>
+  <p>The literature values in each folder's README (seismogenic cutoff, coupling, b-value and maximum observed magnitude) come from Berryman et al. (2015), through <code>lib/berryman_params.py</code>. The README lists the values the folder used.</p>
+</section>
+
+<section>
+  <h2 id="step-total">step_total.py flags</h2>
+  <p>The flags of the runner. It passes some of them on to the steps it runs.</p>
+  <div class="tbl"><table class="fixed">
+    <colgroup><col style="width:30%"><col style="width:70%"></colgroup>
+    <tr><th>Flag</th><th>What it does</th></tr>
+    <tr><td><code>--skip-official</code></td><td>Skips step 8 without trying it. Use it when R with rptha is not installed.</td></tr>
+    <tr><td><code>--skip-hs</code></td><td>Skips step 7b and step 7c.</td></tr>
+    <tr><td><code>--auto-clip</code></td><td>Runs step 1 with <code>--auto-clip</code> and step 6 with <code>--force</code>. Step 1 cuts the along-strike columns that step 3 flagged as lying on a different plate boundary, using a window derived from the mesh. It needs steps 1 to 3 to have run once, because the finding comes from the mesh they produced. Step 6 rewrites the input file, so any hand edit to it is lost.</td></tr>
+    <tr><td><code>--download-official-hs-vaus</code></td><td>Passes <code>--download-hs</code> to step 8, which fetches PTHA18's published HS and VAUS catalogues for the zone from NCI THREDDS and compares step 7b's fields with them. The downloads can be large, and they only feed one section of the report.</td></tr>
+  </table></div>
+  <p>Which steps stop the run: steps 1 to 7 and step 9 are required, so a failure there stops <code>step_total.py</code>. Step 7b, step 7c and step 8 are optional: a failure is printed and the run goes on, and the report then has no HS/VAUS or official-comparison section. Step 7c is also skipped, with a line saying so, when the folder was generated with <code>--variable-mu off</code>.</p>
+
+  <h3 id="step-flags">Flags of the individual steps</h3>
+  <p>Steps 2, 3, 4, 5, 7 and 9 take no flags.</p>
+  <div class="tbl"><table class="fixed">
+    <colgroup><col style="width:22%"><col style="width:22%"><col style="width:56%"></colgroup>
+    <tr><th>Step</th><th>Flag</th><th>What it does</th></tr>
+    <tr><td>1</td><td><code>--auto-clip</code></td><td>Cuts the columns step 3 flagged, as above.</td></tr>
+    <tr><td>6</td><td><code>--force</code></td><td>Overwrites the input file in <code>inputs/</code>, discarding hand edits. Without it, an existing file is kept.</td></tr>
+    <tr><td>7b</td><td><code>--max-placements-per-mw N</code></td><td>Caps how many of a magnitude's placements get heterogeneous-slip realisations. No cap by default.</td></tr>
+    <tr><td>7b</td><td><code>--max-fields-per-mw N</code></td><td>Caps the total number of heterogeneous-slip fields per magnitude, after the per-placement rule. No cap by default. Both caps give a faster and less exact run, and the step prints "CAPPED run".</td></tr>
+    <tr><td>7c</td><td><code>--force</code></td><td>Needed only when the folder was generated with <code>--variable-mu off</code>. Without it, step 7c prints a message and does nothing.</td></tr>
+    <tr><td>8</td><td><code>--download-hs</code></td><td>Fetches PTHA18's HS and VAUS catalogues, as above.</td></tr>
+  </table></div>
+</section>
+
+<section>
+  <h2 id="constants">Constants at the top of each step script</h2>
+  <p>Each step script holds its settings as constants near the top of the file. Edit the constant, save, and run that script and every step after it (<a href="customise.html">Change a setting, re-run</a>). The values below are the ones in a default run. A constant marked "from generate.py" is filled in from an option, so a new folder is the clearer way to change it. File paths (<code>HERE</code>, <code>EXAMPLE</code>, <code>ROOT</code>, <code>OUT_*</code>, <code>*_DIR</code>) are also constants, and are not listed.</p>
+  <div class="tbl"><table class="fixed">
+    <colgroup><col style="width:9%"><col style="width:35%"><col style="width:56%"></colgroup>
+    <tr><th>Step</th><th>Constant</th><th>Value in a default run, and what it sets</th></tr>
+    <tr><td>1</td><td><code>CONTOUR_SPACING_KM</code></td><td>5.0: the spacing of the depth contours below the trench, in km.</td></tr>
+    <tr><td>1</td><td><code>CLIP_BBOX</code></td><td>None, or the window of <code>--clip</code>: <code>(lon_min, lon_max, lat_min, lat_max)</code> of the raster step 1 uses.</td></tr>
+    <tr><td>1</td><td><code>TRENCH_ENDS</code></td><td>None, or the two Berryman end points of a zone that is one part of a SLAB region (the six zones marked on <a href="zones.html">Zones you can run</a>).</td></tr>
+    <tr><td>1</td><td><code>TRENCH_RAMP_RISE_KM</code></td><td>3.0: a trench end more than this many km deeper than the normal trench is trimmed as the edge of the data (at most 100 km along the raster).</td></tr>
+    <tr><td>1, 2</td><td><code>MESH_FILE</code>, <code>MESH_DEPTH_UNITS</code></td><td>None and <code>'auto'</code>, or from <code>--mesh-file</code> and <code>--mesh-depth-units</code>.</td></tr>
+    <tr><td>1</td><td><code>PTHA18_ZONE_NAME</code>, <code>SLAB2_PREFIX</code>, <code>SCIBASE_ITEM</code></td><td>The zone, the region prefix and the ScienceBase item, from generate.py. They identify the run and are not meant to be edited.</td></tr>
+    <tr><td>2</td><td><code>DISCRETIZER</code>, <code>COLUMN_RULE</code>, <code>CELL_SIZE</code>, <code>CELL_K</code>, <code>TRENCH_EDITED</code></td><td><code>'optimal'</code>, <code>'trench'</code>, <code>'mean'</code>, 1.5 and False, from <code>--discretizer</code>, <code>--columns</code>, <code>--cell-size</code>, <code>--cell-k</code> and the <code>-edited</code> values. <code>COLUMN_RULE</code> is <code>'trench'</code> or <code>'average'</code>.</td></tr>
+    <tr><td>2</td><td><code>CELL_CAP_MW</code>, <code>CELL_CAP_RELATION</code></td><td>7.2 and <code>'Strasser'</code>: the magnitude and the scaling relation that set the cell cap of <code>--cell-size strasser</code>. They must stay equal to the smallest magnitude and the scaling relation of the event table.</td></tr>
+    <tr><td>2</td><td><code>DESIRED_LENGTH_KM</code>, <code>DESIRED_WIDTH_KM</code></td><td>50.0 and 50.0 (with <code>--ptha true</code>, the width is the zone's value in <code>sourcezone_parameters.csv</code>): the length and the down-dip width the unit sources aim for.</td></tr>
+    <tr><td>2</td><td><code>SEED</code></td><td>1234: the seed of the mesh optimiser.</td></tr>
+    <tr><td>2</td><td><code>MIN_DOWNDIP_ROWS</code>, <code>N_DOWNDIP_OVERRIDE</code></td><td>2 and None: the smallest number of rows down dip, and a fixed number of rows (None leaves the width rule in charge).</td></tr>
+    <tr><td>2, 3, 5</td><td><code>USE_PTHA</code></td><td>False, from <code>--ptha</code>.</td></tr>
+    <tr><td>3</td><td><code>BIRD_TABLE</code></td><td><code>'bird'</code> or <code>'bird-griffin'</code>, from <code>--convergence</code>.</td></tr>
+    <tr><td>3</td><td><code>CONVERGENCE_OVERRIDE_MM_PER_YR</code></td><td>None. A number replaces the Bird convergence everywhere with one horizontal rate in mm/yr, and selects PTHA18's constant-convergence model.</td></tr>
+    <tr><td>4</td><td><code>WINDOW_START</code>, <code>WINDOW_END</code></td><td><code>'1976-01-01'</code> and <code>'2017-03-01'</code>: the dates the catalogue is cut to, PTHA18's own window.</td></tr>
+    <tr><td>4</td><td><code>NDK_SOURCES</code></td><td>The GCMT file list: the cumulative file <code>jan76_dec20.ndk</code>. The monthly files from 2021 to the current month are added by the script.</td></tr>
+    <tr><td>5</td><td><code>BUFFER_DEG</code>, <code>RAKE_TOL_DEG</code>, <code>STRIKE_TOL_DEG</code>, <code>MAX_DEPTH_KM</code></td><td>0.4, 50.0, 50.0 and 71.0: the selection rule of the earthquakes (distance to a unit source in degrees, rake and strike tolerances in degrees, deepest hypocentre in km).</td></tr>
+    <tr><td>5</td><td><code>THRESHOLD_MW</code></td><td>7.15: the smallest magnitude kept.</td></tr>
+    <tr><td>5</td><td><code>WINDOW_START</code>, <code>WINDOW_END</code></td><td>The same two dates as step 4, kept separately in step 5, which applies them to the selection.</td></tr>
+    <tr><td>5, 6</td><td><code>SEGMENTED</code>, <code>SEGMENT_BOUNDARIES</code></td><td>False and <code>'berryman'</code>, from <code>--segmented</code> and <code>--segment-boundaries</code>.</td></tr>
+    <tr><td>6</td><td><code>WINDOW_START</code>, <code>WINDOW_END</code>, <code>THRESHOLD_MW</code></td><td>The same dates and 7.15, kept separately in step 6, which turns them into the observation duration and threshold of the input file.</td></tr>
+    <tr><td>6</td><td><code>PERCENTILE_MW</code></td><td>7.2 to 9.8 in steps of 0.1 (27 values): the magnitudes where LEVEL 5 computes the percentiles.</td></tr>
+    <tr><td>6</td><td><code>RUPTURE_SIZE</code></td><td><code>'rptha'</code> or <code>'local'</code>, from <code>--rupture-size</code>.</td></tr>
+    <tr><td>6</td><td><code>RUN_NAME</code>, <code>OUT_JSON_NAME</code></td><td><code>ZONE_scratch_NAME</code> (NAME is the last part of the folder name) and <code>input_ZONE_scratch.json</code>.</td></tr>
+    <tr><td>6</td><td>(read from step 2)</td><td>Step 6 reads <code>DESIRED_LENGTH_KM</code>, <code>DESIRED_WIDTH_KM</code>, <code>SEED</code>, <code>DISCRETIZER</code>, <code>COLUMN_RULE</code>, <code>CELL_SIZE</code>, <code>CELL_K</code>, <code>CELL_CAP_MW</code>, <code>CELL_CAP_RELATION</code>, <code>TRENCH_EDITED</code>, <code>MIN_DOWNDIP_ROWS</code> and <code>N_DOWNDIP_OVERRIDE</code> from the text of <code>step2_build_grid.py</code>, so the input file always meshes as step 2 did.</td></tr>
+    <tr><td>7</td><td>none</td><td>Step 7 has only paths. Its settings are the keys of the input file (<a href="input_json.html">The input file</a>).</td></tr>
+    <tr><td>7b</td><td><code>REALISATIONS_PER_FAUS_PLACEMENT</code>, <code>MIN_HS_EVENTS_PER_MAGNITUDE</code></td><td>15 and 200: how many heterogeneous-slip fields each uniform-slip placement gets, and the smallest number of them per magnitude.</td></tr>
+    <tr><td>7b</td><td><code>RNG_SEED</code></td><td>1234: the seed of the slip fields.</td></tr>
+    <tr><td>7c, total</td><td><code>VARIABLE_MU</code></td><td>False, or True with <code>--variable-mu on</code>. It makes step_total run 7c, and step 7c do its work without <code>--force</code>.</td></tr>
+    <tr><td>8</td><td><code>OFFICIAL_MW_TOL</code></td><td>0.05: the magnitude tolerance when a scenario of this run is matched with one of PTHA18's published HS or VAUS scenarios.</td></tr>
+    <tr><td>9</td><td><code>LEAFLET_CDN</code>, <code>ESRI_TILES</code>, <code>SEGMENT_COLOURS</code></td><td>The web addresses the report's map loads, and the colours of the segments.</td></tr>
+    <tr><td>total</td><td><code>STEPS</code></td><td>The list of steps with a flag saying whether each is required (1 to 7 and 9) or optional (7b, 7c and 8).</td></tr>
+  </table></div>
+</section>
+
+<section>
+  <h2 id="printed">What each script prints, and its exit code</h2>
+  <p>Every script starts with a banner of its name between two lines of <code>=</code>, prints indented progress lines, and ends with a line <code>Next:  stepN_name.py</code>. The lines to look for:</p>
+  <div class="tbl"><table class="fixed">
+    <colgroup><col style="width:11%"><col style="width:89%"></colgroup>
+    <tr><th>Step</th><th>Printed</th></tr>
+    <tr><td>generate</td><td>The folder, the region, the zone and the options in use, a "Geometry inputs recovered for this zone" block (seismogenic cutoff, unit-source width, coupling, b-value, <code>mw_max_observed</code>, and with <code>--ptha true</code> the official area, dip and mesh size), one line for each file written, and <code>Done. Start with:</code> the command of step 1.</td></tr>
+    <tr><td>1</td><td>The SLAB product and the raster used, the grid size, the cutoff, the trench found, the ramp rule, the end cuts, one line for each contour level (<code>5.0 km below trench: one line, 381 km, 97 points</code>), the number of contours written, the extent, and the paths of the shapefile, the figure and the JSON. With <code>--mesh-file</code> it only says that the geometry comes from the mesh.</td></tr>
+    <tr><td>2</td><td>The contour depths, the row-count rule, the mesher and its repairs, <code>grid: N along strike x M down dip = K unit sources</code>, the mesh check (folded, collapsed and overlapping cells), the mesh shape against PTHA18's meshes (taper, width ratio, share of cells near 50 x 50 km), the length, width, depth and dip ranges, <code>total area</code> and <code>mean dip</code>, and the saved grid and figure. With <code>--ptha true</code> a comparison with PTHA18's published mesh.</td></tr>
+    <tr><td>3</td><td>The table used, the Bird steps matched, the per-column convergence range, the largest distance to a Bird segment, <code>area-weighted convergence</code>, the mean dip and its factor, the plate-boundary check (<code>every along-strike column matches the same plate pair</code>, or a warning block), and the saved files.</td></tr>
+    <tr><td>4</td><td>One line for each GCMT file downloaded or skipped (<code>skipped (HTTP Error 404: Not Found)</code> for months not yet published), the number of events parsed, and how many fall in the window.</td></tr>
+    <tr><td>5</td><td>The events in the window, the number of unit sources, the selection rule, <code>N event(s) above Mw 7.15 qualify</code>, their magnitudes, the duration in years, and for a segmented run the events of each segment.</td></tr>
+    <tr><td>6</td><td>The coupling, b-value, <code>mw_max_observed</code>, convergence, the event-weight model and the GCMT count that go into the input file, and its path. If the file exists it says <code>already exists, NOT overwriting it</code> and stops.</td></tr>
+    <tr><td>7</td><td>The engine's log: LEVEL 0 weights, the mesh, number of scenarios, <code>Mw_max anchor</code>, convergence, coupling, <code>LEVEL 1: 32,000 branches</code>, the LEVEL 3 data and posterior, the LEVEL 4 edge multiplier, LEVEL 5, then where it copied the outputs, and <code>All 7 steps complete.</code> A harmless matplotlib warning about a legend may appear.</td></tr>
+    <tr><td>7b</td><td>Steps <code>[1/4]</code> to <code>[4/4]</code>, one line per magnitude (placements and fields), the HS and VAUS fields above PTHA18's peak-slip limit, the paths written, and a reminder that the rates of steps 7 and the LEVEL 0 to 5 numbers are unchanged.</td></tr>
+    <tr><td>7c</td><td><code>[1/3]</code> to <code>[3/3]</code>: the engine run, the files copied, and the magnitude shift of the HS and VAUS fields.</td></tr>
+    <tr><td>8</td><td>The R found, <code>[1/2]</code> the fetch of PTHA18's input, <code>[2/2]</code> the engine on it, and the files of <code>outputs_official/ptha18_reference/</code>.</td></tr>
+    <tr><td>9</td><td>A note if there is no official run, the exports written to <code>outputs/exports/</code>, <code>wrote -&gt; report.html</code>, and <code>All 9 steps complete.</code> or <code>Steps 1-7 and 9 complete (step 8 skipped).</code></td></tr>
+    <tr><td>total</td><td>A banner, then for each step <code>&gt;&gt;&gt; stepN_name.py</code> and the step's own output, <code>&gt;&gt;&gt; skipping ...</code> lines, and at the end <code>Done in X min. See FOLDER/report.html</code>. The run is added to <code>RUN.html</code> only when it reaches the end.</td></tr>
+  </table></div>
+  <h3 id="exit-codes">Exit codes</h3>
+  <ul class="tight">
+    <li>Exit code 0: the script finished. This includes step 6 finding an existing input file, step 7c with <code>--variable-mu off</code> and no <code>--force</code> (it does nothing), and step 8 for a zone PTHA18 never modelled (it writes <code>outputs_official_status.txt</code> and does nothing else).</li>
+    <li>Exit code 1: the script stopped with a message (a missing file from an earlier step, a failed download, a bad option value) or with a Python traceback. The message is the last thing printed. <a href="troubleshooting.html">Troubleshooting</a> lists the messages.</li>
+    <li>Exit code 2: <code>generate.py</code> or a step was given an option it does not know, or a value outside the allowed ones.</li>
+    <li><code>step_total.py</code> exits 1 when a required step fails, naming it, and exits 0 when the last step ends, even if an optional step failed on the way.</li>
+  </ul>
+</section>
+
+<section>
+  <h2 id="other-programs">The other programs</h2>
+  <p>Besides <code>generate.py</code> and the generated steps, the repository has these programs. All are run from the repository root.</p>
+  <div class="tbl"><table class="fixed">
+    <colgroup><col style="width:34%"><col style="width:66%"></colgroup>
+    <tr><th>Program</th><th>Options and what it does</th></tr>
+    <tr><td><code>ptha_python/list_regions.py</code></td><td>No options. Prints the 27 SLAB2.0 regions with their ScienceBase id and a guess of the PTHA18 zone, and the same regions with their prefix and the SLAB1.0 zones guessed for them.</td></tr>
+    <tr><td><code>ptha_python/logic_tree/run_logic_tree.py</code></td><td>One optional argument: the path of an input JSON, relative to the repository root (default <code>inputs/input_puysegur2.json</code>). This is the engine that steps 7 and 8 call. It writes its results to <code>runs/python/RUN_NAME/</code> and the steps copy them into the folder. See <a href="input_json.html">The input file</a>.</td></tr>
+    <tr><td><code>official_ptha_data/fetch_official_inputs.py</code></td><td><code>ZONE [ZONE ...]</code> (required): PTHA18 zone names. <code>--session FILE</code>: the saved PTHA18 session (<code>compute_rates_all_sources_session.RData</code>); if omitted, the usual places are searched and only then is it downloaded (1.34 GB, once). <code>--outdir DIR</code>: where the extracted official trees go (default <code>official_ptha_data/trees</code>). <code>--inputs-dir DIR</code>: where the input JSON goes (default <code>inputs/</code> at the repository root). <code>--force</code>: extract again even if the tree exists. <code>--no-level3</code>: leave the LEVEL 3 update off. Needs R with rptha for the extraction only.</td></tr>
+    <tr><td><code>ptha_python/validation/validate_against_ptha18.py</code></td><td>Optional check names (default: all of <code>mesh engine events gcmt segmentation berryman_segments official_segments events_segmented</code>). <code>--zones Z1,Z2</code>: zones for the <code>mesh</code> check. <code>--ndk DIR</code>: a folder of GCMT <code>.ndk</code> files (for example a run's <code>data/gcmt/</code>), needed by <code>gcmt</code>. See <a href="validation.html">Validation</a>.</td></tr>
+    <tr><td><code>ptha_python/validation/validate_variable_mu.py</code></td><td>Optional check names <code>mu_Mw engine hs_vaus</code> (default: all three).</td></tr>
+    <tr><td><code>ptha_python/validation/validate_mesh_file.py</code>, <code>recover_peak_slip_weights.py</code></td><td>No options.</td></tr>
+    <tr><td><code>ptha_python/lib/plot_meshes.py</code></td><td><code>[ZONE] FOLDER [--scratch-only]</code>: draws the mesh of a run folder (<code>FOLDER/data/slab2/unit_source_grid.npy</code>) into that folder, and, unless <code>--scratch-only</code> is given, compares it with PTHA18's mesh for ZONE when its table is at <code>inputs/geometry/unit_source_statistics_ZONE.nc</code>.</td></tr>
+    <tr><td><code>ptha_python/lib/official_geometry_params.py</code></td><td>No options. Re-derives the cached seismogenic cutoffs from PTHA18's <code>.nc</code> files and reports any mismatch.</td></tr>
+    <tr><td><code>ptha_python/logic_tree/gr_curve_and_convergence.py</code></td><td>No options. A summary figure and table of four official runs, read from the engine's output folders.</td></tr>
+    <tr><td><code>ptha_python/pyptha/examples/*.py</code></td><td><code>new_zone.py</code>, <code>puysegur_real.py</code>, <code>single_source_rate_computation.py</code> and <code>stochastic_slip_ruptures.py</code>: small examples that use the engine directly, with no options.</td></tr>
+  </table></div>
+  <p>The three validation scripts that compare with PTHA18 read its files, which <code>fetch_official_inputs.py</code> produces.</p>
+</section>
+
+<section>
+  <h2 id="files">Folder layout</h2>
+  <p>A folder created by <code>generate.py</code> has the layout below. In the file names, <code>ZONE</code> is the zone name (for example <code>puysegur2</code>), which can differ from the folder name. The step scripts are plain Python files that can be read and edited. A folder can be copied or deleted on its own: nothing it needs is shared with another folder, apart from the files listed after the tree.</p>
+<div class="tree"><span class="d">FOLDER/</span>
+  <span class="d">README.md</span>        <span class="c">the settings of this run and its literature values</span>
+  <span class="d">RUN.html</span>         <span class="c">the generate command, and every full step_total run with its date and duration</span>
+  <span class="d">report.html</span>      <span class="c">step 9: every number and figure</span>
+  <span class="d">report_unsegmented.html</span> <span class="c">segmented runs only: the unsegmented branch alone</span>
+  <span class="d">steps/</span>           <span class="c">step1_fetch_slab2.py, step2_build_grid.py, step3_convergence.py, step4_fetch_gcmt.py,
+                    step5_subset_gcmt.py, step6_write_input.py, step7_run.py, step7b_stochastic_slip.py,
+                    step7c_variable_mu.py, step8_official.py, step9_report.py, step_total.py</span>
+  <span class="d">data/</span>            <span class="c">downloads and intermediate data</span>
+    slab1/, slab2/         <span class="c">both are created; a downloaded raster goes to slab2/ (a ScienceBase zip and the .grd) or slab1/.
+                           Step 2 always saves unit_source_grid.npy and unit_source_grid.meta.json in slab2/</span>
+    gcmt/                  <span class="c">step 4: the .ndk files and gcmt_catalogue_1976_present.csv.
+                           Step 5: ZONE_gcmt_subset.csv, and for a segmented run ZONE_gcmt_subset_SEGMENT.csv and segments.json</span>
+    step1_contours_info.json   <span class="c">step 1's summary (with --mesh-file, only the mesh file name)</span>
+    convergence.txt, convergence_per_column.json, convergence_per_cell.npy   <span class="c">step 3</span>
+    plate_boundary_change.json <span class="c">step 3, only when it finds a mesh that runs past its plate boundary</span>
+  <span class="d">inputs/</span>
+    geometry/              <span class="c">the contour shapefile of step 1 (.shp, .shx, .dbf, .prj, .cpg), or a copy of the --mesh-file</span>
+    input_ZONE_scratch.json <span class="c">the input of the logic tree, written by step 6</span>
+    input_ZONE_scratch_variable_mu.json <span class="c">the variable shear modulus input, written by step 7c</span>
+    input_ZONE_official.json <span class="c">step 8: PTHA18's official input, with its Bird profiles</span>
+  <span class="d">outputs/</span>         <span class="c">the results of steps 7, 7b, 7c and 9, see the tables below. Step 7 replaces the whole folder</span>
+    exports/               <span class="c">CSV files for other tools (step 9)</span>
+    figures/               <span class="c">the figures of the logic tree run</span>
+    hs_slip_fields/, vaus_slip_fields/  <span class="c">step 7b: summary.csv and comparison_features.npz</span>
+  <span class="d">outputs_official/</span> <span class="c">step 8 only: PTHA18's official run (the same files as outputs/), read by step 9;
+                           its ptha18_reference/ holds PTHA18's mesh table (.nc), the Bird convergence on PTHA18's mesh,
+                           official_gcmt.json, official_grid_lonlat.npy, hs_comparison.csv and vaus_comparison.csv (with
+                           --download-hs) and official_segments.json (segmented runs)</span>
+  <span class="d">outputs_official_status.txt</span> <span class="c">step 8 on a zone PTHA18 never modelled: says there is no official run</span>
+  <span class="d">figures/</span>         <span class="c">step 1: step1_trench_and_contours.png (not with --mesh-file). Step 2: scratch_mesh_map.png.
+                    Step 9 draws it again from the final input and adds scratch_mesh_map_convergence.png,
+                    mesh_profile.png and, for a segmented run, segments_map.png</span>
+</div>
+  <p>Some files live outside the folder:</p>
+  <ul class="tight">
+    <li>The SLAB grid cached in <code>ptha_python/data/slab2/</code> (or <code>data/slab1/</code>) is used without being copied into the folder. Nothing writes that shared folder automatically; a grid placed there by hand serves every folder of the region.</li>
+    <li>While step 7 and step 7c run, the engine writes to <code>runs/python/RUN_NAME/</code> in the repository root, where RUN_NAME is the <code>run_name</code> of the input file (<code>ZONE_scratch_NAME</code>, with <code>_variable_mu</code> added for 7c). The step copies the results into <code>outputs/</code> and then removes that staging folder.</li>
+    <li>Step 8 keeps its engine output in <code>runs/python/ZONE_official/</code> (or <code>ZONE_official_segmented</code>). Step 2 and step 3 read its <code>logic_tree_summary.csv</code> for a comparison with <code>--ptha true</code> after step 8 has run.</li>
+    <li>Step 8 and <code>fetch_official_inputs.py</code> also write <code>official_ptha_data/trees/</code>, <code>official_ptha_data/public_nc/</code>, the saved session file, and <code>inputs/</code> at the repository root.</li>
+  </ul>
+</section>
+
+<section>
+  <h2 id="columns">Columns of the output files</h2>
+  <p>The files of <code>outputs/</code> with their columns in the order they are written. Rates are annual rates of exceedance: the mean rate of earthquakes of that magnitude or larger, per year. For a segmented run, a file that exists per representation also exists once per segment, with the segment name added to the file name (<code>scenario_rates_kermadectonga2_tonga.csv</code>).</p>
+  <div class="tbl"><table class="fixed">
+    <colgroup><col style="width:34%"><col style="width:66%"></colgroup>
+    <tr><th>File</th><th>Columns and what they mean</th></tr>
+    <tr><td><code>rate_curves.csv</code></td><td><code>Mw</code> and <code>exceedance_rate_unsegmented</code>, on a grid of 261 magnitudes, from Mmin (7.2) to Mmax (9.8) in steps of 0.01. A segmented run adds one <code>exceedance_rate_ZONE_SEGMENT</code> column per segment, <code>exceedance_rate_union_of_segments</code> and <code>exceedance_rate_source_zone</code>, the LEVEL 0 mix of the unsegmented branch and the union of segments.</td></tr>
+    <tr><td><code>exceedance_rate_percentiles.csv</code></td><td><code>threshold_Mw</code>, <code>mean_exrate</code>, <code>p0.025</code>, <code>p0.16</code>, <code>p0.5</code>, <code>p0.84</code>, <code>p0.975</code>, on the 27 magnitudes from 7.2 to 9.8 in steps of 0.1. The mean rate and its percentiles over the logic tree. In a segmented run this is the LEVEL 0 mix, and <code>exceedance_rate_percentiles_unsegmented.csv</code> holds the unsegmented branch alone.</td></tr>
+    <tr><td><code>logic_tree_branches_ZONE.csv</code></td><td><code>branch_id</code>, <code>coupling</code>, <code>slip_rate</code>, <code>b</code>, <code>Mw_min</code>, <code>Mw_max</code>, <code>Mw_frequency_distribution</code>, <code>a</code>, <code>prior_prob</code>, <code>posterior_prob</code>, <code>posterior_prob_with_Mw_error</code>. One row per branch: 32,000 rows.</td></tr>
+    <tr><td><code>logic_tree_summary.csv</code></td><td><code>level</code>, <code>item</code>, <code>value</code>. One line per quantity of the run: the LEVEL 0 weights and number of segments, the number of branches, the mean dip and dip factor, the convergence, the prior mean coupling, the range of the GR parameter a, the prior-posterior total variation distance, the edge multiplier, the total integrated slip, the total scenario rate (level <code>R</code>) and the copula and sample count of LEVEL 5. A segmented run repeats the per-source lines with the segment name added.</td></tr>
+    <tr><td><code>scenario_rates_ZONE.csv</code></td><td><code>event_id</code>, <code>Mw</code>, <code>area_km2</code>, <code>slip_m</code>, <code>mean_depth_km</code>, <code>is_edge_touching</code>, <code>conditional_probability</code>, <code>rate_mean</code>, <code>rate_p0.025</code>, <code>rate_p0.16</code>, <code>rate_p0.5</code>, <code>rate_p0.84</code>, <code>rate_p0.975</code>. One row per scenario rupture. A segmented run also writes <code>scenario_rates_ZONE_source_zone.csv</code> with the same columns without <code>is_edge_touching</code> and <code>conditional_probability</code>: the rates of the LEVEL 0 mix.</td></tr>
+    <tr><td><code>conditional_prob_ZONE.csv</code></td><td><code>Mw</code>, <code>ecp_raw</code>, <code>ecp_edge_corrected</code>, <code>is_edge_touching</code>. The conditional probability of each scenario, before and after the edge correction.</td></tr>
+    <tr><td><code>integrated_slip_ZONE.csv</code></td><td><code>unit_source</code>, <code>alongstrike_number</code>, <code>downdip_number</code>, <code>lon_c</code>, <code>lat_c</code>, <code>depth_km</code>, <code>area_km2</code>, <code>target_convergence_shape</code>, <code>integrated_slip_no_edge_correction</code>, <code>integrated_slip</code>. The integrated slip of each unit source, without and with the edge correction.</td></tr>
+    <tr><td><code>segmentation.csv</code></td><td><code>source_representation</code>, <code>role</code>, <code>weight</code>. An unsegmented run has one row (role <code>unsegmented</code>, weight 1). A segmented run has the unsegmented row (weight 0.5) and one row per segment (role <code>segment</code>), each carrying the weight of the union they belong to (0.5).</td></tr>
+    <tr><td><code>*_variable_mu.csv</code> (only with <code>--variable-mu on</code>)</td><td>The same files for the variable shear modulus rates: <code>rate_curves_variable_mu.csv</code>, <code>exceedance_rate_percentiles_variable_mu.csv</code>, <code>logic_tree_branches_ZONE_variable_mu.csv</code>, <code>logic_tree_summary_variable_mu.csv</code> (with three more lines: <code>prior_posterior_tvd_variable_mu</code>, <code>posterior_vs_variable_mu_tvd</code> and <code>total_scenario_rate_variable_mu</code>) and <code>scenario_rates_ZONE_variable_mu.csv</code>, whose columns are <code>event_id</code>, <code>Mw</code>, <code>variable_mu_Mw</code>, <code>rate_mean</code> and the five percentiles. <code>variable_mu_deviation_ZONE.csv</code> has <code>Mw_constant_mu</code> and <code>Mw_variable_minus_constant</code>, the magnitude of each heterogeneous-slip scenario with constant rigidity and its difference when the rigidity varies with depth (the catalogue magnitude error that LEVEL 3 uses). See <a href="variable_mu.html">Variable shear modulus</a>.</td></tr>
+    <tr><td><code>hs_slip_fields/summary.csv</code>, <code>vaus_slip_fields/summary.csv</code> (step 7b)</td><td>One row per heterogeneous-slip (HS) or variable-area uniform-slip (VAUS) scenario: <code>rupture_type</code>, <code>Mw</code>, <code>placement</code>, <code>realisation</code>, <code>faus_event_id</code>, <code>target_lon</code>, <code>target_lat</code>, <code>peak_slip_downdip_ind</code>, <code>peak_slip_alongstrike_ind</code>, <code>physical_corner_wavenumber_x</code>, <code>physical_corner_wavenumber_y</code>, <code>n_unit_sources</code>, <code>peak_slip_m</code>, <code>total_slip_m</code>, <code>uniform_slip_m_FAUS_equivalent</code>, <code>event_index_string</code>, <code>event_slip_string</code>, <code>above_peak_slip_limit</code>, <code>weight_in_family</code>, <code>rate_mean</code> and the five rate percentiles. With <code>--variable-mu on</code> the file also has <code>variable_mu_Mw</code>, <code>variable_mu_weight_in_family</code> and <code>variable_mu_rate_mean</code> with its percentiles. <code>comparison_features.npz</code> holds the arrays <code>mw</code> and <code>features</code>. See <a href="hs_vaus.html">HS and VAUS slip</a>.</td></tr>
+  </table></div>
+
+  <h3 id="exports">outputs/exports/</h3>
+  <p>Written by step 9 from the files above. When step 8 has run, each file is also written with an <code>_official</code> suffix for PTHA18's run, with the same columns (<code>mesh_cells_official.csv</code>, <code>posterior_mean_rate_curve_official.csv</code>, <code>convergence_official.csv</code>, <code>convergence_profile_official.csv</code> and, for a segmented run, <code>scenario_rates_source_zone_official.csv</code>). The two convergence profiles can have different numbers of rows, because each mesh has its own number of columns.</p>
+  <div class="tbl"><table class="fixed">
+    <colgroup><col style="width:34%"><col style="width:66%"></colgroup>
+    <tr><th>File</th><th>Columns</th></tr>
+    <tr><td><code>convergence.csv</code></td><td><code>item</code>, <code>value</code>, <code>units</code>. Three rows: <code>convergence_horizontal</code> (mm/yr), <code>mean_dip</code> (deg) and <code>slip_rate</code> (mm/yr).</td></tr>
+    <tr><td><code>convergence_profile.csv</code></td><td><code>alongstrike_number</code>, <code>div_mm_per_yr</code>, <code>convergent_slip_mm_per_yr</code>, <code>distance_to_bird_km</code>, and <code>segment</code> in a segmented run. One row per along-strike column.</td></tr>
+    <tr><td><code>mesh_cells.csv</code></td><td><code>downdip_number</code>, <code>alongstrike_number</code>, <code>lon</code>, <code>lat</code>, <code>depth_km</code>, <code>convergent_slip_mm_per_yr</code>, and <code>segment</code> in a segmented run. One row per unit source.</td></tr>
+    <tr><td><code>posterior_mean_rate_curve.csv</code></td><td>The same columns as <code>rate_curves.csv</code>: the posterior mean exceedance rate on the magnitude grid.</td></tr>
+    <tr><td><code>scenario_rates_source_zone.csv</code></td><td>Segmented runs only: <code>event_id</code>, <code>Mw</code>, <code>area_km2</code>, <code>slip_m</code>, <code>mean_depth_km</code>, <code>rate_mean</code> and the five rate percentiles, for the LEVEL 0 mix.</td></tr>
+  </table></div>
+
+  <h3 id="figures">outputs/figures/</h3>
+  <p>For the source zone: <code>fig_branch_fan_ZONE.png</code> (the exceedance curve of every branch), <code>fig_branch_weights_ZONE.png</code>, <code>fig_geometry_ZONE.png</code>, <code>fig_moment_balance_ZONE.png</code> and <code>fig_scenario_rates_ZONE.png</code>. Common to the run: <code>fig_percentiles.png</code>, <code>fig_representation_curves.png</code> and <code>fig_segmentation.png</code>. A segmented run repeats the five per-source figures for each segment, with the segment name added to the file name.</p>
+  <p>The file <code>inputs/input_ZONE_scratch.json</code> is the one input of the logic tree. Its layout is described on <a href="input_json.html">The input file</a>.</p>
+</section>
+
+<section>
+  <h2 id="segmented-files">What a segmented run adds</h2>
+  <p>With <code>--segmented true</code> the folder has the same files as an unsegmented one, plus:</p>
+  <ul class="tight">
+    <li><code>report_unsegmented.html</code>, the report of the unsegmented branch on its own, linked from <code>report.html</code>.</li>
+    <li>In <code>data/gcmt/</code>, one subset file for each segment and <code>segments.json</code>.</li>
+    <li>In <code>outputs/rate_curves.csv</code>, one column for each segment, the union of the segments, and the source-zone mix.</li>
+    <li>One file per segment for the branches, scenario rates, conditional probabilities, integrated slip and the five per-source figures, plus <code>scenario_rates_ZONE_source_zone.csv</code> and <code>exceedance_rate_percentiles_unsegmented.csv</code>.</li>
+    <li>A <code>segment</code> column in <code>outputs/exports/convergence_profile.csv</code> and <code>mesh_cells.csv</code>.</li>
+    <li><code>outputs/segmentation.csv</code>, with the weight of each representation: 0.5 for the unsegmented branch and 0.5 for the union of the segments; each segment row shows the weight of that union.</li>
+    <li>A LEVEL 0 section in <code>report.html</code>, with a map of the segments (<code>figures/segments_map.png</code>).</li>
+  </ul>
+</section>
+
+<section>
+  <h2 id="caveats">Known limits</h2>
+  <ul class="tight">
+    <li>The default settings follow PTHA18's procedure, but the geometry comes from SLAB, which PTHA18 edited by hand. Meshes can differ by a few kilometres, most at the ends of a zone (<a href="clean_ends.html">Clean ends</a>).</li>
+    <li>Where PTHA18 extended a zone beyond the SLAB data by hand, this package does not extend it. The zone is cut or kept as the data allows.</li>
+    <li>Step 8 needs R with rptha, and downloads PTHA18's saved session, which is more than a gigabyte, once for the first zone that needs it. Without R, use <code>--skip-official</code>.</li>
+    <li>The SLAB depth grids are downloaded from the USGS hosts in step 1. A host can refuse the download with an HTTP 403 error, and some SLAB1.0 grids are not on the server at all. The step prints the link to download the file by hand. See <a href="troubleshooting.html#step1">Troubleshooting</a> and <a href="zones.html">Zones you can run</a>.</li>
+    <li>The map in step 2 of the report loads its base tiles from the internet when the report is opened.</li>
+    <li>Options marked <b>not PTHA18's procedure</b> give results that cannot be compared event by event with PTHA18's files.</li>
+  </ul>
+  <p class="where">Details of the checks against PTHA18: <a href="validation.html">Validation</a>.</p>
+</section>
+
+<nav class="pager" id="pager"></nav>
+<footer>Options from <code>generate.py</code> and <code>templates/step_total.py.tmpl</code>; constants from the step templates; column names from the files a run writes.</footer>
+</main>
+<aside class="toc" id="toc"></aside>
+</div>
+<script src="assets/nav.js"></script>
+</body>
+</html>
