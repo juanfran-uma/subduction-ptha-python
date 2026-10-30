@@ -1,8 +1,19 @@
-# PTHA in Python
+# Subduction PTHA in Python
 
 A Python port of the rupture and rate parts of **rptha**, the code behind the 2018 Australian probabilistic tsunami hazard assessment (PTHA18, Davies and Griffin, 2018). For a subduction zone covered by the SLAB2.0 or SLAB1.0 geometry models, it builds the earthquake sources on the plate interface, the logic tree of recurrence models, and the exceedance rate of earthquakes per year. It uses public data only.
 
+**This is not an official project.** It has no connection with Geoscience Australia or the authors of PTHA18, and they have not reviewed or endorsed it. It is simply an attempt to transform and adapt this part of their code to Python, so that the whole process runs automatically, from the SLAB geometry to the exceedance rates.
+
 The code stops at earthquake rates. It does not simulate tsunamis or compute hazard curves.
+
+## Where is the guide?
+
+The guide is a set of web pages inside this repository, in `ptha_python/html/docs/`:
+
+- **New here? Start with [`getting_started.html`](ptha_python/html/docs/getting_started.html).** It goes step by step from the installation to your first report, with a short explanation of what each step does and of the options of `generate.py` that decide the result.
+- **Everything else** (the method, every option, every output file, troubleshooting) starts at [`index.html`](ptha_python/html/docs/index.html).
+
+GitHub shows `.html` files as source code, not as pages. To read the guide, clone or download the repository and open the file in your browser (double-click it).
 
 ## What you get
 
@@ -10,6 +21,7 @@ Each run creates a folder that holds:
 
 - `steps/`: nine steps as plain Python scripts, run in order. `step_total.py` runs them all.
 - `inputs/`, `data/`, `outputs/`: what each step reads and writes.
+- `mesh/`: the mesh as plain files (`mesh.dat`, `mesh_cell_corners.csv`, `unit_source_grid.npy`) and `mesh_3d.html`, a page with the mesh in 3D and in plan, the SLAB contours it was cut from, and the L x W of every cell (written by step 3).
 - `report.html`: one page (its figures are embedded; only the map loads from the internet) that explains every step, with the numbers it produced and the exceedance-rate curve. When step 8 has run, it also compares the result with PTHA18's own run.
 - `RUN.html`: the exact commands that created the folder.
 
@@ -73,6 +85,10 @@ python alaskaaleutians/steps/step_total.py
 
 The file is copied into the folder's `inputs/geometry/`. `--mesh-file` cannot be combined with `--cell-size strasser` or with the `-edited` values of `--columns`.
 
+## Example results
+
+`examples/` holds four finished runs you can compare with your own: Kermadec-Tonga and Cascadia (Pacific, each with PTHA18's own run next to it) and the Calabrian and Hellenic arcs (Mediterranean). A run of the Calabria example from a clean copy of the repository reproduced it exactly (identical files). See [`examples/README.md`](examples/README.md) for the commands and the headline numbers.
+
 ## Repository layout
 
 ```
@@ -89,6 +105,7 @@ ptha_python/          the package
 rptha/                data files copied from the rptha R package (its R code is not included)
 official_ptha_data/   downloads PTHA18's saved session and extracts its trees (needs R)
 inputs_meshes/        example external meshes for --mesh-file
+examples/             four finished example runs to compare with (see examples/README.md)
 requirements.txt, LICENSE
 ```
 
@@ -107,7 +124,7 @@ The comparisons with PTHA18 are in `ptha_python/validation/`. Start with `valida
 
 ## Documentation
 
-Open `ptha_python/html/docs/index.html` in a browser. It explains the method, the nine steps, the options and the report, and the troubleshooting messages.
+New here? Open `ptha_python/html/docs/getting_started.html` in a browser: it goes step by step from the installation to your first report. For everything else, open `ptha_python/html/docs/index.html`. It explains the method, the nine steps, the options and the report, and the troubleshooting messages.
 
 ## Licence and credits
 
