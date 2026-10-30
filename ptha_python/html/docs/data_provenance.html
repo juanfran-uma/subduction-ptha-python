@@ -98,7 +98,7 @@
     <tr><td>Report map and fonts</td><td>Leaflet 1.9.4 (cdnjs), Esri ocean basemap tiles (<code>server.arcgisonline.com</code>) and Google Fonts, loaded by the browser when <code>report.html</code> is opened; everything else in the report is stored in the page</td><td>not stored</td><td>step 9 (the page, not the script)</td></tr>
     <tr><td>PTHA18's own mesh, convergence, GCMT selection, and published rates</td><td><b>read only in step 8</b>, from PTHA18's saved R session and NCI files (<code>unit_source_statistics_&lt;zone&gt;.nc</code>, the cell outlines shapefile and, with <code>--download-hs</code>, the HS and VAUS catalogues), and from <code>sourcezone_parameters.csv</code></td><td>fetched into <code>official_ptha_data/</code>, <code>inputs/</code> and <code>ptha_python/validation/ptha18_reference/</code>; <code>sourcezone_parameters.csv</code> shipped in <code>rptha/R/examples/austptha_template/DATA/SOURCEZONE_PARAMETERS/</code></td><td>step 8 only; step 9 shows the comparison from step 8's own output (<a href="official.html">details</a>)</td></tr>
   </table></div>
-  <p class="where">The other files of <code>rptha/</code> in the repository (<code>puysegur.shp</code> and <code>alaska.shp</code>, test data of the R package) are not read by any step. Full option reference, file by file: <a href="reference.html#ptha-reads">What each step reads, with --ptha false and --ptha true</a>.</p>
+  <p class="where"><code>rptha/</code> holds nothing else that a step reads: only that file and the rptha licence. Full option reference, file by file: <a href="reference.html#ptha-reads">What each step reads, with --ptha false and --ptha true</a>.</p>
 </section>
 
 <section>
