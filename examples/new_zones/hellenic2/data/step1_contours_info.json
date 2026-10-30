@@ -1,0 +1,153 @@
+{
+ "zone": "hellenic2",
+ "raster": "ptha_python\\data\\slab2\\hel_slab2_dep_02.24.18.grd",
+ "clip_bbox": null,
+ "trench_ends": [
+  [
+   19.912,
+   37.731
+  ],
+  [
+   28.726,
+   36.579
+  ]
+ ],
+ "trench_ramp_rise_km": 3.0,
+ "ramp_trim_km": [
+  71.16784599438614,
+  0.0
+ ],
+ "cutoff_km_below_trench": 50.0,
+ "berryman_dominant_segment": "Hellenic western segment",
+ "berryman_trench_depth_km": 2.0,
+ "contour_spacing_km": 5.0,
+ "trench_length_km": 1486.640345408059,
+ "trench_length_untrimmed_km": 2065.332571465079,
+ "trench_depth_below_msl_km": {
+  "p5": 8.734180476016816,
+  "median": 11.486789874999545,
+  "p95": 14.514837561104704
+ },
+ "levels": [
+  {
+   "level": 5.0,
+   "found": true,
+   "extra_pieces_km": [],
+   "closed": false,
+   "length_km": 1357.0305685492497,
+   "n_points": 348,
+   "edge_fraction": 0.0
+  },
+  {
+   "level": 10.0,
+   "found": true,
+   "extra_pieces_km": [],
+   "closed": false,
+   "length_km": 1287.3727057692474,
+   "n_points": 334,
+   "edge_fraction": 0.0
+  },
+  {
+   "level": 15.0,
+   "found": true,
+   "extra_pieces_km": [],
+   "closed": false,
+   "length_km": 1228.3237446661694,
+   "n_points": 320,
+   "edge_fraction": 0.0
+  },
+  {
+   "level": 20.0,
+   "found": true,
+   "extra_pieces_km": [],
+   "closed": false,
+   "length_km": 1174.6017751018437,
+   "n_points": 307,
+   "edge_fraction": 0.0
+  },
+  {
+   "level": 25.0,
+   "found": true,
+   "extra_pieces_km": [],
+   "closed": false,
+   "length_km": 1122.82862161287,
+   "n_points": 296,
+   "edge_fraction": 0.0
+  },
+  {
+   "level": 30.0,
+   "found": true,
+   "extra_pieces_km": [],
+   "closed": false,
+   "length_km": 1071.7655119348146,
+   "n_points": 284,
+   "edge_fraction": 0.0
+  },
+  {
+   "level": 35.0,
+   "found": true,
+   "extra_pieces_km": [],
+   "closed": false,
+   "length_km": 1042.7846320653182,
+   "n_points": 283,
+   "edge_fraction": 0.0
+  },
+  {
+   "level": 40.0,
+   "found": true,
+   "extra_pieces_km": [],
+   "closed": false,
+   "length_km": 863.4756757944295,
+   "n_points": 236,
+   "edge_fraction": 0.0
+  },
+  {
+   "level": 45.0,
+   "found": true,
+   "extra_pieces_km": [],
+   "closed": false,
+   "length_km": 812.7864559730727,
+   "n_points": 224,
+   "edge_fraction": 0.0
+  },
+  {
+   "level": 50.0,
+   "found": true,
+   "extra_pieces_km": [],
+   "closed": false,
+   "length_km": 776.0429874917713,
+   "n_points": 214,
+   "edge_fraction": 0.0
+  }
+ ],
+ "ends": {
+  "start": {
+   "cut": true,
+   "trench_km": 0.0,
+   "contours_km": 197.70387546220343,
+   "reason": "cut at the given end point (19.912E, 37.731N): along the down-dip line that passes 78 km from it",
+   "tip_width_ratio": null,
+   "deviation_deg": 73.57178555810111,
+   "deviation_after_deg": 44.99024738485437,
+   "point": [
+    19.912,
+    37.731
+   ],
+   "point_distance_km": 77.95519001312681
+  },
+  "end": {
+   "cut": true,
+   "trench_km": 578.4656326241329,
+   "contours_km": 604.7183392044321,
+   "reason": "cut at the given end point (28.726E, 36.579N): along the down-dip line that passes 15 km from it",
+   "tip_width_ratio": null,
+   "deviation_deg": 20.5820182537728,
+   "deviation_after_deg": 27.672524996185714,
+   "point": [
+    28.726,
+    36.579
+   ],
+   "point_distance_km": 14.883901268143083
+  }
+ }
+}

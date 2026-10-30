@@ -1,0 +1,98 @@
+{
+ "zone": "cascadia",
+ "raster": "examples\\ptha18_compare\\cascadia\\data\\slab1\\cas_slab1.0_clip.grd",
+ "clip_bbox": null,
+ "trench_ends": null,
+ "trench_ramp_rise_km": 3.0,
+ "ramp_trim_km": [
+  0.0,
+  0.0
+ ],
+ "cutoff_km_below_trench": 30.0,
+ "berryman_dominant_segment": "Cascadia",
+ "berryman_trench_depth_km": 2.5,
+ "contour_spacing_km": 5.0,
+ "trench_length_km": 1103.3586009304547,
+ "trench_length_untrimmed_km": 1103.3586009304547,
+ "trench_depth_below_msl_km": {
+  "p5": 5.0099787167366925,
+  "median": 5.063669305842177,
+  "p95": 5.154493935669548
+ },
+ "levels": [
+  {
+   "level": 5.0,
+   "found": true,
+   "extra_pieces_km": [],
+   "closed": false,
+   "length_km": 1144.1739304093903,
+   "n_points": 684,
+   "edge_fraction": 0.0
+  },
+  {
+   "level": 10.0,
+   "found": true,
+   "extra_pieces_km": [],
+   "closed": false,
+   "length_km": 1173.6077772782553,
+   "n_points": 704,
+   "edge_fraction": 0.0
+  },
+  {
+   "level": 15.0,
+   "found": true,
+   "extra_pieces_km": [],
+   "closed": false,
+   "length_km": 1221.7415347606482,
+   "n_points": 743,
+   "edge_fraction": 0.0
+  },
+  {
+   "level": 20.0,
+   "found": true,
+   "extra_pieces_km": [],
+   "closed": false,
+   "length_km": 1270.2381389243137,
+   "n_points": 765,
+   "edge_fraction": 0.0
+  },
+  {
+   "level": 25.0,
+   "found": true,
+   "extra_pieces_km": [],
+   "closed": false,
+   "length_km": 1297.3086635603843,
+   "n_points": 776,
+   "edge_fraction": 0.0
+  },
+  {
+   "level": 30.0,
+   "found": true,
+   "extra_pieces_km": [],
+   "closed": false,
+   "length_km": 1309.9239191528598,
+   "n_points": 782,
+   "edge_fraction": 0.0
+  }
+ ],
+ "ends": {
+  "start": {
+   "cut": false,
+   "trench_km": 0.0,
+   "contours_km": 0.0,
+   "reason": "kept as it is (10 deg off square, within PTHA18's own range)",
+   "tip_width_ratio": 0.8311688311688312,
+   "deviation_deg": 9.955054826693583,
+   "deviation_after_deg": null
+  },
+  "end": {
+   "cut": false,
+   "trench_km": 0.0,
+   "contours_km": 0.0,
+   "reason": "kept as it is (22 deg off square, within PTHA18's own range)",
+   "tip_width_ratio": 1.3506493506493507,
+   "deviation_deg": 22.475321311177154,
+   "deviation_after_deg": null
+  }
+ }
+}

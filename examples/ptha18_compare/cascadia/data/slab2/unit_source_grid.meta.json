@@ -1,0 +1,10 @@
+{
+ "contours_sha256": "d04eb354c8c32e3acfcec6bae00f90b4757d1806d6b87538ad1048fc3840086d",
+ "mesh_code_version": "1",
+ "desired_unit_source_length": 50.0,
+ "desired_unit_source_width": 50.0,
+ "method": "optimal",
+ "min_downdip": 2.0,
+ "n_downdip": null,
+ "seed": 1234.0
+}

@@ -6,6 +6,27 @@
 !/official_ptha_data/
 !/inputs_meshes/
 
+# The finished example runs that are shipped (see examples/README.md); every other
+# run under examples/ stays local.
+!/examples/
+/examples/*
+!/examples/README.md
+!/examples/ptha18_compare/
+/examples/ptha18_compare/*
+!/examples/ptha18_compare/kermadectonga2/
+!/examples/ptha18_compare/cascadia/
+!/examples/new_zones/
+/examples/new_zones/*
+!/examples/new_zones/calabria2/
+!/examples/new_zones/hellenic2/
+# heavy files of those runs, written again by the steps
+/examples/**/data/gcmt/*.ndk
+/examples/**/data/gcmt/gcmt_catalogue_*.csv
+/examples/**/outputs/hs_slip_fields/
+/examples/**/outputs/vaus_slip_fields/
+/examples/**/outputs/logic_tree_branches_*.csv
+/examples/**/outputs_official/logic_tree_branches_*.csv
+
 .venv/
 __pycache__/
 *.pyc
