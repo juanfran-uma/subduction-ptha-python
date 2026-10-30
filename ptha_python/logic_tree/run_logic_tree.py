@@ -1323,13 +1323,28 @@ def build_source_representation(name, cfg, rep_cfg, out_dir, fig_dir=None,
     r_j_pct = rates.individual_scenario_rates(all_eq["Mw"], ecp, rate_fn, dMw,
                                               quantiles=pct)
 
+    # weight_with_nonzero_rate (compute_rates_all_sources.R 766-781): the
+    # weight of the logic-tree branches whose rate curve is non-zero at the
+    # scenario's Mw (taken at Mw - dMw/2), zero for a scenario that cannot
+    # happen (conditional probability 0), and, on a segment, scaled by the
+    # fraction of the scenario inside it. PTHA18 publishes it next to the rates.
+    if slice_cfg is not None:
+        frac_in_seg = np.array([in_seg[events.get_unit_source_indices_in_event(s)].mean()
+                                for s in all_eq["event_index_string"]])
+    else:
+        frac_in_seg = 1.0
+    w_nonzero = ((ecp > 0) * frac_in_seg
+                 * rate_fn(all_eq["Mw"] - dMw / 2.0, epistemic_nonzero_weight=True))
+
     # The variable shear modulus rates: the same branch curves weighted
     # with the LEVEL 3 weights that treat the catalogue's magnitudes as
     # variable-rigidity ones (compute_rates_all_sources.R 749-869)
-    rate_fn_mu = r_j_mu = None
+    rate_fn_mu = r_j_mu = w_nonzero_mu = None
     if vsm_info is not None:
         rate_fn_mu = rate_fn.with_mw_error()
         r_j_mu = rates.individual_scenario_rates(all_eq["Mw"], ecp, rate_fn_mu, dMw)
+        w_nonzero_mu = ((ecp > 0) * frac_in_seg
+                        * rate_fn_mu(all_eq["Mw"] - dMw / 2.0, epistemic_nonzero_weight=True))
         r_j_mu_pct = rates.individual_scenario_rates(all_eq["Mw"], ecp, rate_fn_mu,
                                                      dMw, quantiles=pct)
         mw_mu = vmu.variable_mu_Mw(
@@ -1339,11 +1354,13 @@ def build_source_representation(name, cfg, rep_cfg, out_dir, fig_dir=None,
         path = os.path.join(out_dir, f"scenario_rates_{name}_variable_mu.csv")
         with open(path, "w") as f:
             f.write("event_id,Mw,variable_mu_Mw,rate_mean,"
-                    + ",".join(f"rate_p{p}" for p in pct) + "\n")
+                    + ",".join(f"rate_p{p}" for p in pct)
+                    + ",variable_mu_weight_with_nonzero_rate\n")
             for i in range(all_eq["Mw"].size):
-                f.write("%d,%.17g,%.17g,%.17g,%s\n" % (
+                f.write("%d,%.17g,%.17g,%.17g,%s,%.17g\n" % (
                     i + 1, all_eq["Mw"][i], mw_mu[i], r_j_mu[i],
-                    ",".join("%.17g" % r_j_mu_pct[k, i] for k in range(len(pct)))))
+                    ",".join("%.17g" % r_j_mu_pct[k, i] for k in range(len(pct))),
+                    w_nonzero_mu[i]))
         print(f"      variable shear modulus scenario rates -> "
               f"{os.path.basename(path)}")
         dev, dev_mw = vsm_info[1], vsm_info[2]
@@ -1360,12 +1377,14 @@ def build_source_representation(name, cfg, rep_cfg, out_dir, fig_dir=None,
     with open(path, "w") as f:
         f.write("event_id,Mw,area_km2,slip_m,mean_depth_km,is_edge_touching,"
                 "conditional_probability,rate_mean,"
-                + ",".join(f"rate_p{p}" for p in pct) + "\n")
+                + ",".join(f"rate_p{p}" for p in pct)
+                + ",weight_with_nonzero_rate\n")
         for i in range(all_eq["Mw"].size):
-            f.write("%d,%.17g,%.17g,%.17g,%.17g,%d,%.17g,%.17g,%s\n" % (
+            f.write("%d,%.17g,%.17g,%.17g,%.17g,%d,%.17g,%.17g,%s,%.17g\n" % (
                 i + 1, all_eq["Mw"][i], all_eq["area"][i], all_eq["slip"][i],
                 all_eq["mean_depth"][i], int(is_edge[i]), ecp[i], r_j[i],
-                ",".join("%.17g" % r_j_pct[k, i] for k in range(len(pct)))))
+                ",".join("%.17g" % r_j_pct[k, i] for k in range(len(pct))),
+                w_nonzero[i]))
     print(f"      wrote {all_eq['Mw'].size:,} scenario rates -> "
           f"{os.path.basename(path)}")
 
@@ -1444,7 +1463,8 @@ def build_source_representation(name, cfg, rep_cfg, out_dir, fig_dir=None,
             "branches": br, "source_area": source_area, "grid": grid,
             "stats": stats, "axes": axes, "edge_multiplier": edge_multiplier,
             "integrated_slip": integrated_slip, "scenario_rates": r_j,
-            "rate_fn_mu": rate_fn_mu, "scenario_rates_mu": r_j_mu}
+            "rate_fn_mu": rate_fn_mu, "scenario_rates_mu": r_j_mu,
+            "weight_nonzero": w_nonzero, "weight_nonzero_mu": w_nonzero_mu}
 
 
 # ---------------------------------------------------------------------------
@@ -1570,15 +1590,20 @@ def main():
             eq["Mw"], [unsegmented["ecp"]] + [s["ecp"] for s in segments],
             float(ev["dMw"]), w_u, seg_info["union_of_segments_weight"], pct)
         zone_pct = w_u * per_source[0] + w_s * np.sum(per_source[1:], axis=0)
+        # weight_with_nonzero_rate is mixed like the rates (R's ncvar_put_extra)
+        zone_w = w_u * unsegmented["weight_nonzero"] + w_s * np.sum(
+            [s["weight_nonzero"] for s in segments], axis=0)
         path = os.path.join(out_dir, f"scenario_rates_{source_zone}_source_zone.csv")
         with open(path, "w") as f:
             f.write("event_id,Mw,area_km2,slip_m,mean_depth_km,rate_mean,"
-                    + ",".join(f"rate_p{p}" for p in pct) + "\n")
+                    + ",".join(f"rate_p{p}" for p in pct)
+                    + ",weight_with_nonzero_rate\n")
             for i in range(eq["Mw"].size):
-                f.write("%d,%.17g,%.17g,%.17g,%.17g,%.17g,%s\n" % (
+                f.write("%d,%.17g,%.17g,%.17g,%.17g,%.17g,%s,%.17g\n" % (
                     i + 1, eq["Mw"][i], eq["area"][i], eq["slip"][i],
                     eq["mean_depth"][i], zone_mean[i],
-                    ",".join("%.17g" % zone_pct[k, i] for k in range(len(pct)))))
+                    ",".join("%.17g" % zone_pct[k, i] for k in range(len(pct))),
+                    zone_w[i]))
         print(f"\n  LEVEL 0: the zone's {eq['Mw'].size:,} scenario rates "
               f"(unsegmented + segments) -> {os.path.basename(path)}")
         if has_mu:
@@ -1589,15 +1614,19 @@ def main():
                 eq["Mw"], [unsegmented["ecp"]] + [s["ecp"] for s in segments],
                 float(ev["dMw"]), w_u, seg_info["union_of_segments_weight"], pct)
             zone_pct_mu = w_u * per_source_mu[0] + w_s * np.sum(per_source_mu[1:], axis=0)
+            zone_w_mu = w_u * unsegmented["weight_nonzero_mu"] + w_s * np.sum(
+                [s["weight_nonzero_mu"] for s in segments], axis=0)
             path = os.path.join(out_dir,
                                 f"scenario_rates_{source_zone}_source_zone_variable_mu.csv")
             with open(path, "w") as f:
                 f.write("event_id,Mw,rate_mean,"
-                        + ",".join(f"rate_p{p}" for p in pct) + "\n")
+                        + ",".join(f"rate_p{p}" for p in pct)
+                        + ",variable_mu_weight_with_nonzero_rate\n")
                 for i in range(eq["Mw"].size):
-                    f.write("%d,%.17g,%.17g,%s\n" % (
+                    f.write("%d,%.17g,%.17g,%s,%.17g\n" % (
                         i + 1, eq["Mw"][i], zone_mean_mu[i],
-                        ",".join("%.17g" % zone_pct_mu[k, i] for k in range(len(pct)))))
+                        ",".join("%.17g" % zone_pct_mu[k, i] for k in range(len(pct))),
+                        zone_w_mu[i]))
             print(f"  the zone's variable shear modulus scenario rates -> "
                   f"{os.path.basename(path)}")
 

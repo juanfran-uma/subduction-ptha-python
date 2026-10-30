@@ -1,0 +1,226 @@
+"""STEP 7d - HS scenarios as a netCDF table, laid out like PTHA18's.
+
+What it is
+----------
+PTHA18 publishes each source zone's heterogeneous-slip (HS) scenarios as one
+netCDF file, all_stochastic_slip_earthquake_events_<zone>.nc: a flat table
+with one row per scenario (which unit sources break and with how much slip,
+its magnitude, where its peak slip sits, and its annual rates with their
+percentiles), for the constant rigidity and, next to it, the variable one
+(variable_mu_*). Downstream tools (tsunami simulation, hazard maps) read
+that file.
+
+This step writes the same table from this example's own HS scenarios. It
+only reshapes what steps 7, 7b and 7c already wrote: no number is computed
+here, and nothing in outputs/ changes. The CSV outputs stay as they are;
+this is one more output, in outputs/nc/.
+
+What it does
+------------
+- reads outputs/hs_slip_fields/summary.csv (step 7b; with step 7c's columns
+  the variable rigidity variables are written too, otherwise only the
+  constant rigidity ones)
+- writes outputs/nc/all_stochastic_slip_earthquake_events_{{ZONE}}.nc with
+  PTHA18's variables, in the order of its kermadectonga2 file (PTHA18's own files
+  differ in order from zone to zone; names, types and dimensions are the same),
+  with its types (classic netCDF, float64, int32, character matrices, unlimited table_rows)
+
+Column mapping (summary.csv -> netCDF):
+    event_index_string, event_slip_string   same text; the unit sources of a
+                                     scenario are listed in ascending order
+                                     (PTHA18's convention), each slip kept
+                                     with its own unit source
+    Mw                               the magnitude grid as R builds it
+                                     (Mmin + k * dMw of the input json, e.g. 7.6000000000000005)
+    peak_slip_downdip_ind, peak_slip_alongstrike_ind,
+    physical_corner_wavenumber_x/y   same name
+    target_lon, target_lat           same, longitude in 0..360 (PTHA18's own
+                                     file mixes -180..180 and 0..360; one
+                                     convention keeps zones that cross the
+                                     dateline continuous)
+    faus_event_id                    uniform_event_row (1-based row of the
+                                     parent FAUS scenario)
+    rate_mean, rate_p0.025, rate_p0.16, rate_p0.5, rate_p0.84, rate_p0.975
+                                     rate_annual, rate_annual_lower_ci,
+                                     _16pc, _median, _84pc, _upper_ci
+    weight_with_nonzero_rate         same (the parent FAUS scenario's)
+    variable_mu_*                    the same names with the variable_mu_ prefix
+    (zone name)                      sourcename
+
+The numbers keep every digit the CSVs hold (float64). The slip text has
+PTHA18's own 4 significant digits.
+
+Run from the repository root, after step7b_stochastic_slip.py (and step 7c):
+    python {{FOLDER}}/steps/step7d_export_nc.py
+"""
+
+import csv
+import json
+import os
+import platform
+import sys
+
+import netCDF4
+import numpy as np
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+EXAMPLE = os.path.abspath(os.path.join(HERE, ".."))
+
+ZONE = "{{ZONE}}"
+HS_SUMMARY = os.path.join(EXAMPLE, "outputs", "hs_slip_fields", "summary.csv")
+OUT_DIR = os.path.join(EXAMPLE, "outputs", "nc")
+OUT_NC = os.path.join(OUT_DIR, f"all_stochastic_slip_earthquake_events_{ZONE}.nc")
+
+INPUT_JSON = os.path.join(EXAMPLE, "inputs", f"input_{ZONE}_scratch.json")
+
+# netCDF name -> summary.csv column, for the rate variables
+RATE_SUFFIX = {"rate_annual": "rate_mean",
+               "rate_annual_lower_ci": "rate_p0.025",
+               "rate_annual_upper_ci": "rate_p0.975",
+               "rate_annual_16pc": "rate_p0.16",
+               "rate_annual_median": "rate_p0.5",
+               "rate_annual_84pc": "rate_p0.84"}
+
+# PTHA18's variables, in the order of its file. kind: str = character matrix,
+# f8 = float64, i4 = int32; src: summary.csv column (None = built here)
+LAYOUT = [
+    ("event_index_string", "str", None),
+    ("event_slip_string", "str", None),
+    ("Mw", "f8", None),
+    ("target_lon", "f8", "target_lon"),
+    ("target_lat", "f8", "target_lat"),
+    ("peak_slip_downdip_ind", "i4", "peak_slip_downdip_ind"),
+    ("peak_slip_alongstrike_ind", "i4", "peak_slip_alongstrike_ind"),
+    ("physical_corner_wavenumber_x", "f8", "physical_corner_wavenumber_x"),
+    ("physical_corner_wavenumber_y", "f8", "physical_corner_wavenumber_y"),
+    ("sourcename", "str", None),
+    ("uniform_event_row", "i4", "faus_event_id"),
+    ("rate_annual", "f8", "rate_mean"),
+    ("rate_annual_lower_ci", "f8", "rate_p0.025"),
+    ("rate_annual_upper_ci", "f8", "rate_p0.975"),
+    ("variable_mu_Mw", "f8", "variable_mu_Mw"),
+    ("variable_mu_rate_annual", "f8", "variable_mu_rate_mean"),
+    ("variable_mu_rate_annual_lower_ci", "f8", "variable_mu_rate_p0.025"),
+    ("variable_mu_rate_annual_upper_ci", "f8", "variable_mu_rate_p0.975"),
+    ("variable_mu_rate_annual_median", "f8", "variable_mu_rate_p0.5"),
+    ("variable_mu_rate_annual_16pc", "f8", "variable_mu_rate_p0.16"),
+    ("variable_mu_rate_annual_84pc", "f8", "variable_mu_rate_p0.84"),
+    ("variable_mu_weight_with_nonzero_rate", "f8", "variable_mu_weight_with_nonzero_rate"),
+    ("weight_with_nonzero_rate", "f8", "weight_with_nonzero_rate"),
+    ("rate_annual_16pc", "f8", "rate_p0.16"),
+    ("rate_annual_84pc", "f8", "rate_p0.84"),
+    ("rate_annual_median", "f8", "rate_p0.5"),
+]
+
+
+def sorted_by_unit_source(index_str, slip_str):
+    """PTHA18 lists a scenario's unit sources in ascending order. Reorder the
+    index and slip text together, keeping each slip's own text."""
+    idx = [t for t in index_str.split("-") if t]
+    slp = [t for t in slip_str.split("_") if t]
+    if len(idx) != len(slp):
+        raise SystemExit(f"index string {index_str!r} and slip string {slip_str!r} "
+                         f"have a different number of unit sources")
+    order = sorted(range(len(idx)), key=lambda k: int(idx[k]))
+    return ("".join(idx[k] + "-" for k in order),
+            "".join(slp[k] + "_" for k in order))
+
+
+def main():
+    print("=" * 70)
+    print("STEP 7d - HS scenarios as a PTHA18-style netCDF table")
+    print("=" * 70)
+    if not os.path.exists(HS_SUMMARY):
+        raise SystemExit(f"missing {HS_SUMMARY}\nRun step7b_stochastic_slip.py first.")
+    with open(INPUT_JSON, encoding="utf-8") as fh:
+        cfg = json.load(fh)
+    ev = cfg["events"]
+    mw_min, dmw = float(ev["Mmin"]), float(ev["dMw"])
+    shear_modulus = float(ev.get("shear_modulus_Pa", 3.0e10))
+    with open(HS_SUMMARY, newline="") as fh:
+        rows = list(csv.DictReader(fh))
+    if not rows:
+        raise SystemExit("summary.csv has no fields")
+    cols = set(rows[0])
+    base = ["Mw", "faus_event_id", "event_index_string", "event_slip_string",
+            "weight_with_nonzero_rate"] + [
+        src for name, kind, src in LAYOUT
+        if src and not name.startswith("variable_mu_") and not name.endswith("_nonzero_rate")]
+    missing = [c for c in base if c not in cols]
+    if missing:
+        raise SystemExit(f"summary.csv lacks {missing}: re-run step7_run.py, then "
+                         f"step7b_stochastic_slip.py (7b leaves the rates out when "
+                         f"step 7's scenario_rates csv is missing or does not match)")
+    # variables that need step 7c's columns, or the weight columns of step 7
+    skipped = [name for name, kind, src in LAYOUT if src and src not in cols]
+    written = [(name, kind, src) for name, kind, src in LAYOUT
+               if name in ("event_index_string", "event_slip_string", "Mw", "sourcename")
+               or (src and src in cols)]
+    n = len(rows)
+
+    def col(name, dtype):
+        return np.array([r[name] for r in rows], dtype=dtype)
+
+    pairs = [sorted_by_unit_source(r["event_index_string"], r["event_slip_string"]) for r in rows]
+    index_str = [p[0] for p in pairs]
+    slip_str = [p[1] for p in pairs]
+    width = max(len(s) for s in index_str + slip_str + [ZONE])
+
+    mw = col("Mw", float)
+    k_bin = np.rint((mw - mw_min) / dmw)
+    if np.abs(mw - (mw_min + k_bin * dmw)).max() > 1e-6:
+        raise SystemExit(f"summary.csv has magnitudes off the grid Mmin {mw_min:g} + k x {dmw:g}")
+    mw = mw_min + k_bin * dmw  # R's seq(): Mmin + k * dMw, e.g. 7.6000000000000005
+
+    os.makedirs(OUT_DIR, exist_ok=True)
+    # classic netCDF with an unlimited row dimension, as PTHA18's own file
+    with netCDF4.Dataset(OUT_NC, "w", format="NETCDF3_CLASSIC") as ds:
+        ds.createDimension("max_nchar", width)
+        ds.createDimension("table_rows", None)
+        v = ds.createVariable("max_nchar", "i4", ("max_nchar",))
+        v.long_name = "dimension giving maximum number of string characters"
+        v[:] = np.arange(1, width + 1)
+        v = ds.createVariable("table_rows", "i4", ("table_rows",))
+        v.long_name = "dimension for rows of table"
+        v[:] = np.arange(1, n + 1)
+
+        text = {"event_index_string": index_str, "event_slip_string": slip_str,
+                "sourcename": [ZONE] * n}
+        for name, kind, src in written:
+            if kind == "str":
+                arr = np.array(text[name], dtype=f"S{width}")
+                ds.createVariable(name, "S1", ("table_rows", "max_nchar"))[:] = \
+                    netCDF4.stringtochar(arr)
+            elif name == "Mw":
+                ds.createVariable(name, "f8", ("table_rows",))[:] = mw
+            elif name == "target_lon":
+                ds.createVariable(name, "f8", ("table_rows",))[:] = np.mod(col(src, float), 360.0)
+            elif kind == "i4":
+                ds.createVariable(name, "i4", ("table_rows",))[:] = col(src, float).astype(np.int32)
+            else:
+                ds.createVariable(name, "f8", ("table_rows",))[:] = col(src, float)
+
+        ds.unit_source_statistics_file = "mesh/mesh_cell_corners.csv (written by step 3)"
+        zone_csv = f"scenario_rates_{ZONE}_source_zone.csv"  # the 0.5/0.5 mix, on a segmented zone
+        ds.corresponding_uniform_slip_events_file = "outputs/" + (
+            zone_csv if os.path.exists(os.path.join(EXAMPLE, "outputs", zone_csv)) else f"scenario_rates_{ZONE}.csv")
+        ds.slip_type = "stochastic slip"
+        ds.shear_modulus = f"{shear_modulus:g}"
+        ds.discretized_sources_file = "data/slab2/unit_source_grid.npy"
+        ds.parent_script_name = os.path.relpath(__file__, EXAMPLE).replace(os.sep, "/")
+        ds.source_summary_file = os.path.relpath(HS_SUMMARY, EXAMPLE).replace(os.sep, "/")
+        ds.python_session_info = (f"Python {platform.python_version()} ; {platform.platform()} ; "
+                                  f"numpy {np.__version__} ; netCDF4 {netCDF4.__version__}")
+
+    size_mb = os.path.getsize(OUT_NC) / 1e6
+    print(f"\n  {n:,} scenarios, {len(written) + 2} variables -> "
+          f"{os.path.relpath(OUT_NC, EXAMPLE)} ({size_mb:.0f} MB)")
+    if skipped:
+        print("  not written (their summary.csv columns are missing): " + ", ".join(skipped))
+        print("  (variable_mu_*: run step7c_variable_mu.py; weight_with_nonzero_rate: "
+              "re-run step7_run.py and step7b_stochastic_slip.py)")
+    print("\nNext:  step8_official.py (optional) or step9_report.py")
+
+
+if __name__ == "__main__":
+    sys.exit(main())

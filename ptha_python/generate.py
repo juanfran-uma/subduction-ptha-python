@@ -74,6 +74,7 @@ TEMPLATE_FILES = [
     "step7_run.py",
     "step7b_stochastic_slip.py",
     "step7c_variable_mu.py",
+    "step7d_export_nc.py",
     "step8_official.py",
     "step9_report.py",
     "step_total.py",
@@ -727,6 +728,7 @@ One step at a time, from the repository root:
     python {folder}/steps/step7_run.py               # logic tree, ruptures and rates
     python {folder}/steps/step7b_stochastic_slip.py  # HS and VAUS variants (optional)
     python {folder}/steps/step7c_variable_mu.py      # variable shear modulus rates (after 7b)
+    python {folder}/steps/step7d_export_nc.py        # HS scenarios as a PTHA18-style netCDF (after 7b, 7c)
     python {folder}/steps/step8_official.py          # PTHA18's official run (optional, needs R)
     python {folder}/steps/step9_report.py            # report.html
 

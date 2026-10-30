@@ -38,7 +38,8 @@ to 7e-13; HS and VAUS variable_mu_rate_annual of both zones to 4e-12.
 
 What it does
 ------------
-- needs step 7 (outputs/scenario_rates_{{ZONE}}.csv) and step 7b
+- needs step 7 (outputs/scenario_rates_{{ZONE}}.csv; on a segmented zone the
+  parent rates are the 0.5/0.5 mix of the *_source_zone*.csv files) and step 7b
   (outputs/hs_slip_fields/summary.csv, the HS scenarios)
 - writes inputs/input_{{ZONE}}_scratch_variable_mu.json (step 6's input plus
   a variable_shear_modulus block) and runs the engine on it
@@ -55,7 +56,8 @@ What it does
     logic_tree_summary_variable_mu.csv
 - adds to both outputs/hs_slip_fields/summary.csv and
   outputs/vaus_slip_fields/summary.csv: variable_mu_Mw,
-  variable_mu_weight_in_family and variable_mu_rate_* (the parent FAUS
+  variable_mu_weight_in_family, variable_mu_weight_with_nonzero_rate (the
+  parent's, as PTHA18) and variable_mu_rate_* (the parent FAUS
   rupture's variable shear modulus rates times that weight)
 
 Nothing step 7 or 7b wrote changes. Zones whose unit sources are normal
@@ -120,10 +122,13 @@ def add_variable_mu_rates(path, kind, faus_mu, stats, mu, relation):
                                area, np.asarray(stats["depth"], dtype=float))
     rate_cols = [c for c in faus_mu["columns"] if c.startswith("rate_")]
     for r, i, w, m in zip(rows, parent, weight, mw_mu):
-        r["variable_mu_Mw"] = f"{m:.4f}"
-        r["variable_mu_weight_in_family"] = f"{w:.6g}"
+        r["variable_mu_Mw"] = repr(float(m))
+        r["variable_mu_weight_in_family"] = repr(float(w))
+        if "variable_mu_weight_with_nonzero_rate" in faus_mu:
+            r["variable_mu_weight_with_nonzero_rate"] = repr(
+                float(faus_mu["variable_mu_weight_with_nonzero_rate"][i]))
         for c in rate_cols:
-            r[f"variable_mu_{c}"] = f"{w * faus_mu[c][i]:.6g}"
+            r[f"variable_mu_{c}"] = repr(float(w * faus_mu[c][i]))
     with open(path, "w", newline="") as fh:
         w = csv.DictWriter(fh, fieldnames=list(rows[0].keys()))
         w.writeheader()
@@ -167,14 +172,23 @@ def main():
     run_dir = os.path.join(ROOT, "runs", "python", cfg["run_name"])
 
     print("\n  [2/3] outputs")
-    same = filecmp.cmp(os.path.join(run_dir, f"scenario_rates_{ZONE}.csv"),
-                       os.path.join(OUT, f"scenario_rates_{ZONE}.csv"), shallow=False)
+    # the zone's rates, and on a segmented zone also the 0.5/0.5 mix of its
+    # unsegmented and segmented models (the *_source_zone.csv files)
+    checked = [f for f in (f"scenario_rates_{ZONE}.csv", f"scenario_rates_{ZONE}_source_zone.csv")
+               if os.path.exists(os.path.join(run_dir, f))]
+    same = all(os.path.exists(os.path.join(OUT, f))
+               and filecmp.cmp(os.path.join(run_dir, f), os.path.join(OUT, f), shallow=False)
+               for f in checked)
     print(f"      constant shear modulus scenario rates identical to step 7's: {same}")
     if not same:
         raise SystemExit("the engine's constant shear modulus results differ from "
                          "step 7's: re-run step7_run.py and step 7b first")
     copies = {f: f for f in os.listdir(run_dir) if "variable_mu" in f and f.endswith(".csv")}
     copies[f"logic_tree_branches_{ZONE}.csv"] = f"logic_tree_branches_{ZONE}_variable_mu.csv"
+    # on a segmented zone, each segment's own branch table too
+    for f in os.listdir(run_dir):
+        if f.startswith(f"logic_tree_branches_{ZONE}_") and f.endswith(".csv") and "variable_mu" not in f:
+            copies[f] = f[:-4] + "_variable_mu.csv"
     copies["logic_tree_summary.csv"] = "logic_tree_summary_variable_mu.csv"
     for src, dst in sorted(copies.items()):
         shutil.copyfile(os.path.join(run_dir, src), os.path.join(OUT, dst))
@@ -189,7 +203,12 @@ def main():
             pass
 
     print("\n  [3/3] HS and VAUS variable shear modulus rates")
-    with open(os.path.join(OUT, f"scenario_rates_{ZONE}_variable_mu.csv"), newline="") as fh:
+    # a segmented zone's published rates are the mix of its unsegmented and
+    # segmented models, which the engine writes as the zone-level file
+    zone_csv = os.path.join(OUT, f"scenario_rates_{ZONE}_source_zone_variable_mu.csv")
+    mu_csv = zone_csv if os.path.exists(zone_csv) else os.path.join(OUT, f"scenario_rates_{ZONE}_variable_mu.csv")
+    print(f"      parent rates read from {os.path.basename(mu_csv)}")
+    with open(mu_csv, newline="") as fh:
         faus_rows = list(csv.DictReader(fh))
     faus_mu = {"columns": list(faus_rows[0].keys())}
     for c in faus_mu["columns"]:
