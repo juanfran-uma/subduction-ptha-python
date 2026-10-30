@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Start here | ptha_python</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+.opt-tag { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 1px 7px; border-radius: 10px; background: var(--opt-soft); color: var(--muted); margin-left: 6px; vertical-align: 1px; }
+.why { color: var(--muted); font-size: 14px; margin: 4px 0 10px; }
+.why b { color: var(--ink); }
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="side" id="side"></nav>
+<main>
+
+<section id="top">
+  <div class="crumb">Start</div>
+  <h1>Start here: from zero to your first result</h1>
+  <p class="lead">This page takes you from an empty computer to an open report, one small step at a time. Click a step to open it. Every step says what you type, and what that does. You do not need to know Python to follow it. You only need to copy the commands into a terminal.</p>
+</section>
+
+<section>
+  <h2 id="picture">The whole path in one picture</h2>
+  <figure class="fig">
+    <svg viewBox="0 0 960 200" role="img" aria-label="Five stages: install once, choose a zone, generate a folder, run it, open the results">
+      <defs><marker id="gs-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8a93a3"/></marker></defs>
+      <g font-size="12.5">
+        <rect x="8" y="30" width="168" height="130" rx="10" fill="#fff" stroke="#8a93a3" stroke-width="1.6"/>
+        <text x="20" y="54" font-weight="700" font-size="14">1  Install</text>
+        <text x="20" y="76" fill="#5b6475">once per computer:</text>
+        <text x="20" y="94" fill="#5b6475">Python, the code and</text>
+        <text x="20" y="112" fill="#5b6475">its packages</text>
+        <rect x="200" y="30" width="168" height="130" rx="10" fill="#fff" stroke="#2e9e6b" stroke-width="1.6"/>
+        <text x="212" y="54" font-weight="700" font-size="14">2  Choose</text>
+        <text x="212" y="76" fill="#5b6475">which subduction zone</text>
+        <text x="212" y="94" fill="#5b6475">and which options</text>
+        <text x="212" y="112" fill="#5b6475">(this decides the result)</text>
+        <rect x="392" y="30" width="168" height="130" rx="10" fill="#fff" stroke="#2f6fdf" stroke-width="1.6"/>
+        <text x="404" y="54" font-weight="700" font-size="14">3  Generate</text>
+        <text x="404" y="76" fill="#5b6475">generate.py writes a</text>
+        <text x="404" y="94" fill="#5b6475">new folder with the</text>
+        <text x="404" y="112" fill="#5b6475">scripts for your zone</text>
+        <rect x="584" y="30" width="168" height="130" rx="10" fill="#fff" stroke="#2f6fdf" stroke-width="1.6"/>
+        <text x="596" y="54" font-weight="700" font-size="14">4  Run</text>
+        <text x="596" y="76" fill="#5b6475">step_total.py runs the</text>
+        <text x="596" y="94" fill="#5b6475">nine steps in order,</text>
+        <text x="596" y="112" fill="#5b6475">about 2 to 5 minutes</text>
+        <rect x="776" y="30" width="176" height="130" rx="10" fill="#fff" stroke="#eb6834" stroke-width="1.6"/>
+        <text x="788" y="54" font-weight="700" font-size="14">5  Open</text>
+        <text x="788" y="76" fill="#5b6475">report.html, the 3D mesh</text>
+        <text x="788" y="94" fill="#5b6475">page and the CSV files</text>
+        <text x="788" y="112" fill="#5b6475">with the rates</text>
+      </g>
+      <g stroke="#8a93a3" stroke-width="2" fill="none" marker-end="url(#gs-ar)"><path d="M176,95 L198,95"/><path d="M368,95 L390,95"/><path d="M560,95 L582,95"/><path d="M752,95 L774,95"/></g>
+      <text x="8" y="186" font-size="12" fill="#5b6475">Stage 1 is done once. Stages 2 to 5 are repeated for every zone you want to study.</text>
+    </svg>
+    <figcaption><b>The path.</b> Everything you create lives in one new folder per run, so nothing is ever overwritten.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <h2 id="steps">The steps</h2>
+  <p>Every command is typed in a terminal, from the <b>repository root</b>: the folder that holds <code>ptha_python/</code>, <code>rptha/</code> and <code>inputs_meshes/</code>. It is the folder that <code>git clone</code> creates.</p>
+
+  <details class="deep" open>
+    <summary>Step 1. Install what you need <span class="tag">once</span></summary>
+    <div class="body">
+      <p class="why"><b>What this does:</b> makes sure your computer has the three things the code needs. You only do it once.</p>
+      <ul>
+        <li><b>Python 3.13.</b> The code was written and run with this version. Check it with <code>python --version</code> (on macOS and Linux, <code>python3 --version</code>).</li>
+        <li><b>git</b>, to download the code. Check it with <code>git --version</code>.</li>
+        <li><b>An internet connection</b> for the first run of a zone (about 30 MB of earthquake catalogue is downloaded once).</li>
+        <li><b>R is not needed.</b> Only the optional comparison with PTHA18 (the last box below) uses it.</li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="deep">
+    <summary>Step 2. Get the code <span class="tag">once</span></summary>
+    <div class="body">
+      <p class="why"><b>What this does:</b> copies the repository to your computer and moves the terminal into it.</p>
+      <div class="code"><pre>git clone &lt;repository URL&gt;
+cd &lt;the cloned folder&gt;</pre></div>
+      <p>Replace the two placeholders with the address of the repository and the name of the folder that <code>git clone</code> creates. From now on, every command is typed in this folder.</p>
+    </div>
+  </details>
+
+  <details class="deep">
+    <summary>Step 3. Create the environment <span class="tag">once</span></summary>
+    <div class="body">
+      <p class="why"><b>What this does:</b> creates a private Python installation inside the folder (<code>.venv</code>) and installs the packages the code uses (numpy, scipy, pandas, matplotlib, shapely, geopandas, pyproj, netCDF4 and pillow). Nothing is installed in the rest of your computer. Pick your system:</p>
+      <div class="tabs">
+        <button data-pane="gs-ps" class="on">Windows PowerShell</button><button data-pane="gs-cmd">Windows cmd</button><button data-pane="gs-unix">macOS and Linux</button>
+      </div>
+      <div class="pane on" id="gs-ps"><div class="code"><pre>py -3.13 -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r requirements.txt</pre></div>If PowerShell refuses to run the activation script, type <code>Set-ExecutionPolicy -Scope CurrentUser RemoteSigned</code> once, and activate again.</div>
+      <div class="pane" id="gs-cmd"><div class="code"><pre>py -3.13 -m venv .venv
+.venv\Scripts\activate.bat
+pip install -r requirements.txt</pre></div></div>
+      <div class="pane" id="gs-unix"><div class="code"><pre>python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt</pre></div></div>
+      <p>When the environment is active, the prompt starts with <code>(.venv)</code>. <b>Activate it again every time you open a new terminal</b> (the second line above). Check that everything works:</p>
+      <div class="code"><pre>python ptha_python/generate.py --help</pre></div>
+      <p>It prints every option. A <code>ModuleNotFoundError</code> means the environment is not active, or the <code>pip install</code> did not finish.</p>
+    </div>
+  </details>
+
+  <details class="deep">
+    <summary>Step 4. Choose your zone <span class="tag">2 minutes</span></summary>
+    <div class="body">
+      <p class="why"><b>What this does:</b> lists the regions the code can build. Each region comes from a public model of the plate interface (SLAB2.0 or SLAB1.0, from the USGS).</p>
+      <div class="code"><pre>python ptha_python/list_regions.py</pre></div>
+      <p>You will need two names in the next step:</p>
+      <ul>
+        <li><b>The region</b> (for example <code>kermadec</code> or <code>calabria</code>): which part of the world to build. It is the first word of the generate command.</li>
+        <li><b>The zone</b> (for example <code>kermadectonga2</code>, passed with <code>--zone</code>): which source zone inside the region. Some regions hold several zones, so give it whenever you are not sure.</li>
+      </ul>
+      <p>The zones you can run, and the region that goes with each, are listed in <a href="zones.html">Zones you can run</a>. A ready-made command for each zone is in <a href="recipes.html">Recipes</a>.</p>
+    </div>
+  </details>
+
+  <details class="deep">
+    <summary>Step 5. Generate the folder <span class="tag">1 second</span></summary>
+    <div class="body">
+      <p class="why"><b>What this does:</b> writes a new folder with a copy of the nine step scripts, already filled in for your zone, plus a <code>README.md</code> and a <code>RUN.html</code> that record exactly what you asked for. It reads only local files, downloads nothing and takes a second or two.</p>
+      <div class="code"><pre>python ptha_python/generate.py kermadec --zone kermadectonga2 --folder kermadectonga2</pre></div>
+      <p><b>The options you give here decide what comes out.</b> The rest of the run only follows them. For a first run, the command above is enough. When you want something different, these are the choices that matter most:</p>
+      <div class="tbl"><table class="fixed">
+        <colgroup><col style="width:27%"><col style="width:73%"></colgroup>
+        <tr><th>Option</th><th>What it changes in the result</th></tr>
+        <tr><td><code>--zone</code></td><td>The source zone. It sets the literature values the run uses (largest magnitude, coupling, b value).</td></tr>
+        <tr><td><code>--rupture-size rptha|local</code></td><td>How big each rupture is. <code>rptha</code> is PTHA18's rule (one block of cells per magnitude). <code>local</code> sizes each rupture from the real area of the cells where it sits, which suits meshes whose cells vary a lot in size.</td></tr>
+        <tr><td><code>--columns</code> and <code>--cell-size</code></td><td>How the mesh is cut: how many unit sources along strike, and how large they are. This changes every number downstream.</td></tr>
+        <tr><td><code>--clip</code></td><td>Keeps only a window of the SLAB model, for a region that covers more than your zone.</td></tr>
+        <tr><td><code>--mesh-file</code></td><td>Uses your own mesh instead of building one from SLAB (see <a href="mesh_file.html">Your own mesh</a>).</td></tr>
+        <tr><td><code>--ptha true|false</code></td><td>Whether the steps may read PTHA18's own cell sizes (only for zones PTHA18 modelled). <code>false</code> uses public data only.</td></tr>
+      </table></div>
+      <div class="callout"><span class="lbl">The complete list is in the guide</span>Every option, its default and the combinations the program refuses are in <a href="reference.html#generate-options">Options, files, columns: generate.py options</a>. Read that table before you change anything: it is the key to what you will get. If you prefer to build the command by clicking, use the command builder at the end of the <a href="quickstart.html#generate">Quick start</a>.</div>
+      <p>If the folder name is already taken, <code>generate.py</code> never overwrites it: the new folder is called <code>NAME_2</code>, then <code>NAME_3</code>, and so on.</p>
+    </div>
+  </details>
+
+  <details class="deep">
+    <summary>Step 6. Run it <span class="tag">2 to 5 minutes</span></summary>
+    <div class="body">
+      <p class="why"><b>What this does:</b> runs the nine steps one after the other. The first run of a zone downloads about 30 MB of earthquake catalogue, and later runs reuse it.</p>
+      <div class="code"><pre>python kermadectonga2/steps/step_total.py --skip-official</pre></div>
+      <p>Use the folder name you chose in step 5. <code>--skip-official</code> leaves out the optional comparison with PTHA18, which needs R. The screen names each step as it starts (<code>&gt;&gt;&gt; step1_fetch_slab2.py</code>) and ends with <code>Done in 3.3 min. See kermadectonga2/report.html</code>. If a required step fails, the run stops there and prints why.</p>
+      <p>What each step does, in plain words:</p>
+      <div class="tbl"><table class="fixed">
+        <colgroup><col style="width:12%"><col style="width:28%"><col style="width:60%"></colgroup>
+        <tr><th>Run step</th><th>Name</th><th>What it does</th></tr>
+        <tr><td>1</td><td>Contours from SLAB</td><td>Reads the depth model of the plate interface and draws lines of equal depth, every 5 km below the trench. This is the shape of the fault.</td></tr>
+        <tr><td>2</td><td>The mesh</td><td>Cuts that surface into a grid of small rectangles, the <b>unit sources</b>. Everything later is computed per unit source.</td></tr>
+        <tr><td>3</td><td>Plate convergence</td><td>Looks up how fast the two plates approach each other along the trench (Bird, 2003). It also writes the <code>mesh/</code> folder with a <b>3D page of the mesh</b>.</td></tr>
+        <tr><td>4</td><td>GCMT catalogue</td><td>Downloads the Global CMT catalogue of past earthquakes (the only large download).</td></tr>
+        <tr><td>5</td><td>Earthquakes of the zone</td><td>Keeps the earthquakes that happened on this interface, to fit how often large ones occur.</td></tr>
+        <tr><td>6</td><td>The input file</td><td>Collects every number the engine needs into one file, <code>inputs/input_&lt;zone&gt;_scratch.json</code>, and notes where each number comes from.</td></tr>
+        <tr><td>7</td><td>Logic tree and rates</td><td>The engine. It builds the possible ruptures and computes how often each magnitude is exceeded, over many alternative models (the logic tree).</td></tr>
+        <tr><td>7b, 7c</td><td>Slip variants <span class="opt-tag">optional</span></td><td>7b builds ruptures with uneven slip. 7c uses a shear modulus that changes with depth (only with <code>--variable-mu on</code>).</td></tr>
+        <tr><td>8</td><td>PTHA18's own run <span class="opt-tag">optional</span></td><td>Runs the official PTHA18 inputs through the same engine, for a comparison. Needs R.</td></tr>
+        <tr><td>9</td><td>The report</td><td>Writes <code>report.html</code>, one page with every figure and number above.</td></tr>
+      </table></div>
+      <p>More detail on each step is in <a href="pipeline.html">The nine steps</a>.</p>
+    </div>
+  </details>
+
+  <details class="deep">
+    <summary>Step 7. Open the results <span class="tag">the reward</span></summary>
+    <div class="body">
+      <p class="why"><b>What this does:</b> nothing to type. Open these files by double-clicking them. They are inside the folder you generated.</p>
+      <div class="tbl"><table class="fixed">
+        <colgroup><col style="width:36%"><col style="width:64%"></colgroup>
+        <tr><th>File</th><th>What it is</th></tr>
+        <tr><td><code>report.html</code></td><td><b>Start here.</b> The whole run on one page: every step, the numbers, the mesh on a map and the exceedance-rate curve. <a href="report_guide.html">Reading report.html</a> explains it.</td></tr>
+        <tr><td><code>mesh/mesh_3d.html</code></td><td>The mesh in 3D and in plan, with the SLAB contours it was cut from and the length x width of every cell. Use it to check that the mesh follows the fault. Needs an internet connection to draw (it loads Plotly).</td></tr>
+        <tr><td><code>outputs/rate_curves.csv</code></td><td>The main result: how many earthquakes per year exceed each magnitude.</td></tr>
+        <tr><td><code>outputs/exceedance_rate_percentiles.csv</code></td><td>The same curve with its uncertainty (percentiles over the logic tree).</td></tr>
+        <tr><td><code>outputs/scenario_rates_&lt;zone&gt;.csv</code></td><td>The rate of every individual rupture scenario.</td></tr>
+        <tr><td><code>mesh/mesh_cell_corners.csv</code>, <code>mesh/mesh.dat</code></td><td>The mesh as plain text: the four corners of every cell (<code>mesh.dat</code> can be fed back to <code>generate.py</code> with <code>--mesh-file</code>).</td></tr>
+        <tr><td><code>RUN.html</code></td><td>The exact commands that created the folder. Keep it: it is the record of how to reproduce the run.</td></tr>
+      </table></div>
+    </div>
+  </details>
+
+  <details class="deep">
+    <summary>Step 8. Change a setting and run again <span class="tag">when you want</span></summary>
+    <div class="body">
+      <p class="why"><b>What this does:</b> lets you try a different setting without generating a new folder.</p>
+      <p>Two ways, depending on the setting:</p>
+      <ul>
+        <li><b>An option of generate.py</b> (step 5): generate a new folder with the new option. The old one stays untouched, so you can compare the two.</li>
+        <li><b>A constant at the top of a step script</b>: open the script in a text editor, change the value, and run that step and the ones after it again. For example, for cells of 40 km instead of 50 km, edit <code>DESIRED_LENGTH_KM</code> and <code>DESIRED_WIDTH_KM</code> in <code>steps/step2_build_grid.py</code>, then run the scripts <code>step2</code>, <code>step3</code>, <code>step5</code>, <code>step6</code> (with <code>--force</code>), <code>step7</code>, <code>step7b</code> and <code>step9</code> again, in that order.</li>
+      </ul>
+      <p>The table of which settings live where, and which steps to repeat, is in <a href="customise.html">Change a setting, re-run</a>.</p>
+    </div>
+  </details>
+
+  <details class="deep">
+    <summary>Extra: compare with PTHA18 <span class="opt-tag">optional, needs R</span></summary>
+    <div class="body">
+      <p class="why"><b>What this does:</b> for a zone that PTHA18 modelled, it also runs the official PTHA18 inputs and puts the two results side by side in the report.</p>
+      <p>It needs R with the rptha package and a one-time download of 1.34 GB. Leave out <code>--skip-official</code> in the run command (step 6 of this page) to try it. If R is missing, that step stops with a message, the rest of the run finishes and the report simply has no comparison. See <a href="official.html">The official PTHA18 run</a>.</p>
+    </div>
+  </details>
+</section>
+
+<section>
+  <h2 id="wrong">If something goes wrong</h2>
+  <div class="tbl"><table class="fixed">
+    <colgroup><col style="width:36%"><col style="width:64%"></colgroup>
+    <tr><th>What you see</th><th>What to do</th></tr>
+    <tr><td><code>ModuleNotFoundError</code></td><td>The environment is not active. Repeat the activation line of step 3 in this terminal.</td></tr>
+    <tr><td>PowerShell says running scripts is disabled</td><td>Type <code>Set-ExecutionPolicy -Scope CurrentUser RemoteSigned</code> once, then activate again.</td></tr>
+    <tr><td><code>matches more than one zone</code></td><td>Add <code>--zone</code> to the generate command (step 4 and step 5).</td></tr>
+    <tr><td>Step 1 stops with <code>HTTP 403</code></td><td>The USGS server refused a scripted download. The message names the file and the folder: download it in a browser and put it there, then run the step again.</td></tr>
+    <tr><td>A step stops with an error</td><td>Read the last lines it printed. <a href="troubleshooting.html">Troubleshooting</a> lists every message and its fix.</td></tr>
+  </table></div>
+</section>
+
+<section>
+  <h2 id="cheat">The short version</h2>
+  <p>After the installation, a new zone is only the two commands under "for every zone". This is the Windows PowerShell version; on macOS and Linux, use the activation line of step 3.</p>
+  <div class="code"><pre><span class="cm"># once</span>
+git clone &lt;repository URL&gt;
+cd &lt;the cloned folder&gt;
+py -3.13 -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+
+<span class="cm"># for every zone</span>
+python ptha_python/generate.py calabria --zone calabria2 --rupture-size local
+python calabria2/steps/step_total.py --skip-official
+<span class="cm"># then open calabria2/report.html and calabria2/mesh/mesh_3d.html</span></pre></div>
+</section>
+
+<nav class="pager" id="pager"></nav>
+
+</main>
+<aside class="toc" id="toc"></aside>
+</div>
+<script src="assets/nav.js"></script>
+</body>
+</html>

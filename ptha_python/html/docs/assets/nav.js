@@ -5,6 +5,7 @@
   var GROUPS = [
     ["Start", [
       ["index.html", "Home"],
+      ["getting_started.html", "Start here: step by step"],
       ["quickstart.html", "Quick start"],
       ["concepts.html", "PTHA in plain words"],
       ["pipeline.html", "The nine steps"]]],
