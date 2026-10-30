@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITLE__</title>
+<script src="https://cdn.plot.ly/plotly-3.6.0.min.js"></script>
+<style>
+  :root { color-scheme: light; --ink:#1f2328; --mute:#57606a; --line:#d8dee4; --bg:#f6f8fa; --card:#fff; --acc:#0969da;
+          --good:#c7ecd0; --mid:#fdecb0; --bad:#f8c8c4; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:system-ui,Segoe UI,Roboto,sans-serif; line-height:1.5; }
+  main { max-width:1240px; margin:0 auto; padding:20px 16px 40px; }
+  h1 { font-size:1.5rem; margin:0 0 4px; }
+  h2 { font-size:1.15rem; margin:30px 0 10px; }
+  p.sub { margin:0 0 14px; color:var(--mute); }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px 14px; }
+  .bar { display:flex; flex-wrap:wrap; gap:10px 28px; align-items:center; margin-bottom:10px; }
+  .grp { display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+  .lab { font-size:.85rem; color:var(--mute); margin-right:2px; }
+  button.opt { border:1px solid var(--line); background:#fff; color:var(--ink); padding:6px 12px; border-radius:7px; cursor:pointer; font-size:.9rem; }
+  button.opt[aria-pressed="true"] { border-color:var(--acc); background:#ddf4ff; font-weight:600; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin:12px 0; }
+  .stat { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 12px; }
+  .stat b { display:block; font-size:1.3rem; }
+  .stat span { font-size:.8rem; color:var(--mute); }
+  #mesh3d { height:680px; }
+  #plan2d { height:560px; }
+  #rowchart { height:320px; }
+  .wrap { overflow-x:auto; }
+  table { border-collapse:collapse; font-size:.78rem; }
+  th, td { border:1px solid var(--line); padding:3px 6px; text-align:center; white-space:nowrap; }
+  th { background:#f0f3f6; font-weight:600; }
+  td.good { background:var(--good); } td.mid { background:var(--mid); } td.bad { background:var(--bad); }
+  .lg { display:inline-block; width:12px; height:12px; border-radius:3px; margin:0 4px 0 12px; vertical-align:-2px; border:1px solid var(--line); }
+  .note { color:var(--mute); font-size:.88rem; }
+  ul { padding-left:20px; } li { margin:4px 0; }
+</style></head>
+<body><main>
+<h1>__TITLE__</h1>
+<p class="sub">__SUBTITLE__ Drag to rotate, scroll to zoom, hover a dot to see the cell's L (along strike) and W (down dip). The plots need an internet connection (Plotly is loaded from a CDN).</p>
+
+<div class="card">
+  <div class="bar">
+    <div class="grp"><span class="lab">Color by</span><span id="colbtns"></span></div>
+    <div class="grp"><span class="lab">Vertical exaggeration</span><span id="exbtns"></span></div>
+    <div class="grp"><button class="opt" id="slabbtn" aria-pressed="true">SLAB contours</button><button class="opt" id="lblbtn" aria-pressed="false">L x W labels</button></div>
+    <div class="grp"><span class="lab">View</span><button class="opt" id="vtrench">From the trench</button><button class="opt" id="vdeep">From the deep side</button><button class="opt" id="vtop">From above</button></div>
+  </div>
+  <p class="note" id="slabnote" style="margin:0 0 8px"></p>
+  <div id="mesh3d"></div>
+</div>
+
+<h2>Plan view (2D)</h2>
+<div class="card">
+  <p class="note" style="margin:0 0 8px">The same mesh seen from above, same colour and same SLAB contours as the 3D view. Use "L x W labels" to write each cell's numbers on it, and zoom with the mouse (the camera icon in the corner saves a PNG).</p>
+  <div id="plan2d"></div>
+</div>
+
+<div class="cards" id="stats"></div>
+
+<h2>How the mesh is read</h2>
+<div class="card">
+<svg viewBox="0 0 900 300" width="100%" role="img" aria-label="A cell has length L along strike and width W down dip">
+  <defs><marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#0969da"/></marker>
+        <marker id="ar2" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#bc4c00"/></marker></defs>
+  <rect x="30" y="30" width="400" height="240" fill="#fafbfc" stroke="#d8dee4"/>
+  <text x="40" y="22" font-size="14" font-weight="600" fill="#1f2328">The mesh seen from above</text>
+  <path d="M40,60 L420,60" stroke="#cf222e" stroke-width="5"/><text x="46" y="52" font-size="13" fill="#cf222e">trench (depth 0)</text>
+  <g stroke="#57606a" stroke-width="1.2" fill="none">
+    <path d="M40,60 L420,60 M40,115 L420,115 M40,170 L420,170 M40,225 L420,225"/>
+    <path d="M40,60 L40,225 M135,60 L135,225 M230,60 L230,225 M325,60 L325,225 M420,60 L420,225"/></g>
+  <rect x="135" y="115" width="95" height="55" fill="#ddf4ff" stroke="#0969da" stroke-width="2"/>
+  <path d="M135,184 L230,184" stroke="#0969da" stroke-width="2.5" marker-end="url(#ar)"/>
+  <text x="182" y="203" font-size="15" font-weight="700" fill="#0969da" text-anchor="middle" stroke="#fff" stroke-width="5" paint-order="stroke">L (along strike)</text>
+  <path d="M244,115 L244,170" stroke="#bc4c00" stroke-width="2.5" marker-end="url(#ar2)"/>
+  <text x="252" y="148" font-size="15" font-weight="700" fill="#bc4c00" stroke="#fff" stroke-width="5" paint-order="stroke">W (down dip)</text>
+  <text x="40" y="262" font-size="12" fill="#57606a">rows run from the trench down (row 1 = trench side); columns run along strike</text>
+  <text x="480" y="62" font-size="14" font-weight="600" fill="#1f2328">What each part of the page shows</text>
+  <text x="480" y="95" font-size="14" fill="#1f2328">3D and plan: the unit sources (cells) of this example</text>
+  <text x="480" y="125" font-size="14" fill="#1f2328">Grey lines: the SLAB contours the mesh was cut from,</text>
+  <text x="496" y="147" font-size="14" fill="#1f2328">so the cell rows should follow them</text>
+  <text x="480" y="177" font-size="14" fill="#1f2328">Red line: the trench (depth 0, row 1's upper edge)</text>
+  <text x="480" y="207" font-size="14" fill="#1f2328">Tables: L x W of every cell, in km</text>
+  <text x="480" y="245" font-size="13" fill="#57606a">Green cells: L and W both within 20% of the target (if known).</text>
+</svg>
+</div>
+
+<h2>Median L and W of each row (from the trench down)</h2>
+<div class="card"><div id="rowchart"></div></div>
+
+<h2>L x W of every cell (km)</h2>
+<div class="card">
+  <p class="note" style="margin:0 0 8px">Each cell is "L x W". Rows run from the trench (row 1) down; columns run along strike in the mesh's order.
+    <span id="legend"></span></p>
+  <div class="wrap"><table id="cells"></table></div>
+</div>
+
+<h2>How to read the numbers</h2>
+<div class="card"><ul id="notes"></ul></div>
+</main>
+<script>
+const D = __DATA__;
+const COLORS = {
+  depth: {label:"Depth", scale:"Viridis", reverse:true, title:"depth (km)"},
+  L: {label:"L (along strike)", scale:"Blues", reverse:false, title:"L (km)"},
+  W: {label:"W (down dip)", scale:"Oranges", reverse:false, title:"W (km)"}
+};
+if (D.tL && D.tW) COLORS.fit = {label:"Distance to target", scale:"YlOrRd", reverse:false, title:"distance to target (%)"};
+if (D.conv) COLORS.conv = {label:"Convergence", scale:"Blues", reverse:false, title:"convergence (mm/yr)"};
+const EXAG = [1, 4, 8];
+const st = {color:"depth", exag:4, labels:false, slab:true};
+const $ = id => document.getElementById(id);
+const q = a => { const s = a.slice().sort((x, y) => x - y), m = s.length >> 1;
+  return [s[0], s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2, s[s.length - 1]]; };
+const flat = M => M.reduce((a, r) => a.concat(r), []);
+const f0 = v => v.toFixed(0);
+const R = D.R, C = D.C, n = C + 1, X = flat(D.x), Y = flat(D.y), Z = flat(D.z);
+
+const PAL = {
+  Blues:["#deebf7","#c6dbef","#9ecae1","#6baed6","#4292c6","#2171b5","#08519c","#08306b"],
+  Oranges:["#fff5eb","#fee6ce","#fdd0a2","#fdae6b","#fd8d3c","#f16913","#d94801","#7f2704"],
+  YlOrRd:["#ffffcc","#ffeda0","#fed976","#feb24c","#fd8d3c","#fc4e2a","#e31a1c","#800026"],
+  Viridis:["#440154","#46327e","#365c8d","#277f8e","#1fa187","#4ac16d","#a0da39","#fde725"]};
+function palette(col) { return col.reverse ? PAL[col.scale].slice().reverse() : PAL[col.scale]; }
+function palScale(col) { const p = palette(col); return p.map((c, i) => [i / (p.length - 1), c]); }
+
+function mkButtons(host, items, key) {
+  const el = $(host); el.innerHTML = "";
+  items.forEach(it => {
+    const b = document.createElement("button"); b.className = "opt"; b.textContent = it.text;
+    b.setAttribute("aria-pressed", String(st[key] === it.value));
+    b.onclick = () => { st[key] = it.value; refresh(); };
+    el.appendChild(b);
+  });
+}
+
+function dev(r, c) {   // distance to the target, in %, the worse of L and W
+  return 100 * Math.max(Math.abs(D.L[r][c] / D.tL - 1), Math.abs(D.W[r][c] / D.tW - 1));
+}
+function cellValue(kind, r, c) {
+  if (kind === "depth") return D.D[r][c];
+  if (kind === "L") return D.L[r][c];
+  if (kind === "W") return D.W[r][c];
+  if (kind === "conv") return D.conv[r][c];
+  return dev(r, c);
+}
+function cellText(r, c) {
+  return `<b>Cell (row ${r + 1}, col ${c + 1})</b><br>L along strike: ${D.L[r][c].toFixed(1)} km<br>W down dip: ${D.W[r][c].toFixed(1)} km`
+    + `<br>Area: ${D.A[r][c].toFixed(0)} km2<br>Depth (centre): ${D.D[r][c].toFixed(1)} km<br>Strike ${D.strike[r][c].toFixed(0)}, dip ${D.dip[r][c].toFixed(0)} deg`
+    + `<br>Centre: ${D.lon[r][c].toFixed(2)}, ${D.lat[r][c].toFixed(2)}`
+    + (D.conv ? `<br>Convergence: ${D.conv[r][c].toFixed(1)} mm/yr` : "");
+}
+
+// the SLAB contours as one polyline per level, with a label at the end of each
+function contourTraces3d() {
+  if (!st.slab || !D.contours.length) return [];
+  const x = [], y = [], z = [], lx = [], ly = [], lz = [], lt = [];
+  D.contours.forEach(c => {
+    c.lines.forEach(l => { l.forEach(p => { x.push(p[0]); y.push(p[1]); z.push(-c.level); }); x.push(null); y.push(null); z.push(null); });
+    const l = c.lines[0], p = l[l.length - 1];
+    lx.push(p[0]); ly.push(p[1]); lz.push(-c.level); lt.push(c.level + " km");
+  });
+  return [{type:"scatter3d", mode:"lines", x, y, z, line:{color:"#6e7781", width:3}, hoverinfo:"skip"},
+          {type:"scatter3d", mode:"text", x:lx, y:ly, z:lz, text:lt, textfont:{size:9, color:"#57606a"}, hoverinfo:"skip"}];
+}
+
+function draw3d() {
+  const I = [], J = [], K = [], val = [], cx = [], cy = [], cz = [], txt = [], lbl = [];
+  for (let r = 0; r < R; r++) for (let c = 0; c < C; c++) {
+    const a = r * n + c, b = a + 1, e = a + n + 1, f = a + n, v = cellValue(st.color, r, c);
+    I.push(a, a); J.push(b, e); K.push(e, f); val.push(v, v);
+    const cs = [a, b, e, f];
+    cx.push(cs.reduce((s, i) => s + X[i], 0) / 4); cy.push(cs.reduce((s, i) => s + Y[i], 0) / 4); cz.push(cs.reduce((s, i) => s + Z[i], 0) / 4);
+    txt.push(cellText(r, c)); lbl.push(`${f0(D.L[r][c])}x${f0(D.W[r][c])}`);
+  }
+  const col = COLORS[st.color];
+  const mesh = {type:"mesh3d", x:X, y:Y, z:Z, i:I, j:J, k:K, intensity:val, intensitymode:"cell", colorscale:palScale(col),
+    flatshading:true, lighting:{ambient:1, diffuse:0, specular:0}, hoverinfo:"skip",
+    colorbar:{title:{text:col.title}, len:.6, thickness:14}};
+  const ex = [], ey = [], ez = [];
+  for (let r = 0; r <= R; r++) { for (let c = 0; c <= C; c++) { const i = r * n + c; ex.push(X[i]); ey.push(Y[i]); ez.push(Z[i]); } ex.push(null); ey.push(null); ez.push(null); }
+  for (let c = 0; c <= C; c++) { for (let r = 0; r <= R; r++) { const i = r * n + c; ex.push(X[i]); ey.push(Y[i]); ez.push(Z[i]); } ex.push(null); ey.push(null); ez.push(null); }
+  const edges = {type:"scatter3d", mode:"lines", x:ex, y:ey, z:ez, line:{color:"#1f2328", width:2}, hoverinfo:"skip"};
+  const tr = Array.from({length:n}, (_, c) => c);
+  const trench = {type:"scatter3d", mode:"lines", x:tr.map(i => X[i]), y:tr.map(i => Y[i]), z:tr.map(i => Z[i]), line:{color:"#cf222e", width:7}, hoverinfo:"skip"};
+  const dots = {type:"scatter3d", mode:"markers", x:cx, y:cy, z:cz, marker:{size:3, color:"#1f2328", opacity:.55}, hovertext:txt, hoverinfo:"text",
+    hoverlabel:{align:"left", bgcolor:"#fff", font:{color:"#1f2328"}}};
+  const traces = [mesh, edges, trench, dots, ...contourTraces3d()];
+  if (st.labels) traces.push({type:"scatter3d", mode:"text", x:cx, y:cy, z:cz.map(v => v + 0.4), text:lbl, textfont:{size:9, color:"#1f2328"}, hoverinfo:"skip"});
+  const span = a => Math.max(...a) - Math.min(...a);
+  const sx = span(X), sy = span(Y), sz = span(Z), mx = Math.max(sx, sy);
+  const layout = {margin:{l:0, r:0, t:0, b:0}, paper_bgcolor:"#fff", showlegend:false, uirevision:"3d",
+    scene:{aspectmode:"manual", aspectratio:{x:sx / mx, y:sy / mx, z:Math.min(sz * st.exag / mx, 1)},
+      xaxis:{title:{text:"x (km, UTM)"}, backgroundcolor:"#f6f8fa", gridcolor:"#d8dee4"},
+      yaxis:{title:{text:"y (km, UTM)"}, backgroundcolor:"#f6f8fa", gridcolor:"#d8dee4"},
+      zaxis:{title:{text:"z (km, depth = negative)"}, backgroundcolor:"#f6f8fa", gridcolor:"#d8dee4"},
+      camera:{eye:{x:0.15, y:-0.95, z:0.75}}}};
+  Plotly.react("mesh3d", traces, layout, {responsive:true});
+}
+
+function draw2d() {
+  const NB = 8, col = COLORS[st.color], pal = palette(col);
+  const vals = [];
+  for (let r = 0; r < R; r++) for (let c = 0; c < C; c++) vals.push(cellValue(st.color, r, c));
+  const lo = Math.min(...vals), hi = Math.max(...vals), step = (hi - lo) / NB || 1;
+  const bins = Array.from({length:NB}, () => ({x:[], y:[]}));
+  const cx = [], cy = [], txt = [], lbl = [];
+  let k = 0;
+  for (let r = 0; r < R; r++) for (let c = 0; c < C; c++, k++) {
+    const a = r * n + c, ids = [a, a + 1, a + n + 1, a + n, a];
+    const b = bins[Math.min(NB - 1, Math.floor((vals[k] - lo) / step))];
+    ids.forEach(i => { b.x.push(X[i]); b.y.push(Y[i]); }); b.x.push(null); b.y.push(null);
+    cx.push(ids.slice(0, 4).reduce((s, i) => s + X[i], 0) / 4); cy.push(ids.slice(0, 4).reduce((s, i) => s + Y[i], 0) / 4);
+    txt.push(cellText(r, c)); lbl.push(`${f0(D.L[r][c])}x${f0(D.W[r][c])}`);
+  }
+  const traces = bins.map((b, i) => ({type:"scatter", mode:"lines", x:b.x, y:b.y, fill:"toself", fillcolor:pal[i], line:{color:"#1f2328", width:1},
+    hoverinfo:"skip", showlegend:false}));
+  bins.forEach((b, i) => { if (b.x.length) traces.push({type:"scatter", mode:"markers", x:[null], y:[null], marker:{symbol:"square", size:13, color:pal[i], line:{color:"#1f2328", width:1}},
+    name:`${(lo + i * step).toFixed(0)} to ${(lo + (i + 1) * step).toFixed(0)}`}); });
+  if (st.slab) D.contours.forEach((c, i) => {
+    const x = [], y = [];
+    c.lines.forEach(l => { l.forEach(p => { x.push(p[0]); y.push(p[1]); }); x.push(null); y.push(null); });
+    traces.push({type:"scatter", mode:"lines", x, y, line:{color:"#6e7781", width:2, dash:"dot"}, hoverinfo:"text", hovertext:c.level + " km contour", showlegend:i === 0, name:"SLAB contours"});
+  });
+  const tr = Array.from({length:n}, (_, c) => c);
+  traces.push({type:"scatter", mode:"lines", x:tr.map(i => X[i]), y:tr.map(i => Y[i]), line:{color:"#cf222e", width:4}, name:"trench", hoverinfo:"skip"});
+  traces.push({type:"scatter", mode:"markers", x:cx, y:cy, marker:{size:5, color:"rgba(31,35,40,.35)"}, hovertext:txt, hoverinfo:"text", showlegend:false,
+    hoverlabel:{align:"left", bgcolor:"#fff", font:{color:"#1f2328"}}});
+  if (st.labels) traces.push({type:"scatter", mode:"text", x:cx, y:cy, text:lbl, textfont:{size:C > 30 ? 8 : 10, color:"#1f2328"}, hoverinfo:"skip", showlegend:false});
+  Plotly.react("plan2d", traces, {margin:{l:55, r:10, t:10, b:45}, paper_bgcolor:"#fff", plot_bgcolor:"#fff",
+    xaxis:{title:{text:"x (km, UTM)"}, gridcolor:"#e5e9ee"}, yaxis:{title:{text:"y (km, UTM)"}, gridcolor:"#e5e9ee", scaleanchor:"x"},
+    legend:{title:{text:col.title}, orientation:"v"}, uirevision:"2d"}, {responsive:true, toImageButtonOptions:{format:"png", scale:3, filename:D.name + "_mesh_plan"}});
+}
+
+function drawStats() {
+  const L = flat(D.L), W = flat(D.W);
+  const [l0, l1, l2] = q(L), [w0, w1, w2] = q(W);
+  const items = [[`${C} x ${R}`, "columns x rows"], [L.length, "cells"], [`${f0(l0)} / ${f0(l1)} / ${f0(l2)}`, "L min / median / max (km)"],
+    [`${f0(w0)} / ${f0(w1)} / ${f0(w2)}`, "W min / median / max (km)"], [`${f0(D.trench_km)} / ${f0(D.deep_km)}`, "trench / deepest row length (km)"],
+    [`${D.depth_max.toFixed(0)} km`, "deepest node"]];
+  let ok = null;
+  if (D.tL && D.tW) {
+    const inr = (v, t) => Math.abs(v / t - 1) <= .2;
+    ok = L.filter((v, i) => inr(v, D.tL) && inr(W[i], D.tW)).length;
+    items.splice(4, 0, [`${(100 * ok / L.length).toFixed(0)}%`, `cells with L and W within 20% of ${D.tL} x ${D.tW} km`]);
+  }
+  $("stats").innerHTML = items.map(([a, b]) => `<div class="stat"><b>${a}</b><span>${b}</span></div>`).join("");
+  return {l0, l1, l2, w0, w1, w2, ok};
+}
+
+function drawTable() {
+  const has = D.tL && D.tW, inr = (v, t) => Math.abs(v / t - 1) <= .2;
+  $("legend").innerHTML = has ? `<span class="lg" style="background:var(--good)"></span>L and W both within 20% of the target (${D.tL} x ${D.tW} km)
+    <span class="lg" style="background:var(--mid)"></span>one of them <span class="lg" style="background:var(--bad)"></span>neither` : "(no target size is recorded for this mesh, so the cells are not coloured)";
+  let h = "<tr><th>row \\ col</th>";
+  for (let c = 0; c < C; c++) h += `<th>${c + 1}</th>`;
+  h += "<th>median L x W</th></tr>";
+  for (let r = 0; r < R; r++) {
+    const tag = r === 0 ? " (trench)" : r === R - 1 ? " (deepest)" : "";
+    h += `<tr><th>${r + 1}${tag}</th>`;
+    for (let c = 0; c < C; c++) {
+      const L = D.L[r][c], W = D.W[r][c];
+      const k = !has ? "" : inr(L, D.tL) && inr(W, D.tW) ? "good" : inr(L, D.tL) || inr(W, D.tW) ? "mid" : "bad";
+      h += `<td class="${k}" title="area ${D.A[r][c].toFixed(0)} km2, depth ${D.D[r][c].toFixed(1)} km">${f0(L)} x ${f0(W)}</td>`;
+    }
+    h += `<td><b>${f0(q(D.L[r])[1])} x ${f0(q(D.W[r])[1])}</b></td></tr>`;
+  }
+  $("cells").innerHTML = h;
+}
+
+function drawRows() {
+  const x = D.L.map((_, r) => r + 1);
+  const traces = [
+    {type:"scatter", mode:"lines+markers", x, y:D.L.map(r => q(r)[1]), name:"L (along strike)", line:{color:"#0969da", width:2.5}, marker:{size:7}},
+    {type:"scatter", mode:"lines+markers", x, y:D.W.map(r => q(r)[1]), name:"W (down dip)", line:{color:"#bc4c00", width:2.5}, marker:{size:7, symbol:"square"}}];
+  const shapes = [], notes = [];
+  if (D.tL) { shapes.push({type:"line", xref:"paper", x0:0, x1:1, y0:D.tL, y1:D.tL, line:{color:"#0969da", dash:"dash", width:1.2}}); }
+  if (D.tW) { shapes.push({type:"line", xref:"paper", x0:0, x1:1, y0:D.tW, y1:D.tW, line:{color:"#bc4c00", dash:"dash", width:1.2}}); }
+  Plotly.react("rowchart", traces, {margin:{l:50, r:10, t:10, b:45}, paper_bgcolor:"#fff", plot_bgcolor:"#fff",
+    xaxis:{title:{text:"row (1 = next to the trench)"}, dtick:1, gridcolor:"#e5e9ee"}, yaxis:{title:{text:"km (dashed: target)"}, rangemode:"tozero", gridcolor:"#e5e9ee"},
+    legend:{orientation:"h", y:-0.3}, shapes}, {responsive:true});
+}
+
+function drawNotes(s) {
+  const items = [
+    `<b>${D.name}</b>: ${C} columns x ${R} rows = ${C * R} cells. The trench is ${f0(D.trench_km)} km long and the deepest row ${f0(D.deep_km)} km.`,
+    `L goes from ${f0(s.l0)} to ${f0(s.l2)} km (median ${f0(s.l1)}) and W from ${f0(s.w0)} to ${f0(s.w2)} km (median ${f0(s.w1)})`
+      + (s.ok === null ? "." : `. ${(100 * s.ok / (C * R)).toFixed(0)}% of the cells have both within 20% of the target (${D.tL} x ${D.tW} km).`),
+    "L is the mean of a cell's two along-strike edges and W the mean of its two down-dip edges, as 3D lengths (UTM kilometres with the depth). They are not the engine's rupture-builder sizes (area / L), which come out smaller for W.",
+    "A row's L is not constant: with the same number of columns in every row, a row that is shorter than the trench has shorter cells. W is a down-dip edge length, which changes along strike because the slab is wider in some places than in others.",
+    `The 3D picture draws depth with a vertical exaggeration (${st.exag}x here); otherwise a slab ${D.depth_max.toFixed(0)} km deep under an arc hundreds of km long would look flat. The plan view has no exaggeration.`,
+    D.contours.length ? `The grey SLAB contours (${D.contours.length} levels, ${D.contours[0].level} to ${D.contours[D.contours.length - 1].level} km below the trench) are the lines step 1 cut from the SLAB model and step 2 built the rows on; a mesh that cuts well has its trench edge on the red line and its rows following the contours.` : "No SLAB contours are available for this example (an external mesh was used), so only the mesh is drawn."
+  ];
+  $("notes").innerHTML = items.map(t => `<li>${t}</li>`).join("");
+}
+
+function refresh() {
+  mkButtons("colbtns", Object.keys(COLORS).map(k => ({text:COLORS[k].label, value:k})), "color");
+  mkButtons("exbtns", EXAG.map(e => ({text:e + "x", value:e})), "exag");
+  $("lblbtn").setAttribute("aria-pressed", String(st.labels));
+  $("slabbtn").setAttribute("aria-pressed", String(st.slab));
+  $("slabnote").textContent = D.contours.length ? "" : "No SLAB contours for this example (external mesh).";
+  draw3d(); draw2d(); const s = drawStats(); drawTable(); drawRows(); drawNotes(s);
+}
+const VIEWS = {vtrench:{x:0, y:-1.7, z:0.6}, vdeep:{x:0, y:1.7, z:0.6}, vtop:{x:0, y:-0.01, z:2.2}};
+Object.keys(VIEWS).forEach(id => { $(id).onclick = () => Plotly.relayout("mesh3d", {"scene.camera.eye":VIEWS[id]}); });
+$("lblbtn").onclick = () => { st.labels = !st.labels; refresh(); };
+$("slabbtn").onclick = () => { st.slab = !st.slab; refresh(); };
+refresh();
+</script></body></html>

@@ -86,6 +86,7 @@ sys.path.insert(0, os.path.join(ROOT, "{{PKG}}", "lib"))  # helper modules
 from {{PYPKG}} import unit_sources as us  # noqa: E402
 import bird_convergence as bc  # noqa: E402
 from berryman_params import zone_plate_pairs  # noqa: E402
+from export_mesh import write_mesh_folder  # noqa: E402
 
 GRID_NPY = os.path.join(EXAMPLE, "data", "slab2", "unit_source_grid.npy")
 OUT_TXT = os.path.join(EXAMPLE, "data", "convergence.txt")
@@ -250,6 +251,14 @@ def main():
             "area_weighted_mean_mm_per_yr": col["area_weighted_mean_mm_per_yr"],
         }, f, indent=1)
     print(f"  saved per-column convergence -> {OUT_PERCOLUMN_JSON}")
+
+    # The mesh as plain files (mesh.dat, mesh_cell_corners.csv, unit_source_grid.npy),
+    # with the per-cell convergence in the CSV. Last, and not fatal: a problem here
+    # must not leave the files above half-written.
+    try:
+        print(f"  saved the mesh -> {write_mesh_folder(EXAMPLE)}")
+    except Exception as e:  # noqa: BLE001
+        print(f"  WARNING: mesh/ not written ({e})")
     print("\nNext:  step4_fetch_gcmt.py")
 
 
