@@ -73,6 +73,7 @@ STEPS = [
     ("step7_run.py", True),
     ("step7b_stochastic_slip.py", False),  # optional: illustrative HS + VAUS
     ("step7c_variable_mu.py", False),  # optional: needs 7b's HS scenarios
+    ("step7d_export_nc.py", False),  # optional: 7b's HS scenarios as a netCDF
     ("step8_official.py", False),  # optional: needs R + rptha
     ("step9_report.py", True),
 ]
@@ -107,8 +108,9 @@ def main():
                     help="skip step8_official.py entirely, without trying it")
     ap.add_argument("--skip-hs", action="store_true",
                     help="skip step7b_stochastic_slip.py (and "
-                         "step7c_variable_mu.py, which needs its HS "
-                         "scenarios) entirely, without trying them")
+                         "step7c_variable_mu.py and step7d_export_nc.py, "
+                         "which need its HS scenarios) entirely, without "
+                         "trying them")
     ap.add_argument("--auto-clip", action="store_true",
                     help="pass --auto-clip to step 1, so it cuts the "
                          "along-strike columns a previous run's step 3 "
@@ -136,7 +138,8 @@ def main():
             print(f"\n>>> skipping {fname} (generated with --variable-mu off: "
                   f"constant rigidity only)")
             continue
-        if fname in ("step7b_stochastic_slip.py", "step7c_variable_mu.py") and args.skip_hs:
+        if fname in ("step7b_stochastic_slip.py", "step7c_variable_mu.py",
+                     "step7d_export_nc.py") and args.skip_hs:
             print(f"\n>>> skipping {fname} (--skip-hs)")
             continue
 
@@ -181,6 +184,11 @@ def main():
                      f"never fed back into the logic tree), so continuing "
                      f"to the next step. The final report will be complete "
                      f"for LEVELs 0-5, just without an HS/VAUS section.")
+            elif fname == "step7d_export_nc.py":
+                print(f"\n{fname} failed (exit {result.returncode}), this "
+                      f"step is optional (the HS scenarios as a PTHA18-style "
+                      f"netCDF in outputs/nc/), so continuing. It needs "
+                      f"step 7b's outputs/hs_slip_fields/summary.csv.")
             else:
                 print(f"\n{fname} failed (exit {result.returncode}), this step "
                      f"is optional (needs R + rptha, and needs this zone to be "

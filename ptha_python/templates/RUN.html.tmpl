@@ -276,7 +276,7 @@ a{color:var(--accent-2)}
   <p class="sec-note" style="margin-bottom:10px"><strong>2. Run all the steps at once.</strong> <code>step_total.py</code> adds a line below each time it finishes a run, with the flags it was given:</p>
   <!-- RUNS:BEGIN -->
   <!-- RUNS:END -->
-  <p class="sec-note" style="margin-bottom:10px"><strong>Or run the steps one at a time</strong>, in this order (these are not recorded; step 7b makes the HS and VAUS slip fields, step 7c needs <code>--variable-mu on</code> at generation, step 8 needs R):</p>
+  <p class="sec-note" style="margin-bottom:10px"><strong>Or run the steps one at a time</strong>, in this order (these are not recorded; step 7b makes the HS and VAUS slip fields, step 7c needs <code>--variable-mu on</code> at generation, step 7d writes the HS scenarios as a PTHA18-style netCDF, step 8 needs R):</p>
   <div class="cmd"><code><span class="p">$ </span>python {{FOLDER}}/steps/step1_fetch_slab2.py
 <span class="p">$ </span>python {{FOLDER}}/steps/step2_build_grid.py
 <span class="p">$ </span>python {{FOLDER}}/steps/step3_convergence.py
@@ -286,6 +286,7 @@ a{color:var(--accent-2)}
 <span class="p">$ </span>python {{FOLDER}}/steps/step7_run.py
 <span class="p">$ </span>python {{FOLDER}}/steps/step7b_stochastic_slip.py
 <span class="p">$ </span>python {{FOLDER}}/steps/step7c_variable_mu.py
+<span class="p">$ </span>python {{FOLDER}}/steps/step7d_export_nc.py
 <span class="p">$ </span>python {{FOLDER}}/steps/step8_official.py
 <span class="p">$ </span>python {{FOLDER}}/steps/step9_report.py</code></div>
 </section>

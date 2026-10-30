@@ -24,6 +24,7 @@
 /examples/**/data/gcmt/gcmt_catalogue_*.csv
 /examples/**/outputs/hs_slip_fields/
 /examples/**/outputs/vaus_slip_fields/
+/examples/**/outputs/nc/
 /examples/**/outputs/logic_tree_branches_*.csv
 /examples/**/outputs_official/logic_tree_branches_*.csv
 

@@ -37,13 +37,15 @@ km. See ptha_python/html/docs/rupture_size.html.
 HS and VAUS rates, as PTHA18 computes them
 (compute_rates_all_sources.R 1551-1600, fixed shear modulus; see
 {{PYPKG}}/hs_vaus_rates.py). Each field shares the rate of the FAUS rupture
-it was drawn from (step 7's outputs/scenario_rates_{{ZONE}}.csv): a field
+it was drawn from (step 7's outputs/scenario_rates_{{ZONE}}.csv, or on a
+segmented zone its 0.5/0.5 mix, scenario_rates_{{ZONE}}_source_zone.csv): a field
 with peak slip above 7.5 times the scaling relation's mean slip for that Mw
 gets rate 0; the others are weighted by their peak-slip rank in the family
 (PTHA18's DART-calibrated table, recovered in
 data/ptha18_peak_slip_quantile_weights.csv) and the weights of a family sum
 to 1. Both summary.csv files also hold faus_event_id, above_peak_slip_limit,
-weight_in_family and the parent's rate columns times that weight. Without
+weight_in_family, weight_with_nonzero_rate (the parent's, as PTHA18) and the
+parent's rate columns times that weight. Without
 step 7's file (step 7b run first) the rate columns are left out. These
 rates feed nothing in LEVELs 0-5.
 
@@ -500,7 +502,11 @@ def add_rates(rows, kind, parent, peak_slip, parent_Mw, all_eq,
 
     `parent` is each field's 0-based row in all_eq, `peak_slip` its exact
     peak slip (the CSV keeps 3 decimals), in generation order."""
-    path = os.path.join(EXAMPLE, "outputs", f"scenario_rates_{ZONE}.csv")
+    # a segmented zone's rates are the mix of its unsegmented and segmented
+    # models, which the engine writes as the zone-level file
+    path = os.path.join(EXAMPLE, "outputs", f"scenario_rates_{ZONE}_source_zone.csv")
+    if not os.path.exists(path):
+        path = os.path.join(EXAMPLE, "outputs", f"scenario_rates_{ZONE}.csv")
     if not os.path.exists(path):
         return (f"{kind}: no rates ({os.path.basename(path)} not found; "
                 f"run step7_run.py first)")
@@ -516,9 +522,12 @@ def add_rates(rows, kind, parent, peak_slip, parent_Mw, all_eq,
         relation=scaling_relation)
     for row, ev_i, w, a in zip(rows, parent, weight, above):
         row["above_peak_slip_limit"] = int(a)
-        row["weight_in_family"] = f"{w:.6g}"
+        row["weight_in_family"] = repr(float(w))
+        if "weight_with_nonzero_rate" in faus[ev_i]:
+            # PTHA18 gives a scenario its parent's weight_with_nonzero_rate
+            row["weight_with_nonzero_rate"] = faus[ev_i]["weight_with_nonzero_rate"]
         for c in rate_cols:
-            row[c] = f"{w * float(faus[ev_i][c]):.6g}"
+            row[c] = repr(float(w * float(faus[ev_i][c])))
     lost = sum(float(faus[i]["rate_mean"]) for i in set(parent)
                if weight[np.asarray(parent) == i].sum() == 0)
     return (f"{kind}: {int(above.sum())} of {len(rows)} field(s) above "
@@ -845,11 +854,11 @@ def main():
                     "rupture_type": "HS", "Mw": f"{mw:.2f}",
                     "placement": p + 1, "realisation": r_i + 1,
                     "faus_event_id": int(ev_i) + 1,
-                    "target_lon": f"{target_lon:.6f}", "target_lat": f"{target_lat:.6f}",
+                    "target_lon": repr(float(target_lon)), "target_lat": repr(float(target_lat)),
                     "peak_slip_downdip_ind": peak_dd_ind,
                     "peak_slip_alongstrike_ind": peak_as_ind,
-                    "physical_corner_wavenumber_x": f"{phys_kcx:.6g}",
-                    "physical_corner_wavenumber_y": f"{phys_kcy:.6g}",
+                    "physical_corner_wavenumber_x": repr(float(phys_kcx)),
+                    "physical_corner_wavenumber_y": repr(float(phys_kcy)),
                     "n_unit_sources": int(active.sum()),
                     "peak_slip_m": f"{het.max():.3f}",
                     "total_slip_m": f"{het.sum():.3f}",
@@ -917,11 +926,11 @@ def main():
                     "rupture_type": "VAUS", "Mw": f"{mw:.2f}",
                     "placement": p + 1, "realisation": r_i + 1,
                     "faus_event_id": int(ev_i) + 1,
-                    "target_lon": f"{target_lon:.6f}", "target_lat": f"{target_lat:.6f}",
+                    "target_lon": repr(float(target_lon)), "target_lat": repr(float(target_lat)),
                     "peak_slip_downdip_ind": peak_dd_ind,
                     "peak_slip_alongstrike_ind": peak_as_ind,
-                    "physical_corner_wavenumber_x": f"{phys_kcx:.6g}",
-                    "physical_corner_wavenumber_y": f"{phys_kcy:.6g}",
+                    "physical_corner_wavenumber_x": repr(float(phys_kcx)),
+                    "physical_corner_wavenumber_y": repr(float(phys_kcy)),
                     "n_unit_sources": int(vaus_subfaults.size),
                     "peak_slip_m": f"{vaus_uniform_slip:.3f}",
                     "total_slip_m": f"{vaus_uniform_slip * vaus_subfaults.size:.3f}",
