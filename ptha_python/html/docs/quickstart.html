@@ -72,15 +72,15 @@ select, input[type=text], input[type=number] { width: 100%; padding: 7px 10px; b
       <div class="code"><pre>git clone &lt;repository URL&gt;
 cd &lt;the cloned folder&gt;</pre></div>
       The folders that <code>generate.py</code> creates are listed in <code>.gitignore</code>, so a zone run never shows up in <code>git status</code> and is never committed by accident.</li>
-    <li><b>Check Python.</b> The code was written and run with <b>Python 3.13</b>; other versions were not tested. <code>python --version</code> must print 3.13.x. On Windows with several versions installed, <code>py -3.13</code> picks the right one. On macOS and Linux the command may be <code>python3</code> until the environment below is active.</li>
+    <li><b>Check Python.</b> The code was tested on <b>Python 3.11 and 3.13</b>; use 3.11 or newer. Older versions were not tested. <code>python --version</code> must print 3.11 or higher. On Windows with several versions installed, write <code>py -3.11</code> or <code>py -3.13</code> instead of <code>py</code> in the <code>venv</code> command below to pick one. On macOS and Linux the command may be <code>python3</code> until the environment below is active.</li>
     <li><b>Create a virtual environment and install the packages</b> of <code>requirements.txt</code> (numpy, scipy, pandas, matplotlib, shapely, geopandas, pyproj, netCDF4 and pillow; certifi, which step 4 uses, comes with pyproj).
       <div class="tabs">
         <button data-pane="qs-ps" class="on">Windows PowerShell</button><button data-pane="qs-cmd">Windows cmd</button><button data-pane="qs-unix">macOS and Linux</button>
       </div>
-      <div class="pane on" id="qs-ps"><div class="code"><pre>py -3.13 -m venv .venv
+      <div class="pane on" id="qs-ps"><div class="code"><pre>py -m venv .venv
 .venv\Scripts\Activate.ps1
 pip install -r requirements.txt</pre></div>If PowerShell refuses to run the activation script, run <code>Set-ExecutionPolicy -Scope CurrentUser RemoteSigned</code> once and activate again.</div>
-      <div class="pane" id="qs-cmd"><div class="code"><pre>py -3.13 -m venv .venv
+      <div class="pane" id="qs-cmd"><div class="code"><pre>py -m venv .venv
 .venv\Scripts\activate.bat
 pip install -r requirements.txt</pre></div></div>
       <div class="pane" id="qs-unix"><div class="code"><pre>python3 -m venv .venv

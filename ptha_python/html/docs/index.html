@@ -117,7 +117,7 @@
 
 <section id="start">
   <h2 id="one-minute-run">A complete first run</h2>
-  <p>After <code>git clone</code>, create a virtual environment with Python 3.13 and run <code>pip install -r requirements.txt</code> (the exact commands for Windows, macOS and Linux are in the <a href="quickstart.html#install">Quick start</a>). Then, from the repository root, generate a folder for a zone and run all its steps. The Quick start also explains each option, what needs the network, and has a command builder.</p>
+  <p>After <code>git clone</code>, create a virtual environment with Python 3.11 or newer and run <code>pip install -r requirements.txt</code> (the exact commands for Windows, macOS and Linux are in the <a href="quickstart.html#install">Quick start</a>). Then, from the repository root, generate a folder for a zone and run all its steps. The Quick start also explains each option, what needs the network, and has a command builder.</p>
   <div class="code"><pre>python ptha_python/generate.py kermadec --zone kermadectonga2 --folder kermadectonga2
 python kermadectonga2/steps/step_total.py --skip-official     <span class="cm"># steps 1-9; step 8 needs R</span></pre></div>
   <p>Then open <code>kermadectonga2/report.html</code> in a browser. In the reference runs of this package (meshes of 26 to 312 unit sources, step 8 skipped, the data already downloaded) a complete run took between 2.1 and 4.6 minutes. The first run also downloads the GCMT catalogue (about 30 MB), and a zone whose SLAB grid is not shipped with the package downloads that too.</p>

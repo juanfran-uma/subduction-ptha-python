@@ -1,4 +1,4 @@
-# Python 3.13 (the versions below are the ones the code was run with).
+# Python 3.11 or newer (tested on 3.11 and 3.13). The versions below are minimums.
 numpy>=2.0
 scipy>=1.13
 pandas>=2.2

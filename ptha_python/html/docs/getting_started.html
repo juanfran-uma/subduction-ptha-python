@@ -70,7 +70,7 @@
     <div class="body">
       <p class="why"><b>What this does:</b> makes sure your computer has the three things the code needs. You only do it once.</p>
       <ul>
-        <li><b>Python 3.13.</b> The code was written and run with this version. Check it with <code>python --version</code> (on macOS and Linux, <code>python3 --version</code>).</li>
+        <li><b>Python 3.11 or newer.</b> The code was tested on 3.11 and 3.13; older versions were not tested. Check it with <code>python --version</code> (on macOS and Linux, <code>python3 --version</code>).</li>
         <li><b>git</b>, to download the code. Check it with <code>git --version</code>.</li>
         <li><b>An internet connection</b> for the first run of a zone (about 30 MB of earthquake catalogue is downloaded once).</li>
         <li><b>R is not needed.</b> Only the optional comparison with PTHA18 (the last box below) uses it.</li>
@@ -95,10 +95,10 @@ cd &lt;the cloned folder&gt;</pre></div>
       <div class="tabs">
         <button data-pane="gs-ps" class="on">Windows PowerShell</button><button data-pane="gs-cmd">Windows cmd</button><button data-pane="gs-unix">macOS and Linux</button>
       </div>
-      <div class="pane on" id="gs-ps"><div class="code"><pre>py -3.13 -m venv .venv
+      <div class="pane on" id="gs-ps"><div class="code"><pre>py -m venv .venv
 .venv\Scripts\Activate.ps1
 pip install -r requirements.txt</pre></div>If PowerShell refuses to run the activation script, type <code>Set-ExecutionPolicy -Scope CurrentUser RemoteSigned</code> once, and activate again.</div>
-      <div class="pane" id="gs-cmd"><div class="code"><pre>py -3.13 -m venv .venv
+      <div class="pane" id="gs-cmd"><div class="code"><pre>py -m venv .venv
 .venv\Scripts\activate.bat
 pip install -r requirements.txt</pre></div></div>
       <div class="pane" id="gs-unix"><div class="code"><pre>python3 -m venv .venv
@@ -229,7 +229,7 @@ pip install -r requirements.txt</pre></div></div>
   <div class="code"><pre><span class="cm"># once</span>
 git clone &lt;repository URL&gt;
 cd &lt;the cloned folder&gt;
-py -3.13 -m venv .venv
+py -m venv .venv
 .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 

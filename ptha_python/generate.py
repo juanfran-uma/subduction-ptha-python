@@ -532,8 +532,9 @@ def main():
     print("=" * 70)
     print(f"Generating '{folder}/' for {region['title']}")
     print(f"  SLAB2.0 prefix '{region['prefix']}', PTHA18 zone '{ptha18_zone}'")
-    print(f"  --ptha={args.ptha}  ({'may read PTHA18 files (width, row count, scaling, '
-          'comparisons)' if use_ptha else 'steps 1-7 and 9 read no PTHA18 or rptha file; only step 8 does'})")
+    ptha_note = ("may read PTHA18 files (width, row count, scaling, comparisons)" if use_ptha
+                 else "steps 1-7 and 9 read no PTHA18 or rptha file; only step 8 does")
+    print(f"  --ptha={args.ptha}  ({ptha_note})")
     discretizer_note = {
         "optimal": "rptha's own mesh; repaired only if it has folded, "
                    "collapsed or overlapping cells",
