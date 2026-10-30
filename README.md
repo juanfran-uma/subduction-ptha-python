@@ -87,7 +87,7 @@ The file is copied into the folder's `inputs/geometry/`. `--mesh-file` cannot be
 
 ## Example results
 
-`examples/` holds four finished runs you can compare with your own: Kermadec-Tonga and Cascadia (Pacific, each with PTHA18's own run next to it) and the Calabrian and Hellenic arcs (Mediterranean). A run of the Calabria example from a clean copy of the repository reproduced it exactly (identical files). See [`examples/README.md`](examples/README.md) for the commands and the headline numbers.
+`examples/` holds four finished runs you can compare with your own: Kermadec-Tonga and Cascadia (Pacific, each with PTHA18's own run next to it) and the Calabrian and Hellenic arcs (Mediterranean). A run of the Calabria example from a fresh clone of this repository gave the same numbers as the example (the files differ only in line endings). See [`examples/README.md`](examples/README.md) for the commands and the headline numbers.
 
 ## Repository layout
 

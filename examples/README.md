@@ -20,7 +20,7 @@ python ptha_python/generate.py calabria --zone calabria2 --folder calabria2 --pt
 python calabria2/steps/step_total.py --skip-official
 ```
 
-Then compare the files in `calabria2/outputs/` with the ones in `examples/new_zones/calabria2/outputs/`. When we did this from a clean copy of the repository (the other three examples were not repeated), the Calabria run gave **byte-identical** `rate_curves.csv`, `exceedance_rate_percentiles.csv`, `scenario_rates_calabria2.csv`, `logic_tree_summary.csv` and `mesh/mesh.dat`. If yours differ, something in the setup is different (the options of `generate.py`, a package version, or a newer GCMT month in step 4).
+Then compare the files in `calabria2/outputs/` with the ones in `examples/new_zones/calabria2/outputs/`. We did this from a fresh clone of the repository (the other three examples were not repeated): `rate_curves.csv`, `exceedance_rate_percentiles.csv`, `scenario_rates_calabria2.csv`, `logic_tree_summary.csv` and `mesh/mesh.dat` came out with **the same contents**. They are not byte for byte equal on Windows, because the repository stores line endings as LF and a Windows run writes CRLF, so compare ignoring them (for example `diff --strip-trailing-cr a b`, or load both CSV files in pandas). If the numbers differ, something in the setup is different (the options of `generate.py`, a package version, or a newer GCMT month in step 4).
 
 The `generate.py` options of every example are also written in its `RUN.html`.
 
