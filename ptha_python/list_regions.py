@@ -14,8 +14,11 @@ Which SLAB product a given PTHA18 zone actually uses is decided by
 generate.py/official_geometry_params.py's slab_product_for_zone(): a zone name
 ending in "2" used SLAB2.0, every other zone used SLAB1.0 (ReportPTHA.pdf
 p.11-12). SLAB1.0 has no ScienceBase catalog of its own, it reuses the same
-three-letter region codes as SLAB2.0 (see ZONE_TO_SLAB1_REGION), so the second
-table below just re-groups the same 27 regions by their SLAB1.0 zones instead.
+three-letter region codes as SLAB2.0 (see ZONE_TO_SLAB1_REGION), except Central America
+(cam in SLAB2.0, mex in SLAB1.0), so the second table below just re-groups the same 27
+regions by their SLAB1.0 zones instead. Only 13 of them exist as SLAB1.0 grids: alu, cas,
+izu, kur, ker, mex, phi, ryu, sam, sco, sol, sum, van (checked on earthquake.usgs.gov;
+for the others USGS answers 403/AccessDenied because the file does not exist).
 
 Run from the repository root:
     python ptha_python/list_regions.py
@@ -63,7 +66,7 @@ def main():
 
     print()
     print("=" * 78)
-    print("SLAB1.0 regions (same 3-letter codes as SLAB2.0, reused per-zone --")
+    print("SLAB1.0 regions (same 3-letter codes as SLAB2.0 except cam -> mex, reused per-zone --")
     print("see ZONE_TO_SLAB1_REGION; grids fetched from earthquake.usgs.gov)")
     print("=" * 78)
     print(f"{'Prefix':<8} {'Region':<32} {'PTHA18 zones using SLAB1.0'}")

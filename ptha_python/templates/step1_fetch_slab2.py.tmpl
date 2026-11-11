@@ -77,6 +77,8 @@ in a normal browser (which passes the challenge automatically) instead:
   SLAB2.0 (zone names ending in '2', e.g. calabria2, kermadectonga2):
     This region's item:         https://www.sciencebase.gov/catalog/item/{{SCIBASE_ITEM}}
     Generic search, any region: https://www.sciencebase.gov/catalog/items?q=Slab2+{{SLAB2_REGION_PHRASE}}
+    All regions in one list:    https://www.sciencebase.gov/catalog/item/5aa1b00ee4b0b1c392e86467
+                                (the Slab2 collection, one child item per region)
     Download the item archive (the "Download all files" zip, tens of MB)
     and extract the single "<region>_slab2_dep_*.grd" member into:
         {{FOLDER}}/data/slab2/          <- this zone's own folder, checked first
@@ -113,7 +115,7 @@ sys.path.insert(0, os.path.join(ROOT, "{{PKG}}", "lib"))  # helper modules
 from official_geometry_params import (find_depth_grid_for_zone,  # noqa: E402
                                       download_depth_grid_slab1, read_grid,
                                       slab_product_for_zone,
-                                      ZONE_TO_SLAB2_REGION)
+                                      ZONE_TO_SLAB1_REGION, ZONE_TO_SLAB2_REGION)
 from berryman_params import berryman_cutoff_km, BERRYMAN_ROWS  # noqa: E402
 import slab_contours as sc  # noqa: E402
 
@@ -221,7 +223,8 @@ def _cloudflare_exit():
         "hand in a normal browser instead (it passes the challenge "
         "automatically):\n\n"
         f"  This region's item:         https://www.sciencebase.gov/catalog/item/{SCIBASE_ITEM}\n"
-        "  Generic search, any region: https://www.sciencebase.gov/catalog/items?q=Slab2+{{SLAB2_REGION_PHRASE}}\n\n"
+        "  Generic search, any region: https://www.sciencebase.gov/catalog/items?q=Slab2+{{SLAB2_REGION_PHRASE}}\n"
+        "  All regions in one list:    https://www.sciencebase.gov/catalog/item/5aa1b00ee4b0b1c392e86467\n\n"
         "  Download the item archive (the \"Download all files\" zip, tens "
         "of MB) and extract the single \"<region>_slab2_dep_*.grd\" member "
         "into:\n"
@@ -415,7 +418,8 @@ def main(argv=None):
         print("  are rebuilt on the clipped contours (step_total.py does "
               "that for you).")
 
-    region = ZONE_TO_SLAB2_REGION.get(PTHA18_ZONE_NAME, SLAB2_PREFIX)
+    region = (ZONE_TO_SLAB1_REGION if slab_product_for_zone(PTHA18_ZONE_NAME) == "SLAB1.0"
+              else ZONE_TO_SLAB2_REGION).get(PTHA18_ZONE_NAME, SLAB2_PREFIX)
     product = slab_product_for_zone(PTHA18_ZONE_NAME)
     print(f"  SLAB product: {product}  (PTHA18's own naming rule: a zone "
           f"name ending in '2' used SLAB2.0, this one is '{PTHA18_ZONE_NAME}'"

@@ -93,6 +93,9 @@ ZONE_TO_SLAB2_REGION = {
 # ZONE_TO_SLAB2_REGION in case a future zone's SLAB1.0 and SLAB2.0 region
 # codes ever diverge.
 ZONE_TO_SLAB1_REGION = dict(ZONE_TO_SLAB2_REGION)
+# SLAB1.0 calls the SLAB2.0 "Central America" region (cam) by another code: mex
+# (cam_slab1.0_clip.grd does not exist on USGS's file store, mex_slab1.0_clip.grd does).
+ZONE_TO_SLAB1_REGION["mexico"] = "mex"
 
 
 def slab_product_for_zone(zone):

@@ -58,7 +58,7 @@ SZP = os.path.join(_RPTHA_ROOT, "rptha", "R", "examples", "austptha_template", "
 sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(HERE, "lib"))  # helper modules
 from slab2_catalog import by_id, find_region, guess_ptha18_zones  # noqa: E402
-from official_geometry_params import width_km, official_area_and_dip  # noqa: E402
+from official_geometry_params import width_km, official_area_and_dip, ZONE_TO_SLAB1_REGION  # noqa: E402
 from berryman_params import (berryman_cutoff_km, berryman_coupling,  # noqa: E402
                              berryman_b_anchor, berryman_mw_max_observed,
                              ZONE_TO_BERRYMAN_SEGMENTS, ZONE_DEFAULT_CLIP,
@@ -600,7 +600,7 @@ def main():
         # Islands-Japan"), the same string download_depth_grid() itself
         # searches on, so the link actually finds this zone's item.
         "SLAB2_REGION_PHRASE": urllib.parse.quote(region["title"]),
-        "SLAB1_REGION_PREFIX": region["prefix"],
+        "SLAB1_REGION_PREFIX": ZONE_TO_SLAB1_REGION.get(ptha18_zone, region["prefix"]),
         "CLIP_BBOX": repr(clip) if clip else "None",
         "TRENCH_ENDS": repr(trench_ends) if trench_ends else "None",
         "VARIABLE_MU": "True" if args.variable_mu == "on" else "False",
