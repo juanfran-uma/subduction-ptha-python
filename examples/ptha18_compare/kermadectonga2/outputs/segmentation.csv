@@ -1,2 +1,5 @@
 source_representation,role,weight
-kermadectonga2,unsegmented,1
+kermadectonga2,unsegmented,0.5
+kermadectonga2_tonga,segment,0.5
+kermadectonga2_kermadec,segment,0.5
+kermadectonga2_hikurangi,segment,0.5

@@ -830,6 +830,19 @@ def variable_mu_section(d):
                if n_obs <= 2 else
                f"This zone has {n_obs} GCMT earthquakes in LEVEL 3")
 
+    # on a segmented zone this card holds the unsegmented model alone (one half of
+    # LEVEL 0's 0.5/0.5 mix); the HS/VAUS tables and the netCDF hold the mix
+    zone_c = os.path.join(OUT_DIR, f"scenario_rates_{SUFFIX}_source_zone.csv")
+    zone_v = os.path.join(OUT_DIR, f"scenario_rates_{SUFFIX}_source_zone_variable_mu.csv")
+    mix_note = ""
+    if os.path.exists(zone_c) and os.path.exists(zone_v):
+        mix_c = float(pd.read_csv(zone_c)["rate_mean"].sum())
+        mix_v = float(pd.read_csv(zone_v)["rate_mean"].sum())
+        mix_note = (f"<p><b>Segmented zone.</b> The numbers in this card are those of the "
+                    f"unsegmented model alone, one half of LEVEL 0's 0.5 / 0.5 mix. The zone's own "
+                    f"scenario rates, the mix, add up to {mix_c:.4g} (constant shear modulus) and "
+                    f"{mix_v:.4g} (variable); the HS and VAUS tables and the netCDF hold those.</p>")
+
     hs = d.get("hs_summary")
     hs_note = ""
     if hs is not None and "variable_mu_rate_mean" in hs.columns:
@@ -865,6 +878,7 @@ def variable_mu_section(d):
     </table>
     <p class="sec-note">Rates per year (return period). The first two columns use the constant-rigidity magnitude, the scale every scenario is built on; the last one counts each scenario at its relabelled, real magnitude, as a catalogue would see it. LEVEL 3 weights: prior to posterior TVD {tvd_c:.3f} with constant rigidity, {tvd_v:.3f} with variable; between the two posteriors {tvd_cv:.3f}. Sum of all scenario rates: {tot_v:.4g} against {tot_c:.4g} per year ({tot_v/tot_c:.4f} times).</p>
     {hs_note}
+    {mix_note}
     <div class="callout good">
       <span class="lbl">What this means for the tsunami maps</span>
       In PTHA18's method no scenario changes: same cells, same slip, same tsunami. What changes is how often each scenario happens, only through the LEVEL 3 weights. {few_obs}: the rates above move by the ratio shown. The real magnitude of each scenario (<code>variable_mu_Mw</code>) is what to quote when a scenario is compared with a real earthquake, or when a scenario of a given magnitude is chosen for a map: a "real Mw 8" on the shallow rows is a constant-rigidity Mw of about {8 - min(r['shift'] for r in rows) if rows else 8:.1f}, with that much more slip.

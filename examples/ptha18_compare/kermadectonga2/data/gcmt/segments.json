@@ -1,0 +1,50 @@
+[
+  {
+    "plate_pair": "PA\\TO",
+    "segment_key": "tonga",
+    "berryman_rows": [
+      "Tonga"
+    ],
+    "alongstrike_slice": [
+      1,
+      23
+    ],
+    "_end_distance_km": [
+      2.3,
+      4.8
+    ],
+    "n_events": 3
+  },
+  {
+    "plate_pair": "PA\\KE",
+    "segment_key": "kermadec",
+    "berryman_rows": [
+      "Kermadec"
+    ],
+    "alongstrike_slice": [
+      24,
+      57
+    ],
+    "_end_distance_km": [
+      11.4,
+      2.3
+    ],
+    "n_events": 6
+  },
+  {
+    "plate_pair": "PA\\HF",
+    "segment_key": "hikurangi",
+    "berryman_rows": [
+      "H-K-T Hikurangi"
+    ],
+    "alongstrike_slice": [
+      58,
+      73
+    ],
+    "_end_distance_km": [
+      1.6,
+      11.4
+    ],
+    "n_events": 0
+  }
+]
