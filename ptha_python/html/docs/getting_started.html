@@ -202,6 +202,24 @@ pip install -r requirements.txt</pre></div></div>
   </details>
 
   <details class="deep">
+    <summary>Extra: reproduce a finished example <span class="opt-tag">optional, checks your installation</span></summary>
+    <div class="body">
+      <p class="why"><b>What this does:</b> the folder <code>examples/</code> of the repository holds four finished runs. If you generate the same zone with the same options and run it, your numbers should match theirs. That tells you that your installation works.</p>
+      <p>Use exactly the options of the table, because a different option gives a different result. They are also written in the <code>RUN.html</code> of every example. Then run the folder (step 6 of this page) and compare.</p>
+      <div class="tbl"><table class="fixed">
+        <colgroup><col style="width:28%"><col style="width:72%"></colgroup>
+        <tr><th>Example</th><th>Generate it with (then <code>python FOLDER/steps/step_total.py --skip-official</code>)</th></tr>
+        <tr><td><code>kermadectonga2</code></td><td><code>python ptha_python/generate.py kermadec --zone kermadectonga2 --folder kermadectonga2 --ptha false --variable-mu on --segmented true</code></td></tr>
+        <tr><td><code>cascadia</code></td><td><code>python ptha_python/generate.py cascadia --zone cascadia --folder cascadia --ptha false --variable-mu on</code></td></tr>
+        <tr><td><code>calabria2</code></td><td><code>python ptha_python/generate.py calabria --zone calabria2 --folder calabria2 --ptha false --rupture-size local</code></td></tr>
+        <tr><td><code>hellenic2</code></td><td><code>python ptha_python/generate.py hellenic --zone hellenic2 --folder hellenic2 --ptha false --rupture-size local</code></td></tr>
+      </table></div>
+      <p><b>How to compare.</b> Open the same file in your folder and in <code>examples/&lt;group&gt;/&lt;zone&gt;/</code>, for example <code>outputs/rate_curves.csv</code>, <code>outputs/exceedance_rate_percentiles.csv</code> and <code>mesh/mesh.dat</code>. A Windows run writes CRLF line endings and the repository stores LF, so ignore them (<code>diff --strip-trailing-cr a b</code>, or load both CSV files in pandas).</p>
+      <p><b>What to expect.</b> The headline numbers (the exceedance rate at Mw 7.5, 8.0, 8.5 and 9.0) are the same to three digits. The files agree to about 1e-7 in relative terms, and to about 4e-4 in the percentiles of Kermadec-Tonga, because <code>requirements.txt</code> only sets minimum versions and a newer numpy, scipy or matplotlib changes the last digits. To get the very same digits, install the versions listed in <a href="../../../examples/README.md">examples/README.md</a>, which also has the table of headline numbers. The Pacific examples also hold <code>outputs_official/</code> (PTHA18's own run, from step 8): it is not reproduced without R.</p>
+    </div>
+  </details>
+
+  <details class="deep">
     <summary>Extra: compare with PTHA18 <span class="opt-tag">optional, needs R</span></summary>
     <div class="body">
       <p class="why"><b>What this does:</b> for a zone that PTHA18 modelled, it also runs the official PTHA18 inputs and puts the two results side by side in the report.</p>
