@@ -25,6 +25,19 @@ import numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, os.pardir, os.pardir))
 ZONE = "kermadectonga2"
+
+def slab_name():
+    """The SLAB product this example's step 1 used (read from its raster name); if that is unknown,
+    the PTHA18 rule: a zone name ending in 2 used SLAB2.0, any other SLAB1.0."""
+    try:
+        raster = json.load(open(os.path.join(EX, "data", "step1_contours_info.json"))).get("raster", "").lower()
+    except (OSError, ValueError):
+        raster = ""
+    if "slab1" in raster:
+        return "SLAB1.0"
+    if "slab2" in raster:
+        return "SLAB2.0"
+    return "SLAB2.0" if ZONE.endswith("2") else "SLAB1.0"
 EX = os.path.join(ROOT, "examples", "ptha18_compare", ZONE)
 BLUE, ORANGE = "#2a78d6", "#eb6834"          # categorical slots 1 and 2 of the reference palette
 INK, INK2, GRID, SURF = "#0b0b0b", "#52514e", "#e6e4de", "#fcfcfb"
@@ -241,12 +254,12 @@ def pipeline_diagram(c):
          f'<defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">'
          f'<path d="M0 0L10 5L0 10z" fill="{INK2}"/></marker></defs>',
          f'<text x="10" y="22" class="lane" fill="{BLUE}">nc from the Drive (the PTHA18 table): only READ, not re-run here</text>',
-         f'<text x="10" y="192" class="lane" fill="{ORANGE}">This pipeline (Python): SLAB2.0 from scratch, --ptha false</text>']
+         f'<text x="10" y="192" class="lane" fill="{ORANGE}">This pipeline (Python): {slab_name()} from scratch, --ptha false</text>']
     xs = [10, 205, 400, 595, 790]
     top = [("Unit-source table", f"{c['units_D']} unit sources"), ("Uniform-slip scenarios", f"FAUS, {c['par_D']:,} ruptures"),
            ("Logic tree rates", "constant and variable rigidity"), ("Random-slip scenarios", "HS, 15+ per FAUS rupture"),
            ("HS table (.nc)", f"{c['rows_D']:,} rows")]
-    bot = [("Steps 1-2: SLAB2.0 mesh", f"{c['units_O']} unit sources"), ("Step 7 ruptures", f"FAUS, {c['par_O']:,} ruptures"),
+    bot = [(f"Steps 1-2: {slab_name()} mesh", f"{c['units_O']} unit sources"), ("Step 7 ruptures", f"FAUS, {c['par_O']:,} ruptures"),
            ("Step 7 + 7c rates", "same recipe, validated"), ("Step 7b slip fields", "HS, 15+ per FAUS rupture"),
            ("Step 7d export", f"{c['rows_O']:,} rows")]
     pills = [("differs: other mesh", 0), ("differs: other mesh", 0),
@@ -688,18 +701,31 @@ def main():
 {table(["Mw", "PTHA18 published", "Ours", "Ours / PTHA18"], d1_rows)}
 <p>The totals are {seg_s.sum():.4f} (ours) and {pub_s.sum():.4f} (PTHA18), {gap_total:.0f}% apart. At Mw 7.2 to 8.0 ours is between {min(lo_r):.2f} and {max(lo_r):.2f} times PTHA18's; the largest difference is at Mw {xr[worst]:.1f} ({ratio_s[worst]:.2f} times). Differences come from our own mesh ({len(mr)} unit sources against PTHA18's {len(olon)}), our parameters (literature and the GCMT catalogue); this report does not separate them. The random slip fields of the HS table do not enter these parent rates.</p>"""
     ratio = {m: pO[m]["rate"] / pD[m]["rate"] for m in mws if pD[m]["rate"] > 0}
-    cross = next((m for m in mws if m in ratio and ratio[m] > 1), None)
     tail_rate = ("Section D.1 separates the effect of the segmentation from that of the other inputs." if full_d1 else
                  "Both are the same kind of model, so these differences come from the inputs (mesh, parameters, catalogue), not from the model structure." if not ptha_seg else
                  "Section D.1 shows the gap to PTHA18's mix.")
-    if cross is None:
-        rate_text = "Our rates are lower than PTHA18's at every magnitude. " + tail_rate
+    # runs of magnitudes where our rate is above / below PTHA18's (the ratio may cross 1 any number of times)
+    runs = []
+    for m in mws:
+        if m not in ratio:
+            continue
+        up = ratio[m] > 1
+        if runs and runs[-1][0] == up:
+            runs[-1][2] = m
+            runs[-1][3][m] = ratio[m]
+        else:
+            runs.append([up, m, m, {m: ratio[m]}])
+    def run_txt(r):
+        up, m0, m1, rr = r
+        mm = max(rr, key=rr.get) if up else min(rr, key=rr.get)
+        rng = f"Mw {m0:.1f}" if m0 == m1 else f"Mw {m0:.1f} to {m1:.1f}"
+        return f"{'higher' if up else 'lower'} than PTHA18's at {rng} ({'up to' if up else 'down to'} {rr[mm]:.2f} times at Mw {mm:.1f})"
+    if not runs:
+        rate_text = "PTHA18's rate is 0 at every magnitude, so there is no ratio to compare. " + tail_rate
+    elif len(runs) == 1:
+        rate_text = "Our rates are " + run_txt(runs[0]).replace(" at Mw", " at every magnitude, Mw", 1) + ". " + tail_rate
     else:
-        low = [ratio[m] for m in mws if m in ratio and m < cross] or [1.0]
-        lo_txt = (f"Up to Mw {cross - 0.1:.1f} our rates are {abs(100*(1-max(low))):.0f} to {abs(100*(1-min(low))):.0f}% {'lower' if max(low) < 1 else 'different'} than PTHA18's; from Mw {cross:.1f} they are higher"
-                  if cross > mws[0] else f"Our rates are higher than PTHA18's from Mw {cross:.1f}")
-        mmax = max(ratio, key=ratio.get)
-        rate_text = (lo_txt + f", up to {max(ratio.values()):.1f} times at Mw {mmax:.1f} (PTHA18's rate there is {pD[mmax]['rate']:.1e} events per year, which is {100 * pD[mmax]['rate'] / tot(D, 'rate_annual'):.2g}% of its total). " + tail_rate)
+        rate_text = "Our rates are " + "; ".join(run_txt(r) for r in runs) + ". " + tail_rate
     # ---- the texts that depend on the zone kind
     total_card = ('<div class="card"><div class="k">Total annual rate</div><div class="v">' + f"{tot(O, 'rate_annual'):.3f} vs {tot(D, 'rate_annual'):.3f}" + '</div><div class="s">' + (
         f"ours vs PTHA18, {gap_seg:.0f}% apart. The unsegmented half alone would be {gap_uns:.0f}% apart: PTHA18 publishes a mix with a segmented model and so does this example (section D)" if full_d1 else
@@ -708,15 +734,15 @@ def main():
     max_w = max(vs["weight_with_nonzero_rate"]["max_abs_diff"], vs["variable_mu_weight_with_nonzero_rate"]["max_abs_diff"])
     max_r = max(vs["rate_mean (constant)"]["max_rel_diff"], vs["variable_mu rate_mean"]["max_rel_diff"])
     exact_txt = (f"Run on PTHA18's own inputs, our engine reproduces the published weights to {max_w:.0e} and the parent rates to {max_r:.0e} (percentiles are not compared). "
-                 f"Our example, built from SLAB2.0 alone, ends {gap_total:.0f}% from PTHA18's total rate. ")
+                 f"Our example, built from {slab_name()} alone, ends {gap_total:.0f}% from PTHA18's total rate. ")
     tail_one = ("The remaining differences come from the inputs, not from the file: our mesh (the number of ruptures and rows), our own segment boundaries and parameters, and the random slip fields." if full_d1 else
                 "This zone has no segments, so both are one model; the remaining differences come from the inputs, not from the file: our mesh (the number of ruptures and rows), our parameters and catalogue, and the random slip fields." if not ptha_seg else
                 "PTHA18 publishes this zone as a mix with a segmented model and our example is unsegmented; the remaining differences come from that and from our mesh, parameters and the random slip fields.")
     one_sentence = '<div class="note good"><b>In one sentence.</b> The file has the same layout as PTHA18\'s. ' + exact_txt + tail_one + "</div>"
-    how_html = (f"<p><b>What this report does.</b> (1) It reads PTHA18's published table; nothing of PTHA18 is recomputed from scratch (dashed blue boxes). (2) It builds our table from scratch with this pipeline (orange boxes): SLAB2.0 geometry, our own mesh and literature parameters (Berryman et al. 2015, Bird 2003), run with <code>{run_flags}</code>"
+    how_html = (f"<p><b>What this report does.</b> (1) It reads PTHA18's published table; nothing of PTHA18 is recomputed from scratch (dashed blue boxes). (2) It builds our table from scratch with this pipeline (orange boxes): {slab_name()} geometry, our own mesh and literature parameters (Berryman et al. 2015, Bird 2003), run with <code>{run_flags}</code>"
                 + (" (segments at the trench end points of Berryman et al. 2015)" if ours_seg else "")
                 + ", so steps 1 to 7 and 9 read no PTHA18 file. One input is PTHA18-derived: the table of peak-slip weights used by step 7b was recovered from PTHA18's published HS rates. (3) To test that our recipe is the same as PTHA18's, it also runs our engine on PTHA18's own input files and compares with the published numbers (section C). Both chains below have the same steps; what differs is what goes in at the start.</p>")
-    d_note = (f'<div class="note"><b>What differs, and why.</b> This pipeline was run with <code>{run_flags}</code>: it builds its own mesh from SLAB2.0 ({len(mr)} unit sources of {m_as} along strike by {m_dd} down dip; PTHA18 has {len(olon)} of {o_as} by {o_dd}), '
+    d_note = (f'<div class="note"><b>What differs, and why.</b> This pipeline was run with <code>{run_flags}</code>: it builds its own mesh from {slab_name()} ({len(mr)} unit sources of {m_as} along strike by {m_dd} down dip; PTHA18 has {len(olon)} of {o_as} by {o_dd}), '
               + ("places its segments at Berryman et al. (2015) end points, " if ours_seg else "") + "uses literature parameters, and draws its own random slip fields. "
               + (f"The mesh and the other inputs explain the counts (parents, rows) and a smaller part of the rates; the segmentation removes {share:.0f}% of the gap in the total rate: see D.1. " if full_d1 else
                  "The mesh explains the counts (parents, rows); the rates differ through our mesh, parameters and catalogue together, which this report does not separate: see D.1. ")
