@@ -1549,6 +1549,8 @@ ZONE_TO_BERRYMAN_SEGMENTS = {
     "sangihe": ["Kepulauan Sangihe"],
     "manokwari": ["Manokwari Trench"],
     "philippine": ["Philippine"],
+    # philippine2: the same zone built from SLAB2.0 (a name ending in '2' selects it)
+    "philippine2": ["Philippine"],
     # ryuku: PTHA18 segments this zone into "_nankai" (1-13, 13 units) and
     # "_ryuku" (14-40, 27 units), matching Berryman's Nankai/Ryukyu rows
     # directly. Ryukyu is longer -> dominant.
@@ -1601,6 +1603,11 @@ ZONE_TO_BERRYMAN_SEGMENTS = {
     # Cyprus arc: the eastern end of SLAB2's Hellenic raster (hel_slab2, to
     # 35.65E), run as its own zone with Berryman's two Cyprus rows.
     "cyprus2": ["Cyprus western segment", "Cyprus eastern segment"],
+    # Manila Trench (row 69) and Halmahera (row 78): SLAB2 publishes both
+    # ("Manila Trench" man_slab2_dep_*.grd, "Halmahera" hal_slab2_dep_*.grd, no
+    # SLAB1.0 grid), PTHA18 never modelled either, so the names end in "2".
+    "manila2": ["Manila"],
+    "halmahera2": ["Halmahera"],
 }
 
 # Dominant (longer) segment per zone, used only for the cutoff derivation.
@@ -1627,6 +1634,7 @@ ZONE_DOMINANT_SEGMENT = {
     "sangihe": "Kepulauan Sangihe",
     "manokwari": "Manokwari Trench",
     "philippine": "Philippine",
+    "philippine2": "Philippine",
     "ryuku": "Nankai/Ryukyu Ryukyu",
     "mexico": "Mexico/Central America Whole Margin",
     "sandwich": "South Sandwich",
@@ -1642,6 +1650,8 @@ ZONE_DOMINANT_SEGMENT = {
     "hellenic_west2": "Hellenic western segment",
     "hellenic_east2": "Hellenic eastern segment",
     "cyprus2": "Cyprus western segment",
+    "manila2": "Manila",
+    "halmahera2": "Halmahera",
 }
 
 # Zones from the 51-zone PTHA18 unsegmented-row list this module does NOT
