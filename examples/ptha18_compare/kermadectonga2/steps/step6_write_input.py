@@ -109,7 +109,7 @@ PTHA18_ZONE_NAME = "kermadectonga2"
 USE_PTHA = False
 
 # --segmented flag from generate.py (LEVEL 0). False: no segments in the input.
-SEGMENTED = False
+SEGMENTED = True
 # generate.py --segment-boundaries: where the segments end, "berryman" (Table 3.1 end points) or "bird"
 SEGMENT_BOUNDARIES = "berryman"
 

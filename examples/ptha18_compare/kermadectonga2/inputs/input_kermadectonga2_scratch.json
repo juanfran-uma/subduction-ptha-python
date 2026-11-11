@@ -241,7 +241,121 @@
       4.5
     ]
   },
-  "segments": {},
+  "segments": {
+    "tonga": {
+      "alongstrike_slice": [
+        1,
+        23
+      ],
+      "rates": {
+        "observed_seismicity": {
+          "threshold_Mw": 7.15,
+          "count": 3,
+          "duration_years": 41.163586584531146,
+          "observed_Mw": [
+            7.311023142582877,
+            7.654708005227737,
+            7.998953210641997
+          ]
+        },
+        "mw_max_observed": 8.0,
+        "coupling": {
+          "prior_type": "spreadsheet_and_uniform_50_50",
+          "uniform_range": [
+            0.1,
+            1.3
+          ],
+          "spreadsheet_values": [
+            0.1,
+            0.2,
+            0.7
+          ],
+          "prob_zero_coupling": 0.0
+        }
+      },
+      "_plate_pair": "PA\\TO",
+      "_berryman_rows": [
+        "Tonga"
+      ],
+      "_boundaries": "berryman",
+      "_provenance": "DERIVED: along-strike columns 1-23 of this run's own mesh, between the trench end points Berryman et al. (2015) Table 3.1 gives segment 'Tonga'. No PTHA18 file was read to place this boundary."
+    },
+    "kermadec": {
+      "alongstrike_slice": [
+        24,
+        57
+      ],
+      "rates": {
+        "observed_seismicity": {
+          "threshold_Mw": 7.15,
+          "count": 6,
+          "duration_years": 41.163586584531146,
+          "observed_Mw": [
+            7.163746972354874,
+            7.288982532857242,
+            7.415383125216431,
+            7.497551369273198,
+            7.820068341726527,
+            7.909142477866256
+          ]
+        },
+        "mw_max_observed": 8.1,
+        "coupling": {
+          "prior_type": "spreadsheet_and_uniform_50_50",
+          "uniform_range": [
+            0.1,
+            1.3
+          ],
+          "spreadsheet_values": [
+            0.2,
+            0.3,
+            0.75
+          ],
+          "prob_zero_coupling": 0.0
+        }
+      },
+      "_plate_pair": "PA\\KE",
+      "_berryman_rows": [
+        "Kermadec"
+      ],
+      "_boundaries": "berryman",
+      "_provenance": "DERIVED: along-strike columns 24-57 of this run's own mesh, between the trench end points Berryman et al. (2015) Table 3.1 gives segment 'Kermadec'. No PTHA18 file was read to place this boundary."
+    },
+    "hikurangi": {
+      "alongstrike_slice": [
+        58,
+        73
+      ],
+      "rates": {
+        "observed_seismicity": {
+          "threshold_Mw": 7.15,
+          "count": 0,
+          "duration_years": 41.163586584531146,
+          "observed_Mw": []
+        },
+        "mw_max_observed": 8.0,
+        "coupling": {
+          "prior_type": "spreadsheet_and_uniform_50_50",
+          "uniform_range": [
+            0.1,
+            1.3
+          ],
+          "spreadsheet_values": [
+            0.4,
+            0.54,
+            0.7
+          ],
+          "prob_zero_coupling": 0.0
+        }
+      },
+      "_plate_pair": "PA\\HF",
+      "_berryman_rows": [
+        "H-K-T Hikurangi"
+      ],
+      "_boundaries": "berryman",
+      "_provenance": "DERIVED: along-strike columns 58-73 of this run's own mesh, between the trench end points Berryman et al. (2015) Table 3.1 gives segment 'H-K-T Hikurangi'. No PTHA18 file was read to place this boundary."
+    }
+  },
   "percentiles": {
     "threshold_Mw": [
       7.2,

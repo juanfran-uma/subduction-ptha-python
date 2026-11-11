@@ -4,8 +4,8 @@ Four finished runs, two around the Pacific and two in the Mediterranean, so that
 
 | Example | Zone | Mesh (rows x columns) | How it was generated |
 |---|---|---|---|
-| `ptha18_compare/kermadectonga2` | Kermadec-Tonga (Pacific), modelled by PTHA18 | 3 x 73 | `generate.py kermadec --zone kermadectonga2 --ptha false` |
-| `ptha18_compare/cascadia` | Cascadia (Pacific), modelled by PTHA18 | 3 x 23 | `generate.py cascadia --zone cascadia --ptha false` |
+| `ptha18_compare/kermadectonga2` | Kermadec-Tonga (Pacific), modelled by PTHA18 | 3 x 73 | `generate.py kermadec --zone kermadectonga2 --ptha false --variable-mu on --segmented true` |
+| `ptha18_compare/cascadia` | Cascadia (Pacific), modelled by PTHA18 | 3 x 23 | `generate.py cascadia --zone cascadia --ptha false --variable-mu on` |
 | `new_zones/calabria2` | Calabrian arc (Mediterranean), not modelled by PTHA18 | 6 x 15 | `generate.py calabria --zone calabria2 --ptha false --rupture-size local` |
 | `new_zones/hellenic2` | Hellenic arc (Mediterranean), not modelled by PTHA18 | 7 x 30 | `generate.py hellenic --zone hellenic2 --ptha false --rupture-size local` |
 
@@ -20,7 +20,7 @@ python ptha_python/generate.py calabria --zone calabria2 --folder calabria2 --pt
 python calabria2/steps/step_total.py --skip-official
 ```
 
-Then compare the files in `calabria2/outputs/` with the ones in `examples/new_zones/calabria2/outputs/`. We did this from a fresh clone of the repository (the other three examples were not repeated): `rate_curves.csv`, `exceedance_rate_percentiles.csv`, `scenario_rates_calabria2.csv`, `logic_tree_summary.csv` and `mesh/mesh.dat` came out with **the same contents**. They are not byte for byte equal on Windows, because the repository stores line endings as LF and a Windows run writes CRLF, so compare ignoring them (for example `diff --strip-trailing-cr a b`, or load both CSV files in pandas). If the numbers differ, something in the setup is different (the options of `generate.py`, a package version, or a newer GCMT month in step 4).
+Then compare the files in `calabria2/outputs/` with the ones in `examples/new_zones/calabria2/outputs/`. We did this from a fresh clone of the repository (the other three examples were not repeated): `rate_curves.csv`, `exceedance_rate_percentiles.csv`, `scenario_rates_calabria2.csv`, `logic_tree_summary.csv` and `mesh/mesh.dat` came out with **the same contents**. They are not byte for byte equal on Windows, because the repository stores line endings as LF and a Windows run writes CRLF, so compare ignoring them (for example `diff --strip-trailing-cr a b`, or load both CSV files in pandas). If the numbers differ, something in the setup is different (the options of `generate.py`, a package version, or a newer GCMT month in step 4). `requirements.txt` only sets minimum versions: with newer releases the results agree to about 1e-7 in relative terms (Calabria, Hellenic, Cascadia) and to about 4e-4 in the Kermadec-Tonga percentiles, and the headline numbers below do not change. The examples were generated with numpy 2.3.2, scipy 1.16.1, pandas 2.3.2, matplotlib 3.10.6, shapely 2.1.1 and geopandas 1.1.2.
 
 The `generate.py` options of every example are also written in its `RUN.html`.
 

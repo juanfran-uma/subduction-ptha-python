@@ -29,7 +29,7 @@ Steps 7b (heterogeneous and variable-area slip), 7c (variable shear modulus, onl
 
 ## Quick start
 
-You need Python 3.11 or newer (tested on 3.11 and 3.13; older versions were not tested) and the packages in `requirements.txt`. Every command is run from the repository root, the folder that `git clone` creates.
+You need Python 3.11 or newer (tested on 3.11 and 3.13; older versions were not tested) and the packages in `requirements.txt`. The versions listed there are minimums, not exact versions: a newer release can change the last digits of the results (see `examples/README.md`). Every command is run from the repository root, the folder that `git clone` creates.
 
 ```
 git clone <repository URL>
