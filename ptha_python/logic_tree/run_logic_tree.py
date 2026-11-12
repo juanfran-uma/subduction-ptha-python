@@ -278,7 +278,7 @@ def figure_branch_fan(fig_dir, name, br, rate_fn=None,
         axs[1].semilogy(br.Mw_seq, pct[3, :], color=PY_AMBER, lw=1.3, ls="--",
                         zorder=3)
         axs[1].semilogy(br.Mw_seq, pct[0, :], color="purple", lw=1.1, ls="--",
-                        label="posterior 2.5/97.5 percentile", zorder=3)
+                        label="lower - upper confidence intervals", zorder=3)
         axs[1].semilogy(br.Mw_seq, pct[4, :], color="purple", lw=1.1, ls="--",
                         zorder=3)
     axs[1].semilogy(br.Mw_seq, mean_post, color="red", lw=1.8, marker="o",
